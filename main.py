@@ -52,7 +52,7 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(lambda message: message.text.lower() == "пользовательское соглашение")
 async def get_user_agreement(message: types.Message):
-    await message.reply('Пользовательское соглашение: ',)
+    await message.reply('Пользовательское соглашение: https://telegra.ph/Polzovatelskoe-soglashenie-07-13-5',)
 
 
 #___________Payment__Handlers___________
@@ -231,8 +231,8 @@ async def schedule_collecting_volumes():
 async def scheduler():
     aioschedule.every(1).days.at("12:00").do(unsubscribe)
     aioschedule.every(1).days.at("19:00").do(delivery)
-    aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
-    #aioschedule.every(1).minutes.do(collect_volumes_avg)
+    #aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
+    aioschedule.every(1).minutes.do(collect_volumes_avg)
     while True:
         if datetime.now(offset).weekday() < 5: 
             await aioschedule.run_pending()

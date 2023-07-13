@@ -22,9 +22,9 @@ headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0)
 cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
 s.close()
 workbook = load_workbook(filename='shares.xlsx')
+sheet = workbook.active
 
 def get_value_by_ticker(ticker):
-    sheet = workbook.active
     row_counter = 2
     while row_counter < 249:
         cell = sheet.cell(row = row_counter, column = 2)
@@ -38,12 +38,12 @@ async def fetch_stock(session, url, headers, cookies):
         return await response.json()
 
 async def one_stock(url, headers, cookies):
+
     async with aiohttp.ClientSession() as session:
         data = await fetch_stock(session, url, headers, cookies)
-        name = data['securities']['data'][0][9]
         return (
             data['securities']['data'][0][0], # SECID, 
-            name, # SECNAME
+            data['securities']['data'][0][2], # SECNAME
             data['securities']['data'][0][4], # LOTSIZE
             data['marketdata']['data'][0][20], # DAY CHANGE %
         )
