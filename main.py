@@ -226,7 +226,7 @@ async def schedule_collecting_avg_volumes():
         await collect_volumes_avg()
 
 async def volumes_collector():
-    aioschedule.every().day.at("12:43").do(schedule_collecting_avg_volumes)
+    aioschedule.every().day.at("12:50").do(schedule_collecting_avg_volumes)
     while True:
         await aioschedule.run_pending()
 
