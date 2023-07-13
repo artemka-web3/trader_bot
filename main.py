@@ -207,15 +207,6 @@ async def delivery():
         user_id = user[0]
         await bot.send_message(user_id, 'У тебя нет подписки на нашего бота, советуем тебе оформить ее как можно скорее и приглашать своих друзей сюда. Вызови /subscribe', reply_markup=keyb)
 
-async def scheduler():
-    aioschedule.every().monday.at("12:00").do(unsubscribe)
-    aioschedule.every().day.at("19:00").do(delivery)
-    while True:
-        if datetime.today().weekday() < 5: 
-            await aioschedule.run_pending()
-            await asyncio.sleep(1)
-
-
 async def collect_volumes_avg():
     global volumes_avg_prev
     volumes_avg_prev = await moex_async.get_prev_avg_volume()
@@ -226,16 +217,20 @@ async def schedule_collecting_avg_volumes():
         await collect_volumes_avg()
         await asyncio.sleep(60)  # Проверять время каждую минуту
 
-async def volumes_collector():
-    aioschedule.every().day.at("13:05").do(schedule_collecting_avg_volumes)
+async def scheduler():
+    aioschedule.every().monday.at("12:00").do(unsubscribe)
+    aioschedule.every().day.at("19:00").do(delivery)
+    aioschedule.every(24).hours.do(schedule_collecting_avg_volumes)
     while True:
-        await aioschedule.run_pending()
-        await asyncio.sleep(1)
+        if datetime.today().weekday() < 5: 
+            await aioschedule.run_pending()
+            await asyncio.sleep(1)
+
 
 async def on_startup(_):
     asyncio.create_task(main())
     asyncio.create_task(scheduler())
-    asyncio.create_task(volumes_collector())
+    asyncio.create_task(schedule_collecting_avg_volumes())
 
 
 if __name__ == '__main__':
