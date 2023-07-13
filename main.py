@@ -162,7 +162,7 @@ async def process_stock(stock, volume_avg_prev):
         print("CHECK VOLUME: ", check_volume)
         print("DATA 4: ", data[4])
         try:
-            if check_volume * 0 <= data[4]:
+            if check_volume * 10 <= data[4]:
                 for user in users_arr:
                     await bot.send_message(
                         user[0],
