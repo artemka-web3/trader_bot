@@ -23,7 +23,7 @@ cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
 s.close()
 workbook = load_workbook(filename='shares.xlsx')
 
-async def get_value_by_ticker(ticker):
+def get_value_by_ticker(ticker):
     sheet = workbook.active
     row_counter = 2
     while row_counter < 249:
@@ -31,8 +31,6 @@ async def get_value_by_ticker(ticker):
         if cell.value == ticker:
             name_cell = sheet.cell(row = row_counter, column = 3)
             return name_cell.value
-        else:
-            return "такого нет"
 
 # GET ONE STOCK DATA
 async def fetch_stock(session, url, headers, cookies):
@@ -42,7 +40,7 @@ async def fetch_stock(session, url, headers, cookies):
 async def one_stock(url, headers, cookies):
     async with aiohttp.ClientSession() as session:
         data = await fetch_stock(session, url, headers, cookies)
-        name = get_value_by_ticker(data['securities']['data'][0][0])
+        name = data['securities']['data'][0][9]
         return (
             data['securities']['data'][0][0], # SECID, 
             name, # SECNAME
@@ -50,7 +48,6 @@ async def one_stock(url, headers, cookies):
             data['marketdata']['data'][0][20], # DAY CHANGE %
         )
 
-        
     
 async def get_stock_data(security):
     url_get_sec = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}.json"
@@ -151,25 +148,6 @@ async def get_prevmin_stock_price(security):
                 else:
                     start_from_for_today += 1
 
-# GET ONE STOCK DATA
-async def fetch_stock(session, url, headers, cookies):
-    async with session.get(url, headers=headers, cookies=cookies) as response:
-        return await response.json()
-
-async def one_stock(url, headers, cookies):
-    async with aiohttp.ClientSession() as session:
-        data = await fetch_stock(session, url, headers, cookies)
-        name = await get_value_by_ticker(data['securities']['data'][0][0])
-        return [
-            data['securities']['data'][0][0], # SECID
-            name, # SEC NAME
-            data['securities']['data'][0][4], # LOTSIZE
-            data['marketdata']['data'][0][14], # DAY CHANGE %
-        ]
-    
-async def get_stock_data(security):
-    url_get_sec = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}.json"
-    return await one_stock(url_get_sec, headers, cookies)
 
 # PRICE CHANGE
 async def get_price_change(security):
@@ -225,8 +203,8 @@ async def get_prev_avg_volume(volumes_dict):
         print(volumes_dict[sec[0]])
     return volumes_dict
 
-loop = asyncio.get_event_loop()
-print(loop.run_until_complete(get_stock_data('ABRD')))
+# loop = asyncio.get_event_loop()
+# print(loop.run_until_complete(get_stock_data('ABRD')))
 
 # async def get_prev_avg_volume():
 #     global volumes_dict
