@@ -227,7 +227,7 @@ async def schedule_collecting_avg_volumes():
         await asyncio.sleep(60)  # Проверять время каждую минуту
 
 async def volumes_collector():
-    aioschedule.every().day.at("12:57").do(schedule_collecting_avg_volumes)
+    aioschedule.every().day.at("13:05").do(schedule_collecting_avg_volumes)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
