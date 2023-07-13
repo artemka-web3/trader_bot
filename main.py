@@ -28,7 +28,7 @@ dp = Dispatcher(bot)
 db = BotDB('database.db')
 
 
-@dp.message_handler(lambda message: message.text.lower() == "о боте", commands=['start', 'help'])
+@dp.message_handler(lambda message: message.text.lower() == 'о боте' or message.text.lower() == '/start' or message.text.lower() == '/help')
 async def send_welcome(message: types.Message):
     if not db.user_exists(message.from_user.id):
         start_command = message.text
@@ -162,7 +162,7 @@ async def process_stock(stock, volume_avg_prev):
         print("CHECK VOLUME: ", check_volume)
         print("DATA 4: ", data[4])
         try:
-            if check_volume * 10 <= data[4]:
+            if check_volume * 10f <= data[4]:
                 for user in users_arr:
                     await bot.send_message(
                         user[0],
