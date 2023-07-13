@@ -11,13 +11,15 @@ import datetime as dt
 from datetime import datetime, timedelta 
 from config import API_TOKEN, PAYMENT_TOKEN_TEST, PAYMENT_TOKEN_PROD, BOT_NICK
 import pytz
-from kb import keyb
+from pytz import timezone
+from kb import keyb_for_subed, keyb_for_unsubed
 
 
 # ___________Configure__logging___________
 logging.basicConfig(level=logging.INFO)
 offset = dt.timezone(timedelta(hours=3))
 volumes_avg_prev = {}
+collecting_avg_event = asyncio.Event()
 
 
 # ___________Initialize__bot__and__dispatcher___________
@@ -26,7 +28,7 @@ dp = Dispatcher(bot)
 db = BotDB('database.db')
 
 
-@dp.message_handler(commands=['start', 'help'])
+@dp.message_handler(lambda message: message.text.lower() == "о боте", commands=['start', 'help'])
 async def send_welcome(message: types.Message):
     if not db.user_exists(message.from_user.id):
         start_command = message.text
@@ -35,16 +37,23 @@ async def send_welcome(message: types.Message):
             if str(referer_id) != str(message.from_user.id):
                 db.add_user(message.from_user.id, int(referer_id))
                 try:
-                    await bot.send_message(int(referer_id), 'По вашей ссылке зарегался новый юзер', reply_markup=keyb)
+                    await bot.send_message(int(referer_id), 'По вашей ссылке зарегался новый юзер', reply_markup=keyb_for_unsubed)
                 except:
                     pass
             else:
                 db.add_user(message.from_user.id)
-                await message.answer("Нельзя регаться по своей же реф. ссылке!", reply_markup=keyb)
+                await message.answer("Нельзя регаться по своей же реф. ссылке!", reply_markup=keyb_for_unsubed)
         else:
             db.add_user(message.from_user.id)
+    if db.check_if_subed(message.from_user.id) == 0:
+        await message.reply("Привет! В этом боте ты сможешь получать данные об акциях, которыми можно торговать на Мос. бирже! \n Чтобы ты мог пользоваться возможностями бота, тебе надо купить подписку, нажав на кнопку под этим сообщением.", reply_markup=keyb_for_unsubed)
+    else:
+        await message.reply("описание бота описание бота описание бота описание бота описание бота описание бота описание бота описание бота", reply_markup=keyb_for_subed)
 
-    await message.reply("Привет! В этом боте ты сможешь получать данные об акциях, которыми можно торговать на Мос. бирже! \n Чтобы ты мог пользоваться возможностями бота, тебе надо купить подписку, нажав на кнопку под этим сообщением.", reply_markup=keyb)
+@dp.message_handler(lambda message: message.text.lower() == "пользовательское соглашение")
+async def get_user_agreement(message: types.Message):
+    await message.reply('Пользовательское соглашение: ',)
+
 
 #___________Payment__Handlers___________
 PRICE = types.LabeledPrice(label='Подписка на 1 месяц', amount=500*100) # 500 rub
@@ -56,7 +65,7 @@ async def subscribe(message: types.Message):
         db.add_user(message.from_user.id)
     else:
         if db.check_if_subed(message.from_user.id) == 1:
-            await message.answer("Вы уже подписаны!")
+            await message.answer("Вы уже подписаны!", reply_markup=keyb_for_subed)
         else:
             if PAYMENT_TOKEN_TEST.split(':')[1] == "TEST":
                 await bot.send_message(message.chat.id, 'Тестовый платеж')
@@ -90,7 +99,7 @@ async def successful_payment(message: types.Message):
     sub_start = datetime.now(offset)
     sub_end = datetime.now(offset) + timedelta(days=30)
     db.subcribe(message.chat.id, sub_end, sub_start)
-    await bot.send_message(message.chat.id, f'Платеж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!', reply_markup=keyb)
+    await bot.send_message(message.chat.id, f'Платеж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!', reply_markup=keyb_for_subed)
 
 #___________Referral__Things___________
 @dp.message_handler(lambda message: message.text.lower() == 'подписка' or message.text.lower() == '/profile')
@@ -109,19 +118,18 @@ async def get_profile_data(message: types.Message):
                 f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + 
                 f"Кол-во привлеченных пользователей: {ref_traffic}\n" +
                 f"Сколько денег помог привлечь боту: {0 if money_paid == None else money_paid}₽"+
-                f"\nДо конца подписки осталось {str(before_end_period)[:dot_index]}", reply_markup=keyb
+                f"\nДо конца подписки осталось {str(before_end_period)[:dot_index]}", reply_markup=keyb_for_subed
             )
         else:
-            await message.answer("Вы не подписаны", reply_markup=keyb)
+            await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
     else:
         db.add_user(message.from_user.id)
-        await message.answer("Вы не были занесены в БД, но я это исправил, подпишитесь на бота чтоб выполнить эту команду!", reply_markup=keyb)
+        await message.answer("Вы не были занесены в БД, но я это исправил, подпишитесь на бота чтоб выполнить эту команду!", reply_markup=keyb_for_unsubed)
 
 
 
 async def process_stock(stock, volume_avg_prev):
     while True:
-        try:
             users_arr = db.get_subed_users()
             current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
             current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
@@ -147,48 +155,48 @@ async def process_stock(stock, volume_avg_prev):
                 dir = "🟢"
             elif data[-3] < 0:
                 dir = "🔴"
-            check_volume = 0
-            if volume_avg_prev[str(stock[0])] is int or volume_avg_prev[str(stock[0])] is float:
-                check_volume = volume_avg_prev[stock[0]]
+            print(volume_avg_prev[stock[0]])
+            check_volume = volume_avg_prev[stock[0]]
+            print("CHECK VOLUME: ", check_volume)
+            print("DATA 4: ", data[4])
+            try:
+                if check_volume * 0 <= data[4]:
+                    for user in users_arr:
+                        await bot.send_message(
+                            user[0],
+                            f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
+                            f'Изменение цены: {data[-3]}%\n'+
+                            f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
+                            f'Покупка: {data[-2]}% Продажа: {data[-1]}%\n' +
+                            f'Время: {current_date[5:]} {current_time}\n'+
+                            f'Цена: {data[3]}₽\n'+ 
+                            f'Изменение за день: {data[2]}%\n\n'+
+                            "<b>Заметил Радар МосБиржи</b>\n"
+                            f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user[0]}">@{BOT_NICK}</a></b>""",
+                            disable_notification=False,
+                            parse_mode=types.ParseMode.HTML,
+                            reply_markup=keyb_for_subed
+                        )
+            except exceptions.RetryAfter as e:
+                time.sleep(e.timeout)
+            except Exception as e:
+                print(e)
 
-            if check_volume * 10 <= data[4]:
-                for user in users_arr:
-                    await bot.send_message(
-                        user[0],
-                        f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
-                        f'Изменение цены: {data[-3]}%\n'+
-                        f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
-                        f'Покупка: {data[-2]}% Продажа: {data[-1]}%\n' +
-                        f'Время: {current_date[5:]} {current_time}\n'+
-                        f'Цена: {data[3]}₽\n'+ 
-                        f'Изменение за день: {data[2]}%\n\n'+
-                        "<b>Заметил Радар МосБиржи</b>\n"
-                        f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user[0]}">@{BOT_NICK}</a></b>""",
-                        disable_notification=False,
-                        parse_mode=types.ParseMode.HTML
-                    )
-        except exceptions.RetryAfter as e:
-            time.sleep(e.timeout)
-        except Exception as e:
-            print(e)
 
-        await asyncio.sleep(30) 
+            await asyncio.sleep(30) 
 
 async def process_stocks():
+    await collecting_avg_event.wait() 
     securities = await moex_async.get_securities()
     tasks = []
     for stock in securities:
         task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
         tasks.append(task)
         await asyncio.sleep(5)
-    await asyncio.gather(*tasks)
 
 async def main():
     while True:
-        try:
-            await process_stocks()
-        except Exception as e:
-            print(e)
+        await process_stocks()
 
 async def unsubscribe():
     data = db.get_user_id_with_end_timestamp()
@@ -199,38 +207,37 @@ async def unsubscribe():
         sub_end_datetime = datetime.strptime(sub_end, '%Y-%m-%d %H:%M:%S')
         if sub_end_datetime > current_datetime:
             db.unsubcribe(user_id)
-            await bot.send_message(user_id, 'У вас кончилась подписка, продлите ее, чтоб пользоваться ботом без ограничений!', reply_markup=keyb)
+            await bot.send_message(user_id, 'У вас кончилась подписка, продлите ее, чтоб пользоваться ботом без ограничений!', reply_markup=keyb_for_unsubed)
 
 async def delivery():
     users = db.get_unsubed_users()
     for user in users:
         user_id = user[0]
-        await bot.send_message(user_id, 'У тебя нет подписки на нашего бота, советуем тебе оформить ее как можно скорее и приглашать своих друзей сюда. Вызови /subscribe', reply_markup=keyb)
+        await bot.send_message(user_id, 'У тебя нет подписки на нашего бота, советуем тебе оформить ее как можно скорее и приглашать своих друзей сюда. Вызови /subscribe', reply_markup=keyb_for_unsubed)
 
 async def collect_volumes_avg():
     global volumes_avg_prev
-    volumes_avg_prev = await moex_async.get_prev_avg_volume()
+    volumes_avg_prev = await moex_async.get_prev_avg_volume(volumes_avg_prev)
+    collecting_avg_event.set() 
     return volumes_avg_prev
 
-async def schedule_collecting_avg_volumes():
-    if datetime.today().weekday() < 5:
-        await collect_volumes_avg()
-        await asyncio.sleep(60)  # Проверять время каждую минуту
+async def schedule_collecting_volumes():
+    await collect_volumes_avg()
 
 async def scheduler():
-    aioschedule.every().monday.at("12:00").do(unsubscribe)
-    aioschedule.every().day.at("19:00").do(delivery)
-    aioschedule.every(24).hours.do(schedule_collecting_avg_volumes)
+    aioschedule.every(1).days.at("12:00").do(unsubscribe)
+    aioschedule.every(1).days.at("19:00").do(delivery)
+    aioschedule.every(1).days.at('19:15').do(collect_volumes_avg)
     while True:
-        if datetime.today().weekday() < 5: 
+        if datetime.now(offset).weekday() < 5: 
             await aioschedule.run_pending()
             await asyncio.sleep(1)
 
 
 async def on_startup(_):
+    #asyncio.create_task(schedule_collecting_avg_volumes())
     asyncio.create_task(main())
     asyncio.create_task(scheduler())
-    asyncio.create_task(schedule_collecting_avg_volumes())
 
 
 if __name__ == '__main__':

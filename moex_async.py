@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import datetime as dt
 import time
 import logging
-
+from openpyxl import load_workbook
 
 offset = dt.timezone(timedelta(hours=3))
 
@@ -21,7 +21,18 @@ s.get('https://passport.moex.com/authenticate', auth=(login, password))
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
 cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
 s.close()
+workbook = load_workbook(filename='shares.xlsx')
 
+async def get_value_by_ticker(ticker):
+    sheet = workbook.active
+    row_counter = 2
+    while row_counter < 249:
+        cell = sheet.cell(row = row_counter, column = 2)
+        if cell.value == ticker:
+            name_cell = sheet.cell(row = row_counter, column = 3)
+            return name_cell.value
+        else:
+            return "такого нет"
 
 # GET ONE STOCK DATA
 async def fetch_stock(session, url, headers, cookies):
@@ -31,9 +42,10 @@ async def fetch_stock(session, url, headers, cookies):
 async def one_stock(url, headers, cookies):
     async with aiohttp.ClientSession() as session:
         data = await fetch_stock(session, url, headers, cookies)
+        name = get_value_by_ticker(data['securities']['data'][0][0])
         return (
             data['securities']['data'][0][0], # SECID, 
-            data['securities']['data'][0][9], # SECNAME
+            name, # SECNAME
             data['securities']['data'][0][4], # LOTSIZE
             data['marketdata']['data'][0][20], # DAY CHANGE %
         )
@@ -147,9 +159,10 @@ async def fetch_stock(session, url, headers, cookies):
 async def one_stock(url, headers, cookies):
     async with aiohttp.ClientSession() as session:
         data = await fetch_stock(session, url, headers, cookies)
+        name = await get_value_by_ticker(data['securities']['data'][0][0])
         return [
             data['securities']['data'][0][0], # SECID
-            data['securities']['data'][0][9], # SEC NAME
+            name, # SEC NAME
             data['securities']['data'][0][4], # LOTSIZE
             data['marketdata']['data'][0][14], # DAY CHANGE %
         ]
@@ -180,44 +193,79 @@ async def get_prev(url, headers, cookies):
         data = await fetch_prev(session, url, headers, cookies)
         return data
     
-volumes_dict = {}    
-async def get_prev_avg_volume():
+async def get_prev_avg_volume(volumes_dict):
     secs = await get_securities()
     for sec in secs:
-        current_date = datetime.now(offset) # - timedelta(hours=10)
-        volumes = []
-        empty_days_counter = 0
         counter = 1
+        empty_days = 0
+        minutes = 0
+        value = 0
+        print(sec[0])
+        volumes_dict[sec[0]] = 0
         while counter < 2:
-            start = 1
-            prev_date = current_date - timedelta(days=counter+empty_days_counter)
-            prev_date_str = str(prev_date.strftime('%Y-%m-%d'))
-            while True:
-                try:
-                    url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date_str}&till={prev_date_str}&interval=1&start={start-1}"
-                    prev_data = await get_prev(url, headers=headers, cookies=cookies)
-                    if len(prev_data['candles']['data']) == 0:
-                        empty_days_counter += 1
-                        break
-                    else:
-                        if len(prev_data['candles']['data']) == 0 or counter == 2 or not prev_data['candles']['data'][0][4]:
-                            break
-                        url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date_str}&till={prev_date_str}&interval=1&start={start-1}"
-                        prev_data = await get_prev(url, headers=headers, cookies=cookies)
-                        print(prev_data['candles']['data'][0])
-                        volumes.append(float(prev_data['candles']['data'][0][4]))
-                        print(f"{prev_data['candles']['data'][0][4]}")
-                        print(f"START: {start-1}")
-                        print(prev_date_str)
-                        await asyncio.sleep(0.2)
-                    start += 1
-                except Exception as e:
-                    print(e)
-                    await asyncio.sleep(5)
-                    continue
+            prev_date = (datetime.now(offset)- timedelta(days=counter)).strftime('%Y-%m-%d') # - timedelta(hours=10)
+            url_hour = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=60&start=0"
+            prev_data_hour = await get_prev(url_hour, headers, cookies)
+            if len(prev_data_hour['candles']['data']) != 0:  
+                url_day = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=24&start=0"
+                prev_data_day = await get_prev(url_day, headers, cookies)
+                for i in prev_data_day['candles']['data']:
+                    if '23:' in i[7]:
+                        minutes = 840
+                    elif '18:' in i[7]:
+                        minutes = 540
+                value = prev_data_day['candles']['data'][0][4]
             counter += 1
-        volumes_dict[f'{sec[0]}'] = sum(volumes) / start
+        if value != 0:
+            volumes_dict[sec[0]] += round(value / minutes, 6)
+            volumes_dict[sec[0]] = volumes_dict[sec[0]] / (counter - 1)
+        else:
+            volumes_dict[sec[0]] = f'Ошибка получения данных об акции {sec[0]}'
+
+        print(volumes_dict[sec[0]])
     return volumes_dict
+
+loop = asyncio.get_event_loop()
+print(loop.run_until_complete(get_stock_data('ABRD')))
+
+# async def get_prev_avg_volume():
+#     global volumes_dict
+#     secs = await get_securities()
+#     for sec in secs:
+#         current_date = datetime.now(offset) # - timedelta(hours=10)
+#         volumes = []
+#         empty_days_counter = 0
+#         counter = 1
+#         while counter < 2:
+#             start = 1
+#             prev_date = current_date - timedelta(days=counter+empty_days_counter)
+#             prev_date_str = str(prev_date.strftime('%Y-%m-%d'))
+#             while True:
+#                 try:
+#                     url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date_str}&till={prev_date_str}&interval=1&start={start-1}"
+#                     prev_data = await get_prev(url, headers=headers, cookies=cookies)
+#                     if len(prev_data['candles']['data']) == 0:
+#                         empty_days_counter += 1
+#                         break
+#                     else:
+#                         if len(prev_data['candles']['data']) == 0 or counter == 2 or not prev_data['candles']['data'][0][4]:
+#                             break
+#                         url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date_str}&till={prev_date_str}&interval=1&start={start-1}"
+#                         prev_data = await get_prev(url, headers=headers, cookies=cookies)
+#                         print(prev_data['candles']['data'][0])
+#                         volumes.append(float(prev_data['candles']['data'][0][4]))
+#                         print(f"{prev_data['candles']['data'][0][4]}")
+#                         print(f"START: {start-1}")
+#                         print(prev_date_str)
+#                         await asyncio.sleep(0.2)
+#                     start += 1
+#                 except Exception as e:
+#                     print(e)
+#                     await asyncio.sleep(5)
+#                     continue
+#             counter += 1
+#         volumes_dict[f'{sec[0]}'] = sum(volumes) / start
+#     return volumes_dict
 # async def get_prev_avg_volume():
 #     secs = await get_securities()
 #     for sec in secs:
@@ -294,5 +342,6 @@ def buyers_vs_sellers1(security):
         sellers = 0
 
     return buyers, sellers
+
 
 
