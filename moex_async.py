@@ -217,6 +217,7 @@ async def get_prev_avg_volume():
                     continue
             counter += 1
         volumes_dict[f'{sec[0]}'] = sum(volumes) / start
+        break
     return volumes_dict
 # async def get_prev_avg_volume():
 #     secs = await get_securities()
