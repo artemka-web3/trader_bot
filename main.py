@@ -224,11 +224,13 @@ async def collect_volumes_avg():
 async def schedule_collecting_avg_volumes():
     if datetime.today().weekday() < 5:
         await collect_volumes_avg()
+        await asyncio.sleep(60)  # Проверять время каждую минуту
 
 async def volumes_collector():
-    aioschedule.every().day.at("12:50").do(schedule_collecting_avg_volumes)
+    aioschedule.every().day.at("12:48").do(schedule_collecting_avg_volumes)
     while True:
         await aioschedule.run_pending()
+        await asyncio.sleep(1)
 
 async def on_startup(_):
     asyncio.create_task(main())
