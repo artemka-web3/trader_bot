@@ -231,8 +231,8 @@ async def schedule_collecting_volumes():
 async def scheduler():
     aioschedule.every(1).days.at("12:00").do(unsubscribe)
     aioschedule.every(1).days.at("19:00").do(delivery)
-    #aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
-    aioschedule.every(1).minutes.do(collect_volumes_avg)
+    aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
+    #aioschedule.every(1).minutes.do(collect_volumes_avg)
     while True:
         if datetime.now(offset).weekday() < 5: 
             await aioschedule.run_pending()
