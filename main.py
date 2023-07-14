@@ -20,6 +20,8 @@ logging.basicConfig(level=logging.INFO)
 offset = dt.timezone(timedelta(hours=3))
 volumes_avg_prev = {}
 collecting_avg_event = asyncio.Event()
+tasks = []
+
 
 
 # ___________Initialize__bot__and__dispatcher___________
@@ -28,7 +30,7 @@ dp = Dispatcher(bot)
 db = BotDB('database.db')
 
 
-@dp.message_handler(lambda message: message.text.lower() == 'о боте' or message.text.lower() == '/start' or message.text.lower() == '/help')
+@dp.message_handler(lambda message: message.text.lower() == 'о боте. руководство' or message.text.lower() == '/start' or message.text.lower() == '/help')
 async def send_welcome(message: types.Message):
     if not db.user_exists(message.from_user.id):
         start_command = message.text
@@ -46,7 +48,7 @@ async def send_welcome(message: types.Message):
         else:
             db.add_user(message.from_user.id)
     if db.check_if_subed(message.from_user.id) == 0:
-        await message.reply("Привет! В этом боте ты сможешь получать данные об акциях, которыми можно торговать на Мос. бирже! \n Чтобы ты мог пользоваться возможностями бота, тебе надо купить подписку, нажав на кнопку под этим сообщением.", reply_markup=keyb_for_unsubed)
+        await message.reply("О боте", reply_markup=keyb_for_unsubed)
     else:
         await message.reply("описание бота описание бота описание бота описание бота описание бота описание бота описание бота описание бота", reply_markup=keyb_for_subed)
 
@@ -130,77 +132,85 @@ async def get_profile_data(message: types.Message):
 
 async def process_stock(stock, volume_avg_prev):
     while True:
-        print(1)
-        users_arr = db.get_subed_users()
-        current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
-        current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
-        current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
-        current_time = str(current_hour) +":"+ str(current_minute)
-        stock_data = await moex_async.get_stock_data(stock[0])  
-        print(stock_data)
-        sec_id = stock_data[0] # #
-        sec_name = stock_data[1] 
-        lot_size = stock_data[2]
-        day_change = stock_data[3] # %
-        current_stock_data = await moex_async.get_current_stock_volume(stock[0])
-        current_price = current_stock_data[1] # рублей
-        volume_rub = current_stock_data[4] # М рублей
-        volume_shares = current_stock_data[5] 
-        lot_amount = round(volume_shares / lot_size, 3) # лотов
-        price_change = await moex_async.get_price_change(stock[0]) # %
-        buyers_sellers = moex_async.buyers_vs_sellers1(stock[0])
-        buyers = buyers_sellers[0] # %
-        sellers = buyers_sellers[1] # %
-        data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]
-        dir = '🔵'
-        if data[-3] > 0:
-            dir = "🟢"
-        elif data[-3] < 0:
-            dir = "🔴"
-        print(volume_avg_prev[stock[0]])
-        check_volume = volume_avg_prev[stock[0]]
-        print("CHECK VOLUME: ", check_volume)
-        print("DATA 4: ", data[4])
-        try:
-            if check_volume * 10 <= data[4]:
-                for user in users_arr:
-                    await bot.send_message(
-                        user[0],
-                        f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
-                        f'Изменение цены: {data[-3]}%\n'+
-                        f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
-                        f'Покупка: {data[-2]}% Продажа: {data[-1]}%\n' +
-                        f'Время: {current_date[5:]} {current_time}\n'+
-                        f'Цена: {data[3]}₽\n'+ 
-                        f'Изменение за день: {data[2]}%\n\n'+
-                        "<b>Заметил Радар МосБиржи</b>\n"
-                        f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user[0]}">@{BOT_NICK}</a></b>""",
-                        disable_notification=False,
-                        parse_mode=types.ParseMode.HTML,
-                        reply_markup=keyb_for_subed
-                    )
-        except exceptions.RetryAfter as e:
-            asyncio.sleep(e.timeout)
-        except Exception as e:
-            print(e)
+        await collecting_avg_event.wait() 
+        start_time = datetime.now(offset).replace(hour=9, minute=50, second=0, microsecond=0).time()
+        end_time = datetime.now(offset).replace(hour=23, minute=50, second=0, microsecond=0).time()
+        if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time:
+            try:
+                print(1)
+                users_arr = db.get_subed_users()
+                current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
+                current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
+                current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
+                current_time = str(current_hour) +":"+ str(current_minute)
+                stock_data = await moex_async.get_stock_data(stock[0])  
+                print(stock_data)
+                sec_id = stock_data[0] # #
+                sec_name = stock_data[1] 
+                lot_size = stock_data[2]
+                day_change = stock_data[3] # %
+                current_stock_data = await moex_async.get_current_stock_volume(stock[0])
+                current_price = current_stock_data[1] # рублей
+                volume_rub = current_stock_data[4] # М рублей
+                volume_shares = current_stock_data[5] 
+                lot_amount = round(volume_shares / lot_size, 3) # лотов
+                price_change = await moex_async.get_price_change(stock[0]) # %
+                buyers_sellers = moex_async.buyers_vs_sellers1(stock[0])
+                buyers = buyers_sellers[0] # %
+                sellers = buyers_sellers[1] # %
+                data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]
+                dir = '🔵'
+                if data[-3] > 0:
+                    dir = "🟢"
+                elif data[-3] < 0:
+                    dir = "🔴"
+                print(volume_avg_prev[stock[0]])
+                check_volume = volume_avg_prev[stock[0]]
+                print("CHECK VOLUME: ", check_volume)
+                print("DATA 4: ", data[4])
+            except Exception as e:
+                print(e)
+
+            try:
+                if check_volume * 10 <= data[4]:
+                    for user in users_arr:
+                        await bot.send_message(
+                            user[0],
+                            f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
+                            f'Изменение цены: {data[-3]}%\n'+
+                            f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
+                            f'Покупка: {data[-2]}% Продажа: {data[-1]}%\n' +
+                            f'Время: {current_date[5:]} {current_time}\n'+
+                            f'Цена: {data[3]}₽\n'+ 
+                            f'Изменение за день: {data[2]}%\n\n'+
+                            "<b>Заметил Радар МосБиржи</b>\n"
+                            f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user[0]}">@{BOT_NICK}</a></b>""",
+                            disable_notification=False,
+                            parse_mode=types.ParseMode.HTML,
+                            reply_markup=keyb_for_subed
+                        )
+            except exceptions.RetryAfter as e:
+                asyncio.sleep(e.timeout)
+            except Exception as e:
+                print(e)
+        else:
+            print(f'Торги не идут {stock[0]}')
         await asyncio.sleep(30) 
 
 async def process_stocks():
     await collecting_avg_event.wait() 
     securities = await moex_async.get_securities()
-    tasks = []
     for stock in securities:
-        task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
+        print(stock[0])
+        #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
+        task = process_stock(stock, volumes_avg_prev)
         tasks.append(task)
         await asyncio.sleep(5)
+    for task in tasks:
+        asyncio.create_task(task)
 
 async def main():
-    while True:
-        start_time = datetime.now(offset).replace(hour=9, minute=50, second=0, microsecond=0).time()
-        end_time = datetime.now(offset).replace(hour=23, minute=50, second=0, microsecond=0).time()
-        if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time:
-            await process_stocks()
-        asyncio.sleep(1)
+    await process_stocks()
 
 async def unsubscribe():
     data = db.get_user_id_with_end_timestamp()
@@ -221,6 +231,8 @@ async def delivery():
 
 async def collect_volumes_avg():
     global volumes_avg_prev
+    collecting_avg_event.clear() 
+
     volumes_avg_prev = await moex_async.get_prev_avg_volume(volumes_avg_prev)
     collecting_avg_event.set() 
     return volumes_avg_prev
@@ -232,6 +244,7 @@ async def scheduler():
     aioschedule.every(1).days.at("12:00").do(unsubscribe)
     aioschedule.every(1).days.at("19:00").do(delivery)
     aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
+
     #aioschedule.every(1).minutes.do(collect_volumes_avg)
     while True:
         if datetime.now(offset).weekday() < 5: 
@@ -240,7 +253,7 @@ async def scheduler():
 
 
 async def on_startup(_):
-    #asyncio.create_task(schedule_collecting_avg_volumes())
+    asyncio.create_task(collect_volumes_avg())
     asyncio.create_task(main())
     asyncio.create_task(scheduler())
 
