@@ -202,10 +202,12 @@ async def process_stocks():
         # check if stock[0] in csv
         async with aiofiles.open('shares.csv', mode='r') as reader:
             async for row in aiocsv.AsyncDictReader(reader):
-                if row['Полное название акций ,тикет,сокращённое название '].split(',')[1] == stock[0]:
-                    print(stock[0])
-                    task = process_stock(stock, volumes_avg_prev)
-                    tasks.append(task)
+                if row is not None:
+                    if row['Полное название акций ,тикет,сокращённое название '] is not None:
+                        if row['Полное название акций ,тикет,сокращённое название '].split(',')[1] == stock[0]:
+                            print(stock[0])
+                            task = process_stock(stock, volumes_avg_prev)
+                            tasks.append(task)
         #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
     for task in tasks:
         asyncio.create_task(task)
