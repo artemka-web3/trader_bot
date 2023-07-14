@@ -7,6 +7,7 @@ import datetime as dt
 import time
 import logging
 import aiocsv
+import aiofiles
 
 offset = dt.timezone(timedelta(hours=3))
 
@@ -23,11 +24,11 @@ cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
 s.close()
 
 async def get_value_by_ticker(ticker):
-    async with aiocsv.AsyncDictReader.open('shares.csv') as reader:
-        async for row in reader:
+    async with aiofiles.open('shares.csv', 'r') as reader:
+        async for row in aiocsv.AsyncDictReader(reader, delimiter='\n'):
             # Обработка словаря данных
-            if row['тикет'] == ticker:
-             return row["сокращённое название"]
+            if row['Полное название акций ,тикет,сокращённое название '].split(',')[1] == ticker:
+                return row['Полное название акций ,тикет,сокращённое название '].split(',')[2] 
 
 # GET ONE STOCK DATA
 async def fetch_stock(session, url, headers, cookies):
@@ -232,6 +233,7 @@ async def buyers_vs_sellers1(security):
     return buyers, sellers
 
 # loop = asyncio.get_event_loop()
+# print(loop.run_until_complete(get_value_by_ticker('SBER')))
 # print(loop.run_until_complete(buyers_vs_sellers1("SBER")))
 # loop.run_until_complete(get_current_stock_volume('SBER'))
 
