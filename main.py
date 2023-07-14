@@ -201,7 +201,7 @@ async def process_stocks():
     for stock in securities:
         # check if stock[0] in csv
         async with aiofiles.open('shares.csv', mode='r') as reader:
-            async for row in aiocsv.AsyncDictReader(reader):
+            async for row in aiocsv.AsyncDictReader(reader, delimiter='\n'):
                 if row is not None:
                     if row['Полное название акций ,тикет,сокращённое название '] is not None:
                         if row['Полное название акций ,тикет,сокращённое название '].split(',')[1] == stock[0]:
