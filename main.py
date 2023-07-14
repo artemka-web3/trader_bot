@@ -155,7 +155,7 @@ async def process_stock(stock, volume_avg_prev):
                 volume_shares = current_stock_data[5] 
                 lot_amount = round(volume_shares / lot_size, 3) # лотов
                 price_change = await moex_async.get_price_change(stock[0]) # %
-                buyers_sellers = moex_async.buyers_vs_sellers1(stock[0])
+                buyers_sellers = await moex_async.buyers_vs_sellers1(stock[0])
                 buyers = buyers_sellers[0] # %
                 sellers = buyers_sellers[1] # %
                 data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]

@@ -203,110 +203,22 @@ async def get_prev_avg_volume(volumes_dict):
         print(volumes_dict[sec[0]])
     return volumes_dict
 
-# loop = asyncio.get_event_loop()
-# print(loop.run_until_complete(get_stock_data('ABRD')))
+async def fetch_bs(session, url, headers, cookies):
+    async with session.get(url, headers=headers, cookies=cookies) as response:
+        return await response.json()
 
-# async def get_prev_avg_volume():
-#     global volumes_dict
-#     secs = await get_securities()
-#     for sec in secs:
-#         current_date = datetime.now(offset) # - timedelta(hours=10)
-#         volumes = []
-#         empty_days_counter = 0
-#         counter = 1
-#         while counter < 2:
-#             start = 1
-#             prev_date = current_date - timedelta(days=counter+empty_days_counter)
-#             prev_date_str = str(prev_date.strftime('%Y-%m-%d'))
-#             while True:
-#                 try:
-#                     url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date_str}&till={prev_date_str}&interval=1&start={start-1}"
-#                     prev_data = await get_prev(url, headers=headers, cookies=cookies)
-#                     if len(prev_data['candles']['data']) == 0:
-#                         empty_days_counter += 1
-#                         break
-#                     else:
-#                         if len(prev_data['candles']['data']) == 0 or counter == 2 or not prev_data['candles']['data'][0][4]:
-#                             break
-#                         url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date_str}&till={prev_date_str}&interval=1&start={start-1}"
-#                         prev_data = await get_prev(url, headers=headers, cookies=cookies)
-#                         print(prev_data['candles']['data'][0])
-#                         volumes.append(float(prev_data['candles']['data'][0][4]))
-#                         print(f"{prev_data['candles']['data'][0][4]}")
-#                         print(f"START: {start-1}")
-#                         print(prev_date_str)
-#                         await asyncio.sleep(0.2)
-#                     start += 1
-#                 except Exception as e:
-#                     print(e)
-#                     await asyncio.sleep(5)
-#                     continue
-#             counter += 1
-#         volumes_dict[f'{sec[0]}'] = sum(volumes) / start
-#     return volumes_dict
-# async def get_prev_avg_volume():
-#     secs = await get_securities()
-#     for sec in secs:
-#         current_date = datetime.now(offset) # - timedelta(hours=10)
-#         volumes = []
-#         empty_days_counter = 0
-#         counter = 1
-#         while counter < 2:
-#             start = 1
-#             prev_date = current_date - timedelta(days=counter+empty_days_counter)
-#             prev_date_str = str(prev_date.strftime('%Y-%m-%d'))
-#             url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date_str}&till={prev_date_str}&interval=1&start={start-1}"
-#             prev_data = await get_prev(url, headers=headers, cookies=cookies)
-#             if len(prev_data['candles']['data']) == 0:
-#                 empty_days_counter += 1
-#             else:
-#                 while True:
-#                     if len(prev_data['candles']['data']) == 0 or counter == 2 or len(prev_data['candles']['data'][0]) == 0:
-#                         break
-#                     url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date_str}&till={prev_date_str}&interval=1&start={start-1}"
-#                     prev_data = await get_prev(url, headers=headers, cookies=cookies)
-#                     try:
-#                         print(prev_data['candles']['data'][0])
-#                         volumes.append(float(prev_data['candles']['data'][0][4]))
-#                         print(f"{prev_data['candles']['data'][0][4]}")
-#                         print(f"START: {start-1}")
-#                         print(prev_date_str)
-#                         # time.sleep(1)
-#                     except Exception as e:
-#                         counter+=1
-#                     start += 1
-#                 counter += 1
-#         volumes_dict[f'{sec[0]}'] = sum(volumes) / start
-#     return volumes_dict
-            # prev_date = current_date - timedelta(days=day_counter)
-            # prev_date_str = str(prev_date.strftime('%Y-%m-%d'))
-            # url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={prev_date_str}&till={prev_date_str}&interval=1&start={start_from_for_prev_day}"
-            # prev_data = await get_prev(url, headers=headers, cookies=cookies)
-            # if len(prev_data['candles']['data']) == 0:
-            #     day_counter += 1
-            # else: 
-            #     for candle_data in prev_data['candles']['data']:
-            #         if cur_time in candle_data[6]:
-            #             return candle_data
-            #         else: 
-            #             start_from_for_prev_day += 1
-# CHECK VOLUMES BY FORMULA
-# async def formula(security):
-#     current_candle_data = await get_current_stock_volume(security)
+async def get_bs(url, headers, cookies):
+    async with aiohttp.ClientSession() as session:
+        data = await fetch_bs(session, url, headers, cookies)
+        return data
 
-#     if type(current_candle_data) is str:
-#         return f"Ошибка при получении данных об акции formula {security}"
-#     else: 
-#         current_volume = current_candle_data[4]
-#         return current_volume
-
-def buyers_vs_sellers1(security):
+async def buyers_vs_sellers1(security):
     current_date = datetime.now(offset) # for test: - timedelta(days=1)
     today = current_date.strftime('%Y-%m-%d')
     url = f'https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1'
-    response = re.get(url)
-    data = response.json()['candles']['data']
-    columns = response.json()['candles']['columns']
+    response = await get_bs(url, headers, cookies)
+    data = response['candles']['data']
+    columns = response['candles']['columns']
     df = pd.DataFrame(data, columns=columns)
     buyers = len(df[df['close'] > df['open']])
     sellers = len(df[df['close'] < df['open']])
@@ -321,5 +233,7 @@ def buyers_vs_sellers1(security):
 
     return buyers, sellers
 
-
+# loop = asyncio.get_event_loop()
+# print(loop.run_until_complete(buyers_vs_sellers1("SBER")))
+# loop.run_until_complete(get_current_stock_volume('SBER'))
 
