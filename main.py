@@ -191,7 +191,7 @@ async def process_stock(stock, volume_avg_prev):
                 print(e)
         else:
             print(f'Торги не идут {stock[0]}')
-        await asyncio.sleep(30) 
+        await asyncio.sleep(60) 
 
 async def process_stocks():
     await collecting_avg_event.wait() 

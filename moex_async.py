@@ -94,7 +94,7 @@ async def get_current_stock_volume(security):
     headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
     cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
     s.close()
-    current_date = datetime.now(offset)  - timedelta(minutes=1) # - timedelta(hours=10)
+    current_date = datetime.now(offset) # - timedelta(hours=10)
     cur_time = ("0" +str(current_date.hour) if len(str(current_date.hour)) < 2 else str(current_date.hour)) + ":" + ("0" +str(current_date.minute) if len(str(current_date.minute)) < 2 else str(current_date.minute))
     today = current_date.strftime('%Y-%m-%d')
     start_from_for_today = 0
@@ -131,7 +131,7 @@ async def get_prevmin_stock_price(security):
     headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
     cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
     s.close()
-    prevmin_date = datetime.now(offset) - timedelta(minutes=2) # - timedelta(hours=10)
+    prevmin_date = datetime.now(offset) - timedelta(minutes=1) # - timedelta(hours=10)
     prevmin_time = ("0" +str(prevmin_date.hour) if len(str(prevmin_date.hour)) < 2 else str(prevmin_date.hour)) + ":" + ("0" +str(prevmin_date.minute) if len(str(prevmin_date.minute)) < 2 else str(prevmin_date.minute))
     today = prevmin_date.strftime('%Y-%m-%d')
     start_from_for_today = 0
