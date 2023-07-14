@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import datetime as dt
 import time
 import logging
-from openpyxl import load_workbook
+import aiocsv
 
 offset = dt.timezone(timedelta(hours=3))
 
@@ -21,16 +21,13 @@ s.get('https://passport.moex.com/authenticate', auth=(login, password))
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
 cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
 s.close()
-workbook = load_workbook(filename='shares.xlsx')
-sheet = workbook.active
 
-def get_value_by_ticker(ticker):
-    row_counter = 2
-    while row_counter < 249:
-        cell = sheet.cell(row = row_counter, column = 2)
-        if cell.value == ticker:
-            name_cell = sheet.cell(row = row_counter, column = 3)
-            return name_cell.value
+async def get_value_by_ticker(ticker):
+    async with aiocsv.AsyncDictReader.open('shares.csv') as reader:
+        async for row in reader:
+            # Обработка словаря данных
+            if row['тикет'] == ticker:
+             return row["сокращённое название"]
 
 # GET ONE STOCK DATA
 async def fetch_stock(session, url, headers, cookies):
@@ -41,9 +38,10 @@ async def one_stock(url, headers, cookies):
 
     async with aiohttp.ClientSession() as session:
         data = await fetch_stock(session, url, headers, cookies)
+        name = await get_value_by_ticker(data['securities']['data'][0][0])
         return (
             data['securities']['data'][0][0], # SECID, 
-            data['securities']['data'][0][2], # SECNAME
+            str(name), # SECNAME
             data['securities']['data'][0][4], # LOTSIZE
             data['marketdata']['data'][0][20], # DAY CHANGE %
         )

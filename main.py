@@ -13,6 +13,7 @@ from config import API_TOKEN, PAYMENT_TOKEN_TEST, PAYMENT_TOKEN_PROD, BOT_NICK
 import pytz
 from pytz import timezone
 from kb import keyb_for_subed, keyb_for_unsubed
+import aiocsv
 
 
 # ___________Configure__logging___________
@@ -197,10 +198,14 @@ async def process_stocks():
     await collecting_avg_event.wait() 
     securities = await moex_async.get_securities()
     for stock in securities:
-        print(stock[0])
+        # check if stock[0] in csv
+        async with aiocsv.AsyncDictReader.open('shares.csv') as reader:
+            async for row in reader:
+                if row['Полное название акций '] == stock[0]:
+                    print(stock[0])
+                    task = process_stock(stock, volumes_avg_prev)
+                    tasks.append(task)
         #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
-        task = process_stock(stock, volumes_avg_prev)
-        tasks.append(task)
     for task in tasks:
         asyncio.create_task(task)
         await asyncio.sleep(5)
