@@ -205,9 +205,9 @@ async def process_stocks():
         #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
         task = process_stock(stock, volumes_avg_prev)
         tasks.append(task)
-        await asyncio.sleep(5)
     for task in tasks:
         asyncio.create_task(task)
+        await asyncio.sleep(5)
 
 async def main():
     await process_stocks()
