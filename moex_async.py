@@ -180,7 +180,7 @@ async def get_prev_avg_volume(volumes_dict):
         value = 0
         print(sec[0])
         volumes_dict[sec[0]] = 0
-        while counter < 2:
+        while counter < 4:
             prev_date = (datetime.now(offset)- timedelta(days=counter)).strftime('%Y-%m-%d') # - timedelta(hours=10)
             url_hour = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=60&start=0"
             prev_data_hour = await get_prev(url_hour, headers, cookies)
@@ -303,7 +303,7 @@ async def get_prev_avg_volume(volumes_dict):
 def buyers_vs_sellers1(security):
     current_date = datetime.now(offset) # for test: - timedelta(days=1)
     today = current_date.strftime('%Y-%m-%d')
-    url = f'https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=10'
+    url = f'https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1'
     response = re.get(url)
     data = response.json()['candles']['data']
     columns = response.json()['candles']['columns']
