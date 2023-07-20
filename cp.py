@@ -27,45 +27,44 @@ def do_have_free_sub(user_id):
     return False
 
 def get_users_with_free_sub():
-    all_users = db.get_all_users()
-    free_users = []
-    for user in all_users:
-        free_sub = db.get_free_sub_end(user)
-        if free_sub:
-            free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
-            if free_sub > datetime.now() and user not in free_users:
-                free_users.append(user)
-    return free_users
-
-
-         
-
-        
-# check if subed
-def check_if_subed(user_id):
-    subed_users = get_subed_users()
-    if subed_users:
-        if user_id in subed_users:
-            return True
-        return False
+    try:
+        all_users = db.get_all_users()
+        if all_users:
+            free_users = []
+            for user in all_users:
+                free_sub = db.get_free_sub_end(user)
+                if free_sub:
+                    free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
+                    if free_sub > datetime.now() and user not in free_users:
+                        free_users.append(user)
+            return free_users
+        return []
+    except Exception as e:
+        print(e)
 
 
 # get subed users id
 def get_subed_users():
     all_users = db.get_all_users()
     subed_users = []
-    for user in all_users:
-        for sub in client.list_subscriptions(user):
-            if sub.status == 'Active' and user not in subed_users:
-                subed_users.append(user)
+    if all_users:
+        for user in all_users:
+            for sub in client.list_subscriptions(user[0]):
+                if sub.status == 'Active' and user not in subed_users:
+                    subed_users.append(user)
+        return subed_users
+    return []
 
 def get_unsubed_users():
     all_user_ids = db.get_all_users()
     unsubed_users = []
-    for user in all_user_ids:
-        for sub in client.list_subscriptions(user):
-            if sub.status == 'Cancelled' and user not in unsubed_users:
-                unsubed_users.append(user)
+    if all_user_ids:
+        for user in all_user_ids:
+            for sub in client.list_subscriptions(user[0]):
+                if sub.status == 'Cancelled' and user not in unsubed_users:
+                    unsubed_users.append(user)
+        return unsubed_users
+    return []
 
 # у чела одна подписка, мы работаем с ней
 def is_in_pay_sys(user_id):
@@ -74,7 +73,13 @@ def is_in_pay_sys(user_id):
         subs.append(user_id)
     return len(subs)
 
-
+# check if subed
+def check_if_subed(user_id):
+    subed_users = get_subed_users()
+    if subed_users:
+        if user_id in subed_users:
+            return True
+    return False
 # get_sub_end == get_next_trx_date
 def get_sub_end(user_id):
     for sub in client.list_subscriptions(str(user_id)):
@@ -117,10 +122,10 @@ def buy_not_first_time(user_id, days):
 
 def update_sub_for_all(days):
     all_users = db.get_all_users()
-    for user in all_users:
-        for sub in client.list_subscriptions(str(user)):
-            if sub.status == 'Active' and not do_have_free_sub(user):
-                client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
+    if all_users:
+        for user in all_users:
+            for sub in client.list_subscriptions(str(user[0])):
+                if sub.status == 'Active' and not do_have_free_sub(user):
+                    client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
 
-for sub in client.list_subscriptions(764315256):
-    print(sub)
+

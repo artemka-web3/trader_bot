@@ -21,8 +21,8 @@ class BotDB:
     
     def get_all_users(self):
         # всех
-        result = self.cursor.execute("SELECT * FROM `users`")
-        return [result.fetchall()[0][1]]
+        result = self.cursor.execute("SELECT user_id FROM `users`")
+        return list(result.fetchall())
 
     def is_partner(self, user_id):
         result = self.cursor.execute("SELECT is_partner FROM `users` WHERE user_id = ?", (user_id,))

@@ -306,9 +306,9 @@ async def process_stock(stock, volume_avg_prev):
                 if check_volume * 50 <= data[4]:
                     if users_arr:
                         for user in users_arr:
-                            if user in get_subed_users() or user in get_users_with_free_sub():
+                            if user[0] in get_subed_users() or user[0] in get_users_with_free_sub():
                                 await bot.send_message(
-                                    int(user),
+                                    int(user[0]),
                                     f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
                                     f'Изменение цены: {data[-3]}%\n'+
                                     f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
