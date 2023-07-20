@@ -117,7 +117,6 @@ async def admin_things(message: types.Message, state: FSMContext):
             "/extend_sub - Продлить подписку всем или кому-то одному при условии что у человека есть активная подписка на сервис\n"+
             "/cancel - сбросить ввод и начать заново\n"+
             "/make_partner - присвоить человеку статус партнера\n"
-            """
         )
 
 @dp.message_handler(commands=['free_sub'])
