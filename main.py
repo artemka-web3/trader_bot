@@ -353,8 +353,9 @@ async def main():
 
 async def delivery():
     users = get_unsubed_users()
-    for user_id in users:
-        await bot.send_message(user_id, 'У тебя нет подписки на нашего бота, советуем тебе оформить ее как можно скорее и приглашать своих друзей сюда. Вызови /subscribe', reply_markup=keyb_for_unsubed)
+    if users:
+        for user_id in users:
+            await bot.send_message(user_id, 'У тебя нет подписки на нашего бота, советуем тебе оформить ее как можно скорее и приглашать своих друзей сюда. Вызови /subscribe', reply_markup=keyb_for_unsubed)
 
 async def collect_volumes_avg():
     global volumes_avg_prev
@@ -380,7 +381,7 @@ async def scheduler():
 
 
 async def on_startup(_):
-    #asyncio.create_task(collect_volumes_avg())
+    asyncio.create_task(collect_volumes_avg())
     asyncio.create_task(main())
     asyncio.create_task(scheduler())
 
