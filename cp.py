@@ -44,9 +44,10 @@ def get_users_with_free_sub():
 # check if subed
 def check_if_subed(user_id):
     subed_users = get_subed_users()
-    if user_id in subed_users:
-        return True
-    return False
+    if subed_users:
+        if user_id in subed_users:
+            return True
+        return False
 
 
 # get subed users id
@@ -105,7 +106,7 @@ def update_sub(user_id, days):
     for sub in client.list_subscriptions(str(user_id)):
         if sub.status == 'Active':
             start_date = sub.start_date
-            client.update_subscription(sub.id, start_date=start_date+timedelta(days=days))
+            client.update_subscription(sub.id, next_transaction_date=datetime.now()+timedelta(days=days))
             return True
     return False
 
@@ -114,5 +115,4 @@ def update_sub_for_all(days):
     for user in all_users:
         for sub in client.list_subscriptions(str(user)):
             if sub.status == 'Active' and not do_have_free_sub(user):
-                start_date = sub.start_date
-                client.update_subscription(sub.id, start_date=start_date+timedelta(days=days))
+                client.update_subscription(sub.id, next_transaction_date=datetime.now()+timedelta(days=days))
