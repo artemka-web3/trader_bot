@@ -109,6 +109,19 @@ async def cancel_command(message: types.Message, state: FSMContext):
     # Или можно использовать await state.finish()
     await message.reply('Вы отменили действие. Весь прогресс сброшен.')
 
+@dp.message_handler(commands=['admin'])
+async def admin_things(message: types.Message, state: FSMContext):
+    if message.from_user.id in ADMINS:
+        await message.answer(
+            """
+            Вот команды, которые могут быть полезны для админов: \n
+            /free_sub - Отдать кому-то бесплатную подписку при условии что у человека нет активной подписки на сервис
+            /extend_sub - Продлить подписку всем или кому-то одному при условии что у человека есть активная подписка на сервис
+            /cancel - сбросить ввод и начать заново
+            /make_partner - присвоить человеку статус партнера 
+            """
+        )
+
 @dp.message_handler(commands=['free_sub'])
 async def give_free_sub_сhoose_user(message: types.Message, state = FSMContext):
     if message.from_user.id in ADMINS:
