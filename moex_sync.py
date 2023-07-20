@@ -188,7 +188,3 @@ def buyers_vs_sellers1(security):
 
     return buyers, sellers
 
-with open('file.txt', 'w') as file:
-    secs = get_securities()
-    for sec in secs:
-        file.write(f'{sec[9]}\n')

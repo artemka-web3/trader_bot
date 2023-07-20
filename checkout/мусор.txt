@@ -1,0 +1,88 @@
+//_____________HANDLE__FREE__SUBS__________________
+// app.get('/free/semi_year/:account_id', function(req, res) {
+//   var account_id = req.params.account_id;
+//   res.render('free/free_semiyear', { "account_id": account_id })
+//   // res.sendFile(path.join(__dirname + '/public/widget_semiyear.html'));
+// });
+
+// app.get('/free/month/:account_id', function(req, res) {
+//   var account_id = req.params.account_id;
+//   res.render('free/free_month',  { "account_id": account_id })
+
+// });
+
+// app.get('/free/year/:account_id', function(req, res) {
+//   var account_id = req.params.account_id;
+//   res.render('free/free_year',  { "account_id": account_id })
+// });
+
+// app.get('/free/getTokenMonth/:account_id/:trxId', function(req, res) {
+//     var trxId = req.params.trxId;
+//     var account_id = req.params.account_id;
+//     const data = {
+//       accountId: "764315256",
+//     };
+    
+//     clientApi.getSubscriptionsList(data)
+//       .then((response) => {
+//         // Handle the response
+//         console.log(response);
+//       })
+//       .catch((error) => {
+//         // Handle any errors
+//         console.error(error);
+//       });
+//     clientApi.refundPayment({TransactionId:parseInt(trxId), Amount: 10})
+//     for(let i = 0; i < clientApi.getSubscriptionsList().length; i ++){
+//       if(clientApi.getSubscriptionsList({accountId: account_id.toString()})[i].response.Model.Amount == 10){
+//         console.log(11111)
+//         clientApi.cancelSubscription({Id: clientApi.getSubscriptionsList({accountId: account_id.toString()})[i].response.Model.Amount})
+//       }
+//     }
+//     db.run("UPDATE users SET trxId = ? WHERE user_id = ?", trxId, account_id, function(err) {
+//         if (err) {
+//           return console.log(err.message);
+//         }
+//         console.log(`A row has been inserted with rowid ${this.lastID}`);
+//         return res.send('trxId ' + trxId + ' was successfully added!');
+//      });
+//     // Затем можно использовать это значение для отображения информации о пользователе.
+//     // редирект на тг бота обратно - res.redirect('')
+//   });
+
+// app.get('/free/getTokenSemiYear/:account_id/:trxId', function(req, res) {
+//     var trxId = req.params.trxId;
+//     var account_id = req.params.account_id;
+//     clientApi.refundPayment({TransactionId:parseInt(trxId), Amount: 10})
+//     for(let i = 0; i < clientApi.getSubscriptionsList({accountId: account_id.toString()}).length; i ++){
+//       if(clientApi.getSubscriptionsList()[i].Amount == 10){
+//         clientApi.cancelSubscription({Id: clientApi.getSubscriptionsList({accountId: account_id.toString()})[i].Amount})
+//       }
+//     }
+    
+//     db.run("UPDATE users SET trxId = ? WHERE user_id = ?", trxId, account_id, function(err) {
+//         if (err) {
+//           return console.log(err.message);
+//         }
+//         console.log(`A row has been inserted with rowid ${this.lastID}`);
+//         return res.send('trxId ' + trxId + ' was successfully added!');
+//      });
+//     // Затем можно использовать это значение для отображения информации о пользователе.
+//     // редирект на тг бота обратно - res.redirect('')
+//   });
+
+//   app.get('/free/getTokenYear/:account_id/:trxId', function(req, res) {
+//     var trxId = req.params.trxId;
+//     var account_id = req.params.account_id;
+    
+    
+//     db.run("UPDATE users SET trxId = ? WHERE user_id = ?", trxId, account_id, function(err) {
+//         if (err) {
+//           return console.log(err.message);
+//         }
+//         console.log(`A row has been inserted with rowid ${this.lastID}`);
+//         return res.send('trxId ' + trxId + ' was successfully added!');
+//      });
+//     // Затем можно использовать это значение для отображения информации о пользователе.
+//     // редирект на тг бота обратно - res.redirect('')
+//   });  

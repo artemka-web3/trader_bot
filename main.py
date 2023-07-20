@@ -1,5 +1,6 @@
 from aiogram import Bot, Dispatcher, executor, types, exceptions
-
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.dispatcher import FSMContext
 from aiogram.types.message import ContentType
 import asyncio
 import aioschedule
@@ -9,12 +10,14 @@ import time
 import moex_async
 import datetime as dt
 from datetime import datetime, timedelta
-from config import API_TOKEN, PAYMENT_TOKEN_TEST, PAYMENT_TOKEN_PROD, BOT_NICK
+from config import *
 import pytz
 from pytz import timezone
-from kb import keyb_for_subed, keyb_for_unsubed
+from kb import *
 import aiofiles
 import aiocsv
+from cp import *
+from fsm import *
 
 
 # ___________Configure__logging___________
@@ -28,9 +31,9 @@ tasks = []
 
 # ___________Initialize__bot__and__dispatcher___________
 bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
-db = BotDB('database.db')
-
+storage = MemoryStorage()
+dp = Dispatcher(bot, storage=storage)
+db = BotDB('prod.db')
 
 @dp.message_handler(lambda message: message.text.lower() == 'о боте. руководство' or message.text.lower() == '/start' or message.text.lower() == '/help')
 async def send_welcome(message: types.Message):
@@ -49,7 +52,7 @@ async def send_welcome(message: types.Message):
                 await message.answer("Нельзя регаться по своей же реф. ссылке!", reply_markup=keyb_for_unsubed)
         else:
             db.add_user(message.from_user.id)
-    if db.check_if_subed(message.from_user.id) == 0:
+    if check_if_subed(message.from_user.id) == 0:
         await message.reply("О боте", reply_markup=keyb_for_unsubed)
     else:
         await message.reply("описание бота описание бота описание бота описание бота описание бота описание бота описание бота описание бота", reply_markup=keyb_for_subed)
@@ -58,71 +61,39 @@ async def send_welcome(message: types.Message):
 async def get_user_agreement(message: types.Message):
     await message.reply('Пользовательское соглашение: https://telegra.ph/Polzovatelskoe-soglashenie-07-13-5',)
 
-
-#___________Payment__Handlers___________
-PRICE = types.LabeledPrice(label='Подписка на 1 месяц', amount=500*100) # 500 rub
-@dp.message_handler(lambda message: message.text.lower() == 'купить подписку' or message.text.lower() == '/subscribe')
-async def subscribe(message: types.Message):
-    # добавить проверку если подписка пользователя активна
-    if not db.user_exists(message.from_user.id):
-        await message.answer("Вас нет в БД, но я это уже исправил! Вызовите команду /subscribe заново!")
-        db.add_user(message.from_user.id)
+#___________Referral__&&__Subscription__Things___________
+@dp.message_handler(lambda message: message.text.lower() == 'купить подписку' or message.text.lower() == '/subscribe' or message.text.lower() == '/help')
+async def buy_sub(message: types.Message):
+    unsubed_users = get_unsubed_users()
+    if message.from_user.id in unsubed_users:
+        await message.answer('Для того чтобы купить подписку вам нужно определиться, какой тариф вы хотите выбрать. Чтобы купить подписку на нужное время, надмите на кнопку снизу!',  reply_markup=b_keyb)
     else:
-        if db.check_if_subed(message.from_user.id) == 1:
-            await message.answer("Вы уже подписаны!", reply_markup=keyb_for_subed)
-        else:
-            if PAYMENT_TOKEN_TEST.split(':')[1] == "TEST":
-                await bot.send_message(message.chat.id, 'Тестовый платеж')
-            await bot.send_invoice(
-                message.chat.id,
-                title="Подписка на бота",
-                description='Активация подписки на бота на 1 месяц',
-                provider_token=PAYMENT_TOKEN_TEST,
-                currency='rub',
-                photo_url='https://media.istockphoto.com/id/679762242/ru/%D0%B2%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%BD%D0%B0%D1%8F/%D0%B1%D0%B8%D0%B7%D0%BD%D0%B5%D1%81%D0%BC%D0%B5%D0%BD-%D0%B8%D0%BB%D0%B8-%D1%82%D0%BE%D1%80%D0%B3%D0%BE%D0%B2%D0%B5%D1%86-%D0%BD%D0%B0-%D1%84%D0%BE%D0%BD%D0%B4%D0%BE%D0%B2%D0%BE%D0%BC-%D1%80%D1%8B%D0%BD%D0%BA%D0%B5-%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D1%8E%D1%89%D0%B8%D0%B9-%D0%B7%D0%B0-%D1%81%D1%82%D0%BE%D0%BB%D0%BE%D0%BC.jpg?s=1024x1024&w=is&k=20&c=OsEncaxRjp-sbXTQUGF7XtFfSHvG03Cvu1JNl8kis7Y=',
-                photo_width=416,
-                photo_height=234,
-                photo_size=416,
-                is_flexible=False,
-                prices=[PRICE],
-                start_parameter='one-month-subscription',
-                payload='test-invoice-payload'
-            )
+        await message.answer('У вас есь подписка')
 
-@dp.pre_checkout_query_handler(lambda query: True)
-async def pre_checkout_query(pre_checkout_q: types.PreCheckoutQuery):
-    await bot.answer_pre_checkout_query(pre_checkout_q.id, ok=True)
 
-@dp.message_handler(content_types=ContentType.SUCCESSFUL_PAYMENT)
-async def successful_payment(message: types.Message):
-    print("SUCCESFUL PAYMENT")
-    payment_info = message.successful_payment.to_python()
-    for k, v in  payment_info.items():
-        print(f"{k} = {v}")
-    # Добавлять пользователя в бд + считать срок окончания подписки
-    sub_start = datetime.now(offset)
-    sub_end = datetime.now(offset) + timedelta(days=30)
-    db.subcribe(message.chat.id, sub_end, sub_start)
-    await bot.send_message(message.chat.id, f'Платеж на сумму {message.successful_payment.total_amount // 100} {message.successful_payment.currency} прошел успешно!!!', reply_markup=keyb_for_subed)
+@dp.callback_query_handler(lambda callback_query: callback_query.data == 'cancel_sub')
+async def cancel_subscription(callback_query: types.CallbackQuery):
+    cancel_sub(callback_query.from_user.id)
+    count_money_attracted_by_one(callback_query.from_user.id)
+    await callback_query.answer('Вы успешно отписались ✅')
 
-#___________Referral__Things___________
 @dp.message_handler(lambda message: message.text.lower() == 'подписка' or message.text.lower() == '/profile')
 async def get_profile_data(message: types.Message):
     if db.user_exists(message.from_user.id):
-        if db.check_if_subed(message.from_user.id) == 1:
-            ref_traffic = db.get_referer_traffic(message.from_user.id)
-            money_paid = db.get_money_amount_attracted_by_referer(message.from_user.id)
-            sub_end = datetime.strptime(str(db.get_sub_end(message.from_user.id)), '%Y-%m-%d %H:%M:%S.%f%z')
-            sub_end = sub_end.replace(tzinfo=pytz.timezone('Europe/Moscow')) # добавляем информацию о часовом поясе
-            before_end_period = sub_end - datetime.now(offset)
-            before_end_period = str(before_end_period).replace('days', 'дней')
-            dot_index = str(before_end_period).index(',')
+        if check_if_subed(message.from_user.id):
+            ref_traffic = db.get_referer_traffic(message.from_user.id) # кол-во людей
+            # money_paid = db.get_money_amount_attracted_by_referer(message.from_user.id) # кол-во денег
+            #sub_end = datetime.strptime(str(db.get_sub_end(message.from_user.id)), '%Y-%m-%d %H:%M:%S.%f%z')
+            #sub_end = sub_end.replace(tzinfo=pytz.timezone('Europe/Moscow')) # добавляем информацию о часовом поясе
+            #before_end_period = sub_end - datetime.now(offset)
+            #before_end_period = str(before_end_period).replace('days', 'дней')
+            #dot_index = str(before_end_period).index(',')
             await message.answer(
                 f"Твой ID: {message.from_user.id}\n"+ 
                 f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + 
                 f"Кол-во привлеченных пользователей: {ref_traffic}\n" +
-                f"Сколько денег помог привлечь боту: {0 if money_paid == None else money_paid}₽"+
-                f"\nДо конца подписки осталось {str(before_end_period)[:dot_index]}", reply_markup=keyb_for_subed
+                f"Сколько денег помог привлечь боту: {count_money_attracted_by_one(message.from_user.id)}₽"+
+                f"\nДо конца подписки осталось {get_sub_end(message.from_user.id)}", reply_markup=c_keyb
             )
         else:
             await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
@@ -130,8 +101,167 @@ async def get_profile_data(message: types.Message):
         db.add_user(message.from_user.id)
         await message.answer("Вы не были занесены в БД, но я это исправил, подпишитесь на бота чтоб выполнить эту команду!", reply_markup=keyb_for_unsubed)
 
+#______________ADMIN___PANEL___THINGS__________________
+@dp.message_handler(commands=('cancel'), state='*')
+async def cancel_command(message: types.Message, state: FSMContext):
+    # Сброс состояния пользователя
+    await state.reset_state()
+    # Или можно использовать await state.finish()
+    await message.reply('Вы отменили действие. Весь прогресс сброшен.')
+
+@dp.message_handler(commands=['free_sub'])
+async def give_free_sub_сhoose_user(message: types.Message, state = FSMContext):
+    if message.from_user.id in ADMINS:
+        await message.answer('Введите ID пользователя, которому вы хотите дать подписку бесплатно. ID можно получить здесь https://t.me/getmy_idbot')
+        await state.set_state(GiveFreeSub.CHOOSE_USER)
+    else:
+        await message.answer('Вы не админ!')
+@dp.message_handler(state=GiveFreeSub.CHOOSE_USER)
+async def give_free_sub_step_choose_time(message: types.Message, state: FSMContext):
+    is_in = await get_user_id_by_username(message.text)
+    is_active = check_if_active(message.text)
+    if is_in and not is_active:
+        user_id = message.text
+        await state.update_data(user_id = user_id)
+        await message.answer(f"Отлично, вот id пользователя: {user_id}. Теперь выберите срок на который хотите дать подписку", reply_markup=time_for_sub_keyb)
+        await state.set_state(GiveFreeSub.SET_TIME_FOR_SUB)
+    else:
+        await state.reset_state()
+        # Или можно использовать await state.finish()
+        await message.reply('ID пользователя не найден либо у него есть активная подписка, начните заново')
+@dp.message_handler(state=GiveFreeSub.SET_TIME_FOR_SUB)
+async def give_free_sub_step_choose_time(message: types.Message, state: FSMContext):
+    user_id = None
+    async with state.proxy() as data:
+        user_id = data['user_id']
+    if message.text == '1 месяц':
+        db.set_free_sub_end(user_id, datetime.now(tz=pytz.timezone('Europe/Moscow'))+timedelta(days=30))
+        try:
+            await bot.send_message(user_id, 'Вам выдана бесплатная подписка на 1 месяц')
+            await message.answer('Пользователю выдана подписка на месяц и он об этом уведомлен')
+        except Exception as e:
+            print(e)
+            await state.reset_state()
+            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
+    elif message.text == '6 месяцев':
+        db.set_free_sub_end(user_id, datetime.now(tz=pytz.timezone('Europe/Moscow'))+timedelta(days=180))
+        try:
+            await bot.send_message(user_id, 'Вам выдана бесплатная подписка на 6 месяцев')
+            await message.answer('Пользователю выдана подписка на пол года и он об этом уведомлен')
+        except Exception as e:
+            print(e)
+            await state.reset_state()
+            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
+    elif message.text == 'Год':
+        db.set_free_sub_end(user_id, datetime.now(tz=pytz.timezone('Europe/Moscow'))+timedelta(days=365))
+        try:
+            await bot.send_message(user_id, 'Вам выдана бесплатная подписка на 1 год')
+            await message.answer('Пользователю выдана подписка на год и он об этом уведомлен')
+        except Exception as e:
+            print(e)
+            await state.reset_state()
+            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
+    await state.finish()      
+
+@dp.message_handler(commands=['extend_sub'])
+async def extend_sub(message: types.Message, state: FSMContext):
+    if message.from_user.id in ADMINS:
+        await message.answer("Вы хотите продлить подписку всем или только одного", reply_markup=one_or_m)
+        await state.set_state(ExtendSub.CHOSE_MODE)
+    else:
+        await message.answer('Вы не админ!')
+@dp.message_handler(state=ExtendSub.CHOSE_MODE)
+async def extend_sub(message: types.Message, state: FSMContext):
+    if message.text == "Один":
+        await message.answer('Введите ID пользователя, которому вы хотите продлить подписку. ID можно получить здесь https://t.me/getmy_idbot')
+        await state.set_state(ExtendSub.CHOOSE_ID)
+    elif message.text == 'Несколько':
+        await message.answer("Скажите на сколько дней вы хотите продлить подписку пользователям. В")
+        await state.set_state(ExtendSub.SET_DAYS)
+    else:
+        await message.answer("Попробуйте заново. Вызовите эту команду заново чтобы повторить процесс")
+        await state.finish()
+
+@dp.message_handler(state=ExtendSub.SET_DAYS)
+async def extend_sub_for_all(message: types.Message, state: FSMContext):
+    try:
+        update_sub_for_all(int(message.text))
+        await message.answer(f"Подписка успешно продлена всем юзерам на {message.text} дней")
+        await state.finish()
+    except Exception as e:
+        print(str(e))
+
+@dp.message_handler(state=ExtendSub.CHOOSE_ID)
+async def extend_sub_id(message: types.Message, state: FSMContext):
+    is_in = await get_user_id_by_username(message.text)
+    is_subed = check_if_active(message.text)
+    if is_in and is_subed:
+        user_id = message.text
+        await state.update_data(user_id = user_id)
+        await message.answer(f"Отлично, вот id пользователя: {user_id}. Теперь выберите срок на который хотите дать подписку", reply_markup=time_for_sub_keyb)
+        await state.set_state(ExtendSub.SET_EXTEND_TIME)
+    else:
+        await state.reset_state()
+        # Или можно использовать await state.finish()
+        await message.reply('ID пользователя не найден либо у него неактивная подписка, начните заново с другим пользователем')
+@dp.message_handler(state=ExtendSub.SET_EXTEND_TIME)
+async def extend_sub_date(message: types.Message, state: FSMContext):
+    user_id = None
+    async with state.proxy() as data:
+        user_id = data['user_id']
+    if message.text == '1 месяц':
+        update_sub(user_id, days=30)
+        try:
+            await bot.send_message(user_id, 'Вам продлена подписка на 1 месяц')
+            await message.answer('Пользователю продлена подписка на месяц и он об этом уведомлен')
+        except Exception as e:
+            print(e)
+            await state.reset_state()
+            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
+    elif message.text == '6 месяцев':
+        update_sub(user_id, days=180)
+        try:
+            await bot.send_message(user_id, 'Вам продлена подписка на 6 месяцев')
+            await message.answer('Пользователю продлена подписка на пол года и он об этом уведомлен')
+        except Exception as e:
+            print(e)
+            await state.reset_state()
+            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
+    elif message.text == 'Год':
+        update_sub(user_id, days=365)
+        try:
+            await bot.send_message(user_id, 'Вам выдана бесплатная подписка на 1 год')
+            await message.answer('Пользователю продлена подписка на год и он об этом уведомлен')
+        except Exception as e:
+            print(e)
+            await state.reset_state()
+            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
+    await state.finish()    
+
+@dp.message_handler(commands=['make_partner'])
+async def make_partner(message: types.Message, state: FSMContext):
+    if message.from_user.id in ADMINS:
+        await message.answer('Введите ID пользователя, которому вы хотите присвоить статус партнера. ID можно получить здесь https://t.me/getmy_idbot')
+        await state.set_state(MakePartner.CHOOSE_ID)
+    else:
+        await message.answer('Вы не админ!')
+@dp.message_handler(state=MakePartner.CHOOSE_ID)
+async def make_partner_id(message: types.Message, state: FSMContext):
+    is_in = await get_user_id_by_username(message.text)
+    if is_in:
+        user_id = message.text
+        if db.is_partner(user_id):
+            await message.answer('Этот человек уже партнер')
+            await state.reset_state()
+        db.set_partner(user_id)
+        await message.answer(f"Отлично, теперь этот человек является партнером")
+        await state.reset_state()
+    else:
+        await state.finish()
+        await message.reply('ID пользователя не найден, начните заново')
 
 
+#_____АСИНХРОННЫЕ__ФУНКЦИИ__ДЛЯ__ВЫПОЛНЕНИЯ__ОСНОВНОГО__ФУНКЦИОНАЛА
 async def process_stock(stock, volume_avg_prev):
     while True:
         await collecting_avg_event.wait() 
@@ -140,7 +270,7 @@ async def process_stock(stock, volume_avg_prev):
         if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time:
             try:
                 print(1)
-                users_arr = db.get_subed_users()
+                users_arr = get_subed_users()
                 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
                 current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
@@ -173,7 +303,7 @@ async def process_stock(stock, volume_avg_prev):
                 if check_volume * 50 <= data[4]:
                     for user in users_arr:
                         await bot.send_message(
-                            user[0],
+                            int(user),
                             f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
                             f'Изменение цены: {data[-3]}%\n'+
                             f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
@@ -182,7 +312,7 @@ async def process_stock(stock, volume_avg_prev):
                             f'Цена: {data[3]}₽\n'+ 
                             f'Изменение за день: {data[2]}%\n\n'+
                             "<b>Заметил Радар МосБиржи</b>\n"
-                            f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user[0]}">@{BOT_NICK}</a></b>""",
+                            f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
                             disable_notification=False,
                             parse_mode=types.ParseMode.HTML,
                             reply_markup=keyb_for_subed
@@ -216,21 +346,20 @@ async def process_stocks():
 async def main():
     await process_stocks()
 
-async def unsubscribe():
-    data = db.get_user_id_with_end_timestamp()
-    current_datetime = datetime.now(offset)
-    for row in data:
-        user_id = row[0]
-        sub_end = row[1]
-        sub_end_datetime = datetime.strptime(sub_end, '%Y-%m-%d %H:%M:%S')
-        if sub_end_datetime > current_datetime:
-            db.unsubcribe(user_id)
-            await bot.send_message(user_id, 'У вас кончилась подписка, продлите ее, чтоб пользоваться ботом без ограничений!', reply_markup=keyb_for_unsubed)
+async def get_user_id_by_username(user_id):
+    try:
+        all_users = db.get_all_users()
+        for user in all_users:
+            if str(user) == str(user_id):
+                return True
+        return False
+    except Exception as e:
+        print(f"Error getting user ID: {e}")
+        return False
 
 async def delivery():
-    users = db.get_unsubed_users()
-    for user in users:
-        user_id = user[0]
+    users = get_unsubed_users()
+    for user_id in users:
         await bot.send_message(user_id, 'У тебя нет подписки на нашего бота, советуем тебе оформить ее как можно скорее и приглашать своих друзей сюда. Вызови /subscribe', reply_markup=keyb_for_unsubed)
 
 async def collect_volumes_avg():
@@ -245,7 +374,7 @@ async def schedule_collecting_volumes():
     await collect_volumes_avg()
 
 async def scheduler():
-    aioschedule.every(1).days.at("12:00").do(unsubscribe)
+    # aioschedule.every(1).days.at("12:00").do(unsubscribe)
     aioschedule.every(1).days.at("19:00").do(delivery)
     aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
 
@@ -257,7 +386,7 @@ async def scheduler():
 
 
 async def on_startup(_):
-    asyncio.create_task(collect_volumes_avg())
+    #asyncio.create_task(collect_volumes_avg())
     asyncio.create_task(main())
     asyncio.create_task(scheduler())
 
