@@ -66,7 +66,7 @@ async def get_user_agreement(message: types.Message):
 async def buy_sub(message: types.Message):
     unsubed_users = get_unsubed_users()
     if message.from_user.id in unsubed_users:
-        await message.answer('Для того чтобы купить подписку вам нужно определиться, какой тариф вы хотите выбрать. Чтобы купить подписку на нужное время, надмите на кнопку снизу!',  reply_markup=b_keyb)
+        await message.answer('Для того чтобы купить подписку вам нужно определиться, какой тариф вы хотите выбрать. Чтобы купить подписку на нужное время, надмите на кнопку снизу!',  reply_markup=create_buying_link(message.from_user.id))
     else:
         await message.answer('У вас есь подписка')
 

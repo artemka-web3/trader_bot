@@ -12,10 +12,12 @@ keyb_for_subed.add(types.KeyboardButton(text="Подписка"))
 keyb_for_subed.add(types.KeyboardButton(text="Пользовательское соглашение"))
 
 # buying keyboard
-b_keyb = types.InlineKeyboardMarkup(row_width=1)
-b_keyb.add(types.InlineKeyboardButton(text="На 1 месяц", callback_data = "month", url=""))
-b_keyb.add(types.InlineKeyboardButton(text="На 6 месяцев", callback_data = "semi_year", url=""))
-b_keyb.add(types.InlineKeyboardButton(text="На 1 год", callback_data="year", url=""))
+def create_buying_link(user_id):
+    b_keyb = types.InlineKeyboardMarkup(row_width=1)
+    b_keyb.add(types.InlineKeyboardButton(text="На 1 месяц", callback_data = "month", url=f"http://45.9.42.131:3000/month/{user_id}"))
+    b_keyb.add(types.InlineKeyboardButton(text="На 6 месяцев", callback_data = "semi_year", url=f"http://45.9.42.131:3000/semi_year/{user_id}"))
+    b_keyb.add(types.InlineKeyboardButton(text="На 1 год", callback_data="year", url=f"http://45.9.42.131:3000/year/{user_id}"))
+    return b_keyb
 
 #existing buyer keyboard
 ex_b_keyb = types.InlineKeyboardMarkup(row_width=1)
