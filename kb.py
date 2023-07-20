@@ -21,9 +21,9 @@ def create_buying_link(user_id):
 
 #existing buyer keyboard
 ex_b_keyb = types.InlineKeyboardMarkup(row_width=1)
-ex_b_keyb.add(types.InlineKeyboardButton(text="На 1 месяц", callback_data = "exb_month", url=""))
-ex_b_keyb.add(types.InlineKeyboardButton(text="На 6 месяцев", callback_data = "exb_semi_year", url=""))
-ex_b_keyb.add(types.InlineKeyboardButton(text="На 1 год", callback_data="exb_year", url=""))
+ex_b_keyb.add(types.InlineKeyboardButton(text="На 1 месяц", callback_data = "exb_month"))
+ex_b_keyb.add(types.InlineKeyboardButton(text="На 6 месяцев", callback_data = "exb_semi_year"))
+ex_b_keyb.add(types.InlineKeyboardButton(text="На 1 год", callback_data="exb_year"))
 
 # cancel keyboard
 c_keyb = types.InlineKeyboardMarkup(row_width=1)

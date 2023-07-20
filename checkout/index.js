@@ -1,14 +1,7 @@
 var express = require('express');
 var path = require('path');
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('../database.db');
-var cp = require('cloudpayments')
-const client = new cp.ClientService({
-  privateKey: '8d3a80672a4985f41060018f3be3ed33',
-  publicId: 'pk_a1c3fd07cc4bc56f277ce4ac3f8ed'
-});
-
-var clientApi = client.getClientApi()
+var db = new sqlite3.Database('../prod.db');
 
 // Создание приложения
 var app = express();
@@ -46,11 +39,10 @@ app.get('/getTokenMonth/:account_id/:trxId', function (req, res) {
       return console.log(err.message);
     }
     console.log(`A row has been inserted with rowid ${this.lastID}`);
-    return res.send('trxId ' + trxId + ' was successfully added!');
+    return res.redirect('https://t.me/iss_stocks_bot')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
-  return res.send('Вы просматриваете информацию о пользователе с trxId ' + trxId);
 });
 
 app.get('/getTokenSemiYear/:account_id/:trxId', function (req, res) {
@@ -63,7 +55,7 @@ app.get('/getTokenSemiYear/:account_id/:trxId', function (req, res) {
       return console.log(err.message);
     }
     console.log(`A row has been inserted with rowid ${this.lastID}`);
-    return res.send('trxId ' + trxId + ' was successfully added!');
+    return res.redirect('https://t.me/iss_stocks_bot')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
@@ -79,7 +71,7 @@ app.get('/getTokenYear/:account_id/:trxId', function (req, res) {
       return console.log(err.message);
     }
     console.log(`A row has been inserted with rowid ${this.lastID}`);
-    return res.send('trxId ' + trxId + ' was successfully added!');
+    return res.redirect('https://t.me/iss_stocks_bot')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')

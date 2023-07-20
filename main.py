@@ -52,10 +52,10 @@ async def send_welcome(message: types.Message):
                 await message.answer("Нельзя регаться по своей же реф. ссылке!", reply_markup=keyb_for_unsubed)
         else:
             db.add_user(message.from_user.id)
-    if check_if_subed(message.from_user.id) == 0:
-        await message.reply("О боте", reply_markup=keyb_for_unsubed)
+    if is_in_pay_sys(message.from_user.id) and check_if_subed(message.from_user.id):
+        await message.reply("О боте", reply_markup=keyb_for_subed)
     else:
-        await message.reply("описание бота описание бота описание бота описание бота описание бота описание бота описание бота описание бота", reply_markup=keyb_for_subed)
+        await message.reply("описание бота описание бота описание бота описание бота описание бота описание бота описание бота описание бота", reply_markup=keyb_for_unsubed)
 
 @dp.message_handler(lambda message: message.text.lower() == "пользовательское соглашение")
 async def get_user_agreement(message: types.Message):
@@ -63,12 +63,35 @@ async def get_user_agreement(message: types.Message):
 
 #___________Referral__&&__Subscription__Things___________
 @dp.message_handler(lambda message: message.text.lower() == 'купить подписку' or message.text.lower() == '/subscribe')
-async def buy_sub(message: types.Message):
-    unsubed_users = get_unsubed_users()
-    if message.from_user.id in unsubed_users:
-        await message.answer('Для того чтобы купить подписку вам нужно определиться, какой тариф вы хотите выбрать. Чтобы купить подписку на нужное время, надмите на кнопку снизу!',  reply_markup=create_buying_link(message.from_user.id))
+async def buy_sub_first(message: types.Message):
+    free_users = get_users_with_free_sub()
+    if message.from_user.id in free_users:
+        await message.answer("У вас есть бесплатная подписка")
+        return
+    if is_in_pay_sys(message.from_user.id):
+        if check_if_subed(message.from_user.id):
+            await message.answer("У вас есть активная подписка на наш сервис")
+        else:
+            await message.answer('Ваша подписка закончилась, продлите ее нажав на одну из кнопок ниже где вы можете выбрать срок', reply_markup=ex_b_keyb) 
     else:
-        await message.answer('У вас есь подписка')
+        await message.answer('Купите подписку нажав на кнопку ниже', reply_markup=create_buying_link(message.from_user.id))
+
+
+@dp.callback_query_handler()
+async def buy_sub_second_more(callback_query: types.CallbackQuery):
+    free_users = get_users_with_free_sub()
+    if callback_query.from_user.id in free_users:
+        await callback_query.answer("У вас есть бесплатная подписка ")
+        return
+    if callback_query.data == 'exb_month':
+        update_sub(callback_query.from_user.id, 30)
+        await callback_query.answer("Подписка успешно продлена на 30 дней ✅")
+    elif callback_query.data == 'exb_semi_year':
+        update_sub(callback_query.from_user.id, 180)
+        await callback_query.answer("Подписка успешно продлена на пол года ✅")
+    elif callback_query.data == 'exb_year':
+        update_sub(callback_query.from_user.id, 365)
+        await callback_query.answer("Подписка успешно продлена на год ✅")
 
 
 @dp.callback_query_handler(lambda callback_query: callback_query.data == 'cancel_sub')
@@ -82,18 +105,12 @@ async def get_profile_data(message: types.Message):
     if db.user_exists(message.from_user.id):
         if check_if_subed(message.from_user.id):
             ref_traffic = db.get_referer_traffic(message.from_user.id) # кол-во людей
-            # money_paid = db.get_money_amount_attracted_by_referer(message.from_user.id) # кол-во денег
-            #sub_end = datetime.strptime(str(db.get_sub_end(message.from_user.id)), '%Y-%m-%d %H:%M:%S.%f%z')
-            #sub_end = sub_end.replace(tzinfo=pytz.timezone('Europe/Moscow')) # добавляем информацию о часовом поясе
-            #before_end_period = sub_end - datetime.now(offset)
-            #before_end_period = str(before_end_period).replace('days', 'дней')
-            #dot_index = str(before_end_period).index(',')
             await message.answer(
                 f"Твой ID: {message.from_user.id}\n"+ 
                 f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + 
                 f"Кол-во привлеченных пользователей: {ref_traffic}\n" +
                 f"Сколько денег помог привлечь боту: {count_money_attracted_by_one(message.from_user.id)}₽"+
-                f"\nДо конца подписки осталось {get_sub_end(message.from_user.id)}", reply_markup=c_keyb
+                f"\nДо конца подписки осталось {get_sub_end(message.from_user.id)} дней", reply_markup=c_keyb
             )
         else:
             await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
@@ -120,156 +137,131 @@ async def admin_things(message: types.Message, state: FSMContext):
         )
 
 @dp.message_handler(commands=['free_sub'])
-async def give_free_sub_сhoose_user(message: types.Message, state = FSMContext):
+async def give_free_sub(message: types.Message, state = FSMContext):
     if message.from_user.id in ADMINS:
-        await message.answer('Введите ID пользователя, которому вы хотите дать подписку бесплатно. ID можно получить здесь https://t.me/getmy_idbot')
+        await message.answer('Вам нужно ввести ID человека которому вы хотите продлить подписку. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot')
         await state.set_state(GiveFreeSub.CHOOSE_USER)
     else:
         await message.answer('Вы не админ!')
 @dp.message_handler(state=GiveFreeSub.CHOOSE_USER)
-async def give_free_sub_step_choose_time(message: types.Message, state: FSMContext):
-    is_in = await get_user_id_by_username(message.text)
-    is_active = check_if_active(message.text)
-    if is_in and not is_active:
-        user_id = message.text
-        await state.update_data(user_id = user_id)
-        await message.answer(f"Отлично, вот id пользователя: {user_id}. Теперь выберите срок на который хотите дать подписку", reply_markup=time_for_sub_keyb)
-        await state.set_state(GiveFreeSub.SET_TIME_FOR_SUB)
+async def give_free_sub_step_choose_user(message: types.Message, state: FSMContext):
+    if message.text.isdigit():
+        if check_if_subed(message.text) and is_in_pay_sys(message.text):
+            await state.finish()
+            await message.answer("Этот пользователь имеет подписку оформленную через cloud payments")
+        else:
+            await state.update_data(user_id = message.text)
+            await message.answer("Теперь надо ввести число дней на которое будет оформлена бесплатная подписка")
+            await state.set_state(GiveFreeSub.SET_TIME_FOR_SUB)
+
     else:
-        await state.reset_state()
-        # Или можно использовать await state.finish()
-        await message.reply('ID пользователя не найден либо у него есть активная подписка, начните заново')
+        await message.answer("Вы прислали не число. Начните заново вызвав /free_sub")
+        await state.finish()
+
 @dp.message_handler(state=GiveFreeSub.SET_TIME_FOR_SUB)
 async def give_free_sub_step_choose_time(message: types.Message, state: FSMContext):
-    user_id = None
-    async with state.proxy() as data:
-        user_id = data['user_id']
-    if message.text == '1 месяц':
-        db.set_free_sub_end(user_id, datetime.now(tz=pytz.timezone('Europe/Moscow'))+timedelta(days=30))
-        try:
-            await bot.send_message(user_id, 'Вам выдана бесплатная подписка на 1 месяц')
-            await message.answer('Пользователю выдана подписка на месяц и он об этом уведомлен')
-        except Exception as e:
-            print(e)
-            await state.reset_state()
-            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
-    elif message.text == '6 месяцев':
-        db.set_free_sub_end(user_id, datetime.now(tz=pytz.timezone('Europe/Moscow'))+timedelta(days=180))
-        try:
-            await bot.send_message(user_id, 'Вам выдана бесплатная подписка на 6 месяцев')
-            await message.answer('Пользователю выдана подписка на пол года и он об этом уведомлен')
-        except Exception as e:
-            print(e)
-            await state.reset_state()
-            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
-    elif message.text == 'Год':
-        db.set_free_sub_end(user_id, datetime.now(tz=pytz.timezone('Europe/Moscow'))+timedelta(days=365))
-        try:
-            await bot.send_message(user_id, 'Вам выдана бесплатная подписка на 1 год')
-            await message.answer('Пользователю выдана подписка на год и он об этом уведомлен')
-        except Exception as e:
-            print(e)
-            await state.reset_state()
-            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
-    await state.finish()      
+    if message.text.isdigit():
+        async with state.proxy() as data:
+            user_id = data['user_id']
+            db.set_free_sub_end(user_id, datetime.now() + timedelta(days=int(message.text)))
+            try:
+                await bot.send_message(user_id, f'Вам выдана бесплатная подписка на {message.text} дней')
+            except:
+                await message.answer("Возникла проблема при отправке уведомления пользователю. Он мог заблокировать бота")
+            await message.answer(f'Бесплатная подписка на {message.text} дней выдана пользователю и он об этом уведомление')
+    else:
+        await message.answer("Вы прислали не число. Начните заново вызвав /free_sub")
+        await state.finish()
+
 
 @dp.message_handler(commands=['extend_sub'])
 async def extend_sub(message: types.Message, state: FSMContext):
     if message.from_user.id in ADMINS:
-        await message.answer("Вы хотите продлить подписку всем или только одного", reply_markup=one_or_m)
+        await message.answer("Вы хотите продлить подписку кому-то конкретному или всем юзерам?", reply_markup=one_or_m)
         await state.set_state(ExtendSub.CHOSE_MODE)
     else:
         await message.answer('Вы не админ!')
+        
 @dp.message_handler(state=ExtendSub.CHOSE_MODE)
 async def extend_sub(message: types.Message, state: FSMContext):
     if message.text == "Один":
-        await message.answer('Введите ID пользователя, которому вы хотите продлить подписку. ID можно получить здесь https://t.me/getmy_idbot')
+        await message.answer('Вам нужно ввести ID человека которому вы хотите продлить подписку. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot')
         await state.set_state(ExtendSub.CHOOSE_ID)
     elif message.text == 'Несколько':
-        await message.answer("Скажите на сколько дней вы хотите продлить подписку пользователям. В")
-        await state.set_state(ExtendSub.SET_DAYS)
+        await message.answer('На какое кол-во дней вы хотите продлить подписку пользователям? Ответьте числом')
+        await state.set_state(ExtendSub.SET_DAYS_M)
     else:
-        await message.answer("Попробуйте заново. Вызовите эту команду заново чтобы повторить процесс")
-        await state.finish()
+        await state.reset_state()
+        await message.answer('Вы должны были нажать на кнопку')
 
-@dp.message_handler(state=ExtendSub.SET_DAYS)
+
+@dp.message_handler(state=ExtendSub.SET_DAYS_M)
 async def extend_sub_for_all(message: types.Message, state: FSMContext):
-    try:
-        update_sub_for_all(int(message.text))
-        await message.answer(f"Подписка успешно продлена всем юзерам на {message.text} дней")
+    if message.text.isdigit():
+        update_sub_for_all(days=int(message.text))
         await state.finish()
-    except Exception as e:
-        print(str(e))
+        await message.answer("Подписка успешно продлена всем пользователям")
+    else:
+        await state.reset_state()
+        await message.answer('Вы ввели не число. Начните заново вызвав команду /extend_sub')
 
 @dp.message_handler(state=ExtendSub.CHOOSE_ID)
 async def extend_sub_id(message: types.Message, state: FSMContext):
-    is_in = await get_user_id_by_username(message.text)
-    is_subed = check_if_active(message.text)
-    if is_in and is_subed:
-        user_id = message.text
-        await state.update_data(user_id = user_id)
-        await message.answer(f"Отлично, вот id пользователя: {user_id}. Теперь выберите срок на который хотите дать подписку", reply_markup=time_for_sub_keyb)
-        await state.set_state(ExtendSub.SET_EXTEND_TIME)
+    if message.text.isdigit():
+        if is_in_pay_sys(message.text) and check_if_subed(message.text) and not do_have_free_sub(message.text):
+            await state.update_data(user_id = message.text)
+            await message.answer('Теперь надо ввести число дней на которое вы хотите продлить подписку пользователю')
+            await state.set_state(ExtendSub.SET_EXTEND_TIME_O)
+        else:
+            await message.answer("Этот пользователь не подписан")
+            await state.reset_state()
     else:
         await state.reset_state()
-        # Или можно использовать await state.finish()
-        await message.reply('ID пользователя не найден либо у него неактивная подписка, начните заново с другим пользователем')
-@dp.message_handler(state=ExtendSub.SET_EXTEND_TIME)
+        await message.answer("Вы сделали неправильный ввод. Начните заново вызвав команду /extend_sub")
+
+@dp.message_handler(state=ExtendSub.SET_EXTEND_TIME_O)
 async def extend_sub_date(message: types.Message, state: FSMContext):
-    user_id = None
-    async with state.proxy() as data:
-        user_id = data['user_id']
-    if message.text == '1 месяц':
-        update_sub(user_id, days=30)
+    if message.text.isdigit():
+        await message.answer("Подписка успешно прродлена и пользователь об этом уведомлен")
+        user_id = None
+        async with state.proxy() as data:
+            user_id = data['user_id']
+            update_sub(user_id, days=int(message.text))
         try:
-            await bot.send_message(user_id, 'Вам продлена подписка на 1 месяц')
-            await message.answer('Пользователю продлена подписка на месяц и он об этом уведомлен')
-        except Exception as e:
-            print(e)
-            await state.reset_state()
-            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
-    elif message.text == '6 месяцев':
-        update_sub(user_id, days=180)
-        try:
-            await bot.send_message(user_id, 'Вам продлена подписка на 6 месяцев')
-            await message.answer('Пользователю продлена подписка на пол года и он об этом уведомлен')
-        except Exception as e:
-            print(e)
-            await state.reset_state()
-            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
-    elif message.text == 'Год':
-        update_sub(user_id, days=365)
-        try:
-            await bot.send_message(user_id, 'Вам выдана бесплатная подписка на 1 год')
-            await message.answer('Пользователю продлена подписка на год и он об этом уведомлен')
-        except Exception as e:
-            print(e)
-            await state.reset_state()
-            await message.answer('При отправке сообщения пользователю что-то пошло не так. Видимо он заблокировал бота!')
-    await state.finish()    
+            await bot.send_message(user_id, f'Вам продлена подписка на {message.text} дней')  
+        except:
+            await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
+        await state.finish()
+    else:
+        await state.reset_state()
+        await message.answer('Вы ввели не число, повторите операции вызвав команду /extend_sub')
 
 @dp.message_handler(commands=['make_partner'])
 async def make_partner(message: types.Message, state: FSMContext):
     if message.from_user.id in ADMINS:
-        await message.answer('Введите ID пользователя, которому вы хотите присвоить статус партнера. ID можно получить здесь https://t.me/getmy_idbot')
         await state.set_state(MakePartner.CHOOSE_ID)
+        await message.answer('Вам нужно ввести ID человека которому вы хотите продлить подписку. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot')
     else:
-        await message.answer('Вы не админ!')
+        await message.answer("Вы не админ")
+
 @dp.message_handler(state=MakePartner.CHOOSE_ID)
 async def make_partner_id(message: types.Message, state: FSMContext):
-    is_in = await get_user_id_by_username(message.text)
-    is_subed = check_if_subed(message.text)
-    if is_in and is_subed:
-        user_id = message.text
-        if db.is_partner(user_id):
-            await message.answer('Этот человек уже партнер')
+    if message.text.isdigit():
+        if is_in_pay_sys(message.text) and check_if_subed(message.text):
+            await state.finish()
+            db.set_partner(int(message.text))
+            await message.answer("Вы присвоили человеку статус партнера и он об этом уведомлен")
+            try:
+                await bot.send_message(message.text, 'Вам просвоен статус партнера')
+            except:
+                await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
+        else:
+            await message.answer("Человек которому вы хотите присвоить статус партнерта не подписан на бота!")
             await state.reset_state()
-        db.set_partner(user_id)
-        await message.answer(f"Отлично, теперь этот человек является партнером")
-        await state.reset_state()
     else:
-        await state.finish()
-        await message.reply('ID пользователя не найден, начните заново')
+        await state.reset_state()
+        await message.answer('Повторите все заново вызвав команду /make_partner. Вы ввели не число!') 
+
 
 
 #_____АСИНХРОННЫЕ__ФУНКЦИИ__ДЛЯ__ВЫПОЛНЕНИЯ__ОСНОВНОГО__ФУНКЦИОНАЛА
@@ -281,7 +273,7 @@ async def process_stock(stock, volume_avg_prev):
         if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time:
             try:
                 print(1)
-                users_arr = get_subed_users()
+                users_arr = db.get_all_users()
                 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
                 current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
@@ -313,21 +305,22 @@ async def process_stock(stock, volume_avg_prev):
                 print("DATA 4: ", data[4])
                 if check_volume * 50 <= data[4]:
                     for user in users_arr:
-                        await bot.send_message(
-                            int(user),
-                            f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
-                            f'Изменение цены: {data[-3]}%\n'+
-                            f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
-                            f'Покупка: {data[-2]}% Продажа: {data[-1]}%\n' +
-                            f'Время: {current_date[5:]} {current_time}\n'+
-                            f'Цена: {data[3]}₽\n'+ 
-                            f'Изменение за день: {data[2]}%\n\n'+
-                            "<b>Заметил Радар МосБиржи</b>\n"
-                            f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
-                            disable_notification=False,
-                            parse_mode=types.ParseMode.HTML,
-                            reply_markup=keyb_for_subed
-                        )
+                        if user in get_subed_users() or user in get_users_with_free_sub():
+                            await bot.send_message(
+                                int(user),
+                                f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
+                                f'Изменение цены: {data[-3]}%\n'+
+                                f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
+                                f'Покупка: {data[-2]}% Продажа: {data[-1]}%\n' +
+                                f'Время: {current_date[5:]} {current_time}\n'+
+                                f'Цена: {data[3]}₽\n'+ 
+                                f'Изменение за день: {data[2]}%\n\n'+
+                                "<b>Заметил Радар МосБиржи</b>\n"
+                                f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
+                                disable_notification=False,
+                                parse_mode=types.ParseMode.HTML,
+                                reply_markup=keyb_for_subed
+                            )
             except exceptions.RetryAfter as e:
                 asyncio.sleep(e.timeout)
             except Exception as e:
@@ -357,17 +350,6 @@ async def process_stocks():
 async def main():
     await process_stocks()
 
-async def get_user_id_by_username(user_id):
-    try:
-        all_users = db.get_all_users()
-        for user in all_users:
-            if str(user) == str(user_id):
-                return True
-        return False
-    except Exception as e:
-        print(f"Error getting user ID: {e}")
-        return False
-
 async def delivery():
     users = get_unsubed_users()
     for user_id in users:
@@ -388,8 +370,8 @@ async def scheduler():
     # aioschedule.every(1).days.at("12:00").do(unsubscribe)
     aioschedule.every(1).days.at("19:00").do(delivery)
     aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
-
     #aioschedule.every(1).minutes.do(collect_volumes_avg)
+
     while True:
         if datetime.now(offset).weekday() < 5: 
             await aioschedule.run_pending()

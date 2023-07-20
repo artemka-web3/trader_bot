@@ -11,12 +11,13 @@ class ExtendSub(StatesGroup):
     CHOSE_MODE = State()
     # for one
     CHOOSE_ID = State()
-    SET_EXTEND_TIME = State()
+    SET_EXTEND_TIME_O = State()
     # for multiple
-    SET_DAYS = State()
+    SET_DAYS_M = State()
 
 class GiveFreeSub(StatesGroup):
     CHOOSE_USER = State()
     SET_TIME_FOR_SUB = State()
+
     
 
