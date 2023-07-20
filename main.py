@@ -62,7 +62,7 @@ async def get_user_agreement(message: types.Message):
     await message.reply('Пользовательское соглашение: https://telegra.ph/Polzovatelskoe-soglashenie-07-13-5',)
 
 #___________Referral__&&__Subscription__Things___________
-@dp.message_handler(lambda message: message.text.lower() == 'купить подписку' or message.text.lower() == '/subscribe' or message.text.lower() == '/help')
+@dp.message_handler(lambda message: message.text.lower() == 'купить подписку' or message.text.lower() == '/subscribe')
 async def buy_sub(message: types.Message):
     unsubed_users = get_unsubed_users()
     if message.from_user.id in unsubed_users:
@@ -116,7 +116,7 @@ async def admin_things(message: types.Message, state: FSMContext):
             "/free_sub - Отдать кому-то бесплатную подписку при условии что у человека нет активной подписки на сервис\n"+
             "/extend_sub - Продлить подписку всем или кому-то одному при условии что у человека есть активная подписка на сервис\n"+
             "/cancel - сбросить ввод и начать заново\n"+
-            "/make_partner - присвоить человеку статус партнера"
+            "/make_partner - присвоить человеку статус партнера", reply_markup=
         )
 
 @dp.message_handler(commands=['free_sub'])
