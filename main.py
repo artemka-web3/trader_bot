@@ -112,11 +112,11 @@ async def cancel_command(message: types.Message, state: FSMContext):
 @dp.message_handler(commands=['admin'])
 async def admin_things(message: types.Message, state: FSMContext):
     if message.from_user.id in ADMINS:
-        await message.answer("""
-            /free_sub - Отдать кому-то бесплатную подписку при условии что у человека нет активной подписки на сервис 
-            /extend_sub - Продлить подписку всем или кому-то одному при условии что у человека есть активная подписка на сервис
-            /cancel - сбросить ввод и начать заново
-            /make_partner - присвоить человеку статус партнера"""
+        await message.answer("Вот команды которые может использовать админ\n"+
+            "/free_sub - Отдать кому-то бесплатную подписку при условии что у человека нет активной подписки на сервис\n"+
+            "/extend_sub - Продлить подписку всем или кому-то одному при условии что у человека есть активная подписка на сервис\n"+
+            "/cancel - сбросить ввод и начать заново\n"+
+            "/make_partner - присвоить человеку статус партнера"
         )
 
 @dp.message_handler(commands=['free_sub'])
