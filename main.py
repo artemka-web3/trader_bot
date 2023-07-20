@@ -304,23 +304,24 @@ async def process_stock(stock, volume_avg_prev):
                 print("CHECK VOLUME: ", check_volume)
                 print("DATA 4: ", data[4])
                 if check_volume * 50 <= data[4]:
-                    for user in users_arr:
-                        if user in get_subed_users() or user in get_users_with_free_sub():
-                            await bot.send_message(
-                                int(user),
-                                f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
-                                f'Изменение цены: {data[-3]}%\n'+
-                                f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
-                                f'Покупка: {data[-2]}% Продажа: {data[-1]}%\n' +
-                                f'Время: {current_date[5:]} {current_time}\n'+
-                                f'Цена: {data[3]}₽\n'+ 
-                                f'Изменение за день: {data[2]}%\n\n'+
-                                "<b>Заметил Радар МосБиржи</b>\n"
-                                f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
-                                disable_notification=False,
-                                parse_mode=types.ParseMode.HTML,
-                                reply_markup=keyb_for_subed
-                            )
+                    if users_arr:
+                        for user in users_arr:
+                            if user in get_subed_users() or user in get_users_with_free_sub():
+                                await bot.send_message(
+                                    int(user),
+                                    f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
+                                    f'Изменение цены: {data[-3]}%\n'+
+                                    f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
+                                    f'Покупка: {data[-2]}% Продажа: {data[-1]}%\n' +
+                                    f'Время: {current_date[5:]} {current_time}\n'+
+                                    f'Цена: {data[3]}₽\n'+ 
+                                    f'Изменение за день: {data[2]}%\n\n'+
+                                    "<b>Заметил Радар МосБиржи</b>\n"
+                                    f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
+                                    disable_notification=False,
+                                    parse_mode=types.ParseMode.HTML,
+                                    reply_markup=keyb_for_subed
+                                )
             except exceptions.RetryAfter as e:
                 asyncio.sleep(e.timeout)
             except Exception as e:
