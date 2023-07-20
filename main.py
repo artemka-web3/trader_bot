@@ -112,11 +112,11 @@ async def cancel_command(message: types.Message, state: FSMContext):
 @dp.message_handler(commands=['admin'])
 async def admin_things(message: types.Message, state: FSMContext):
     if message.from_user.id in ADMINS:
-        await message.answer("Вот команды которые может использовать админ\n"+
+        await message.answer("Вот команды которые может использовать админ:\n"+
             "/free_sub - Отдать кому-то бесплатную подписку при условии что у человека нет активной подписки на сервис\n"+
             "/extend_sub - Продлить подписку всем или кому-то одному при условии что у человека есть активная подписка на сервис\n"+
             "/cancel - сбросить ввод и начать заново\n"+
-            "/make_partner - присвоить человеку статус партнера", reply_markup=
+            "/make_partner - присвоить человеку статус партнера"
         )
 
 @dp.message_handler(commands=['free_sub'])
@@ -258,7 +258,8 @@ async def make_partner(message: types.Message, state: FSMContext):
 @dp.message_handler(state=MakePartner.CHOOSE_ID)
 async def make_partner_id(message: types.Message, state: FSMContext):
     is_in = await get_user_id_by_username(message.text)
-    if is_in:
+    is_subed = check_if_subed(message.text)
+    if is_in and is_subed:
         user_id = message.text
         if db.is_partner(user_id):
             await message.answer('Этот человек уже партнер')
