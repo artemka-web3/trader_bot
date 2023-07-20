@@ -110,9 +110,17 @@ def update_sub(user_id, days):
             return True
     return False
 
+def buy_not_first_time(user_id, days):
+    for sub in client.list_subscriptions(str(user_id)):
+        if sub.status == 'Cancelled':
+            client.update_subscription(sub.id, next_transaction_date=datetime.now()+timedelta(days=days))
+
 def update_sub_for_all(days):
     all_users = db.get_all_users()
     for user in all_users:
         for sub in client.list_subscriptions(str(user)):
             if sub.status == 'Active' and not do_have_free_sub(user):
                 client.update_subscription(sub.id, next_transaction_date=datetime.now()+timedelta(days=days))
+
+for sub in client.list_subscriptions(764315256):
+    print(sub)

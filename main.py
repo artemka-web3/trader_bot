@@ -84,13 +84,13 @@ async def buy_sub_second_more(callback_query: types.CallbackQuery):
         await callback_query.answer("У вас есть бесплатная подписка ")
         return
     if callback_query.data == 'exb_month':
-        update_sub(callback_query.from_user.id, 30)
+        buy_not_first_time(callback_query.from_user.id, 30)
         await callback_query.answer("Подписка успешно продлена на 30 дней ✅")
     elif callback_query.data == 'exb_semi_year':
-        update_sub(callback_query.from_user.id, 180)
+        buy_not_first_time(callback_query.from_user.id, 180)
         await callback_query.answer("Подписка успешно продлена на пол года ✅")
     elif callback_query.data == 'exb_year':
-        update_sub(callback_query.from_user.id, 365)
+        buy_not_first_time(callback_query.from_user.id, 365)
         await callback_query.answer("Подписка успешно продлена на год ✅")
 
 
