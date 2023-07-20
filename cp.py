@@ -32,11 +32,11 @@ def get_users_with_free_sub():
         if all_users:
             free_users = []
             for user in all_users:
-                free_sub = db.get_free_sub_end(user)
+                free_sub = db.get_free_sub_end(user[0])
                 if free_sub:
                     free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
                     if free_sub > datetime.now() and user not in free_users:
-                        free_users.append(user)
+                        free_users.append(user[0])
             return free_users
         return []
     except Exception as e:
@@ -51,7 +51,7 @@ def get_subed_users():
         for user in all_users:
             for sub in client.list_subscriptions(user[0]):
                 if sub.status == 'Active' and user not in subed_users:
-                    subed_users.append(user)
+                    subed_users.append(user[0])
         return subed_users
     return []
 
@@ -62,7 +62,7 @@ def get_unsubed_users():
         for user in all_user_ids:
             for sub in client.list_subscriptions(user[0]):
                 if sub.status == 'Cancelled' and user not in unsubed_users:
-                    unsubed_users.append(user)
+                    unsubed_users.append(user[0])
         return unsubed_users
     return []
 
@@ -125,6 +125,6 @@ def update_sub_for_all(days):
     if all_users:
         for user in all_users:
             for sub in client.list_subscriptions(str(user[0])):
-                if sub.status == 'Active' and not do_have_free_sub(user):
+                if sub.status == 'Active' and not do_have_free_sub(user[0]):
                     client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
 
