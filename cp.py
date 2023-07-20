@@ -70,7 +70,7 @@ def get_unsubed_users():
 def is_in_pay_sys(user_id):
     subs = []
     for sub in client.list_subscriptions(user_id):
-        subs.append()
+        subs.append(user_id)
     return len(subs)
 
 
