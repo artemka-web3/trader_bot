@@ -128,4 +128,3 @@ def update_sub_for_all(days):
                 if sub.status == 'Active' and not do_have_free_sub(user):
                     client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
 
-
