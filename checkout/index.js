@@ -2,6 +2,9 @@ var express = require('express');
 var path = require('path');
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('../prod.db');
+const TelegramBot = require('node-telegram-bot-api');
+const token = '6308710529:AAFl-NaUBefjTjUHFSMBDwtjnMNOgpwdAHs';
+const bot = new TelegramBot(token, {polling: true});
 
 // Создание приложения
 var app = express();
@@ -34,11 +37,12 @@ app.get('/getTokenMonth/:account_id/:trxId', function (req, res) {
   var account_id = req.params.account_id;
 
 
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ? WHERE user_id = ?", 500, trxId, account_id, function (err) {
+  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 500, trxId, null, account_id, function (err) {
     if (err) {
       return console.log(err.message);
     }
     console.log(`A row has been inserted with rowid ${this.lastID}`);
+    bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
     return res.redirect('https://t.me/iss_stocks_bot')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
@@ -50,11 +54,12 @@ app.get('/getTokenSemiYear/:account_id/:trxId', function (req, res) {
   var account_id = req.params.account_id;
 
 
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ? WHERE user_id = ?", 500, trxId, account_id, function (err) {
+  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 500, trxId, null, account_id, function (err) {
     if (err) {
       return console.log(err.message);
     }
     console.log(`A row has been inserted with rowid ${this.lastID}`);
+    bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
     return res.redirect('https://t.me/iss_stocks_bot')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
@@ -66,11 +71,12 @@ app.get('/getTokenYear/:account_id/:trxId', function (req, res) {
   var account_id = req.params.account_id;
 
 
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ? WHERE user_id = ?", 500, trxId, account_id, function (err) {
+  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 500, trxId, null, account_id, function (err) {
     if (err) {
       return console.log(err.message);
     }
     console.log(`A row has been inserted with rowid ${this.lastID}`);
+    bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
     return res.redirect('https://t.me/iss_stocks_bot')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.

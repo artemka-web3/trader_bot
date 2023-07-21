@@ -40,6 +40,12 @@ one_or_m = types.ReplyKeyboardMarkup(resize_keyboard=True , row_width=2)
 one_or_m.add(types.KeyboardButton(text="Один"))
 one_or_m.add(types.KeyboardButton(text="Несколько"))
 
+# confirm kb
+confirm_keyb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+confirm_keyb.add(types.KeyboardButton(text='Да'))
+confirm_keyb.add(types.KeyboardButton(text = 'Нет'))
+
+
 
 
 

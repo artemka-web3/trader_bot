@@ -16,6 +16,13 @@ d3119d06f156dad88a2ed516957b065b
 db = BotDB('prod.db')
 client = cloudpayments.CloudPayments('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
 
+def before_end_of_free_sub(user_id):
+    free_sub = db.get_free_sub_end(user_id)
+    if free_sub is not None:
+        free_sub = datetime.strptime(free_sub,  '%Y-%m-%d %H:%M:%S.%f')
+        if free_sub > datetime.now():
+            return free_sub - datetime.now()
+
 def do_have_free_sub(user_id):
     free_sub = db.get_free_sub_end(user_id)
     if free_sub is not None:
@@ -80,6 +87,7 @@ def check_if_subed(user_id):
         if user_id in subed_users:
             return True
     return False
+
 # get_sub_end == get_next_trx_date
 def get_sub_end(user_id):
     for sub in client.list_subscriptions(str(user_id)):
@@ -128,3 +136,6 @@ def update_sub_for_all(days):
                 if sub.status == 'Active' and not do_have_free_sub(user[0]):
                     client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
 
+
+for sub in client.list_subscriptions(764315256):
+    print(sub)
