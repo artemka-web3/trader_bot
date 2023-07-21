@@ -484,7 +484,7 @@ async def process_stocks():
     securities = await moex_async.get_securities()
     for stock in securities:
         # check if stock[0] in csv
-        async with aiofiles.open('shares.csv', mode='r') as reader:
+        async with aiofiles.open('shares_v2.csv', mode='r') as reader:
             async for row in aiocsv.AsyncDictReader(reader, delimiter='\n'):
                 if row is not None:
                     if row['Полное название акций ,тикет,сокращённое название ,ликвидность'] is not None:
