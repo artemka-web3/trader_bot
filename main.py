@@ -194,7 +194,7 @@ async def cancel_command(message: types.Message, state: FSMContext):
     await message.reply('Вы отменили действие. Весь прогресс сброшен.', reply_markup=keyb_for_subed)
 
 @dp.message_handler(commands=['admin'])
-async def admin_things(message: types.Message, state: FSMContext):
+async def admin_things(message: types.Message):
     if message.from_user.id in ADMINS:
         await message.answer("Вот команды которые может использовать админ:\n"+
             "/free_sub - Отдать кому-то бесплатную подписку при условии что у человека нет активной подписки на сервис\n"+
@@ -214,10 +214,10 @@ async def give_free_sub(message: types.Message, state = FSMContext):
 @dp.message_handler(state=GiveFreeSub.CHOOSE_USER)
 async def give_free_sub_step_choose_user(message: types.Message, state: FSMContext):
     if message.text.isdigit():
-        if check_if_subed(message.text) and is_in_pay_sys(message.text):
+        if check_if_subed(int(message.text)) and is_in_pay_sys(int(message.text)):
             await state.finish()
             await message.answer("Этот пользователь имеет подписку оформленную через cloud payments")
-        elif not check_if_subed(message.text) and is_in_pay_sys(message.text):
+        elif not check_if_subed(int(message.text)) and is_in_pay_sys(int(message.text)):
             await state.update_data(user_id = message.text)
             await message.answer("Теперь надо ввести число дней на которое будет оформлена бесплатная подписка")
             await state.set_state(GiveFreeSub.SET_TIME_FOR_SUB)
@@ -272,12 +272,12 @@ async def extend_free_sub_all(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         users_with_free = get_users_with_free_sub()
         for user_id in users_with_free:
-            if do_have_free_sub(user_id):
-                    free_sub = db.get_free_sub_end(user_id)
+            if do_have_free_sub(int(user_id)):
+                    free_sub = db.get_free_sub_end(int(user_id))
                     if free_sub is not None:
                         free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
                         free_sub = free_sub + timedelta(days=int(message.text))
-                        db.set_free_sub_end(user_id, free_sub)
+                        db.set_free_sub_end(int(user_id), free_sub)
     else:
         await state.reset_state()
         await message.answer('Вы должны были ввести число')
@@ -285,15 +285,15 @@ async def extend_free_sub_all(message: types.Message, state: FSMContext):
 @dp.message_handler(state= ExtendFreeSub.CHOOSE_ID)
 async def extend_free_sub_id(message: types.Message, state: FSMContext):
     if message.text.isdigit():
-        if is_in_pay_sys(message.text) and not check_if_subed(message.text):
-            if do_have_free_sub(message.text):
+        if is_in_pay_sys(message.text) and not check_if_subed(int(message.text)):
+            if do_have_free_sub(int(message.text)):
                 await state.update_data(user_id = message.text)
                 await message.answer('Теперь надо ввести число дней на которое вы хотите продлить бесплатную подписку пользователю')
                 await state.set_state(ExtendFreeSub.SET_TIME)
             else:
                 await state.finish()
                 await message.answer("У человека нет бесплатной подписки")
-        elif not is_in_pay_sys(message.text) and do_have_free_sub(message.text):
+        elif not is_in_pay_sys(int(message.text)) and do_have_free_sub(int(message.text)):
             await state.update_data(user_id = message.text)
             await message.answer('Теперь надо ввести число дней на которое вы хотите продлить бесплатную подписку пользователю')
             await state.set_state(ExtendFreeSub.SET_TIME)
@@ -314,13 +314,13 @@ async def extend_free_sub_choose_date_for_one(message: types.Message, state: FSM
         if free_sub is not None:
             free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
             free_sub = free_sub + timedelta(days=int(message.text))
-        try:
-            await bot.send_message(user_id, "Вам была продлена бесплатная подписка")
-            await message.answer("Бесплатная подписка для пользователя продлена")
-            db.set_free_sub_end(user_id, free_sub)
-        except:
-            await message.answer("Что-то пошло не так на стороне пользователя")
-            await state.finish()
+            try:
+                await bot.send_message(user_id, "Вам была продлена бесплатная подписка")
+                await message.answer("Бесплатная подписка для пользователя продлена")
+                db.set_free_sub_end(user_id, free_sub)
+            except:
+                await message.answer("Что-то пошло не так на стороне пользователя")
+                await state.finish()
         await state.finish()
     else: 
         await state.finish()
@@ -363,12 +363,19 @@ async def extend_sub_for_all(message: types.Message, state: FSMContext):
 @dp.message_handler(state=ExtendSub.CHOOSE_ID)
 async def extend_sub_id(message: types.Message, state: FSMContext):
     if message.text.isdigit():
-        if is_in_pay_sys(message.text) and check_if_subed(message.text) and not do_have_free_sub(message.text):
-            await state.update_data(user_id = message.text)
-            await message.answer('Теперь надо ввести число дней на которое вы хотите продлить платную подписку пользователю')
-            await state.set_state(ExtendSub.SET_EXTEND_TIME_O)
+        if is_in_pay_sys(int(message.text)):
+            if check_if_subed(int(message.text)):
+                if do_have_free_sub(int(message.text)) == False:
+                    await state.update_data(user_id = message.text)
+                    await message.answer('Теперь надо ввести число дней на которое вы хотите продлить платную подписку пользователю')
+                    await state.set_state(ExtendSub.SET_EXTEND_TIME_O)
+                else:
+                    await message.answer("У этого пользователя есть бесплатная подписка, вы не можете продлить ему платную без его предварительного согласия, он должен купить ее сам")
+            else: 
+                await message.answer("Этот пользователь не имеет платной подписки") 
+                await state.reset_state()    
         else:
-            await message.answer("Этот пользователь не имеет платной подписки")
+            await message.answer("Этот пользователь ни разу не оплачивал подписку")
             await state.reset_state()
     else:
         await state.reset_state()
@@ -402,7 +409,7 @@ async def make_partner(message: types.Message, state: FSMContext):
 @dp.message_handler(state=MakePartner.CHOOSE_ID)
 async def make_partner_id(message: types.Message, state: FSMContext):
     if message.text.isdigit():
-        if check_if_subed(message.text) or do_have_free_sub(message.text):
+        if check_if_subed(int(message.text)) or do_have_free_sub(int(message.text)):
             await state.finish()
             try:
                 await bot.send_message(message.text, 'Вам просвоен статус партнера')
@@ -426,7 +433,7 @@ async def process_stock(stock, volume_avg_prev, coef):
         await collecting_avg_event.wait() 
         start_time = datetime.now(offset).replace(hour=9, minute=50, second=0, microsecond=0).time()
         end_time = datetime.now(offset).replace(hour=23, minute=50, second=0, microsecond=0).time()
-        if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time:
+        if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time and datetime.now(offset).weekday() < 5:
             try:
                 print(1)
                 users_arr = db.get_all_users()
@@ -519,10 +526,13 @@ async def delivery():
 async def collect_volumes_avg():
     global volumes_avg_prev
     collecting_avg_event.clear() 
-
-    volumes_avg_prev = await moex_async.get_prev_avg_volume(volumes_avg_prev)
-    collecting_avg_event.set() 
-    return volumes_avg_prev
+    if datetime.now(offset).weekday() < 5:
+        volumes_avg_prev = await moex_async.get_prev_avg_volume(volumes_avg_prev)
+        collecting_avg_event.set() 
+        return volumes_avg_prev
+    else:
+        collecting_avg_event.set() 
+        return {}
 
 async def schedule_collecting_volumes():
     await collect_volumes_avg()
@@ -530,17 +540,16 @@ async def schedule_collecting_volumes():
 async def scheduler():
     # aioschedule.every(1).days.at("12:00").do(unsubscribe)
     aioschedule.every(1).days.at("19:00").do(delivery)
-    #aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
+    aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
     #aioschedule.every(1).minutes.do(collect_volumes_avg)
 
     while True:
-        if datetime.now(offset).weekday() < 5: 
-            await aioschedule.run_pending()
-            await asyncio.sleep(1)
+        await aioschedule.run_pending()
+        await asyncio.sleep(1)
 
 
 async def on_startup(_):
-    #asyncio.create_task(collect_volumes_avg())
+    asyncio.create_task(collect_volumes_avg())
     asyncio.create_task(main())
     asyncio.create_task(scheduler())
 

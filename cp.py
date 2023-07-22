@@ -34,20 +34,17 @@ def do_have_free_sub(user_id):
     return False
 
 def get_users_with_free_sub():
-    try:
-        all_users = db.get_all_users()
-        if all_users:
-            free_users = []
-            for user in all_users:
-                free_sub = db.get_free_sub_end(user[0])
-                if free_sub:
-                    free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
-                    if free_sub > datetime.now() and user not in free_users:
-                        free_users.append(user[0])
-            return free_users
-        return []
-    except Exception as e:
-        print(e)
+    all_users = db.get_all_users()
+    if all_users:
+        free_users = []
+        for user in all_users:
+            free_sub = db.get_free_sub_end(user[0])
+            if free_sub:
+                free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
+                if free_sub > datetime.now() and user not in free_users:
+                    free_users.append(user[0])
+        return free_users
+    return []
 
 
 # get subed users id
@@ -135,4 +132,3 @@ def update_sub_for_all(days):
             for sub in client.list_subscriptions(str(user[0])):
                 if sub.status == 'Active' and not do_have_free_sub(user[0]):
                     client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
-
