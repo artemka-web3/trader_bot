@@ -70,8 +70,16 @@ async def buy_sub_first(message: types.Message, state: FSMContext):
             await message.answer("У вас есть активная подписка на наш сервис", reply_markup=keyb_for_subed)
         else:
             await message.answer('Ваша подписка закончилась, продлите ее нажав на одну из кнопок ниже где вы можете выбрать срок. \n Помните, все бесплатные подписки отменяются при покупке/продлении платной ', reply_markup=ex_b_keyb) 
-    else:
-        await message.answer('Купите подписку нажав на кнопку ниже. Помните, все бесплатные подписки отменяются при покупке платной', reply_markup=create_buying_link(message.from_user.id))
+    elif is_in_pay_sys(message.from_user.id) and not check_if_subed(message.from_user.id):
+        if message.from_user.id in free_users:
+            await message.answer('Купите подписку нажав на кнопку ниже. Помните, все бесплатные подписки отменяются при покупке платной', reply_markup=create_buying_link(message.from_user.id))
+        else:
+            await message.answer('Купите подписку нажав на кнопку ниже. Помните, все бесплатные подписки отменяются при покупке платной', reply_markup=create_buying_link(message.from_user.id))
+    elif not is_in_pay_sys(message.from_user.id):
+        if message.from_user.id in free_users:
+            await message.answer('Купите подписку нажав на кнопку ниже. Помните, все бесплатные подписки отменяются при покупке платной', reply_markup=create_buying_link(message.from_user.id))
+        else:
+            await message.answer('Купите подписку нажав на кнопку ниже. Помните, все бесплатные подписки отменяются при покупке платной', reply_markup=create_buying_link(message.from_user.id))
 
 # @dp.message_handler(state = BreakFreeSub.CONFIRM)
 # async def confirm_cancel_from_free(message: types.Message, state: FSMContext):
