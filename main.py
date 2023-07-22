@@ -65,14 +65,11 @@ async def get_user_agreement(message: types.Message):
 @dp.message_handler(lambda message: message.text.lower() == 'купить подписку' or message.text.lower() == '/subscribe')
 async def buy_sub_first(message: types.Message, state: FSMContext):
     free_users = get_users_with_free_sub()
-    if message.from_user.id in free_users:
-        await message.answer("У вас есть бесплатная подписка, хотите купить платную и отменить вашу бесплатную подписку? \n Если да, то выберете вариант нажав на одну из кнопок. \n Если нет, то просто вызовите /cancel", reply_markup=confirm_keyb)
-        await state.set_state(BreakFreeSub.CONFIRM)
     if is_in_pay_sys(message.from_user.id) and not message.from_user.id in free_users:
         if check_if_subed(message.from_user.id):
             await message.answer("У вас есть активная подписка на наш сервис", reply_markup=keyb_for_subed)
         else:
-            await message.answer('Ваша подписка закончилась, продлите ее нажав на одну из кнопок ниже где вы можете выбрать срок. \n Помните, все бесплатные подписки отменяются при покупке платной ', reply_markup=ex_b_keyb) 
+            await message.answer('Ваша подписка закончилась, продлите ее нажав на одну из кнопок ниже где вы можете выбрать срок. \n Помните, все бесплатные подписки отменяются при покупке/продлении платной ', reply_markup=ex_b_keyb) 
     else:
         await message.answer('Купите подписку нажав на кнопку ниже. Помните, все бесплатные подписки отменяются при покупке платной', reply_markup=create_buying_link(message.from_user.id))
 
@@ -181,21 +178,22 @@ async def get_profile_data(message: types.Message):
         await message.answer("Вы не были занесены в БД, но я это исправил, подпишитесь на бота чтоб выполнить эту команду!", reply_markup=keyb_for_unsubed)
 
 #______________ADMIN___PANEL___THINGS__________________
-@dp.message_handler(commands=('cancel'), state='*')
+@dp.message_handler(commands=['cancel'], state='*')
 async def cancel_command(message: types.Message, state: FSMContext):
     # Сброс состояния пользователя
     await state.reset_state()
     # Или можно использовать await state.finish()
-    await message.reply('Вы отменили действие. Весь прогресс сброшен.')
+    await message.reply('Вы отменили действие. Весь прогресс сброшен.', reply_markup=keyb_for_subed)
 
 @dp.message_handler(commands=['admin'])
 async def admin_things(message: types.Message, state: FSMContext):
     if message.from_user.id in ADMINS:
         await message.answer("Вот команды которые может использовать админ:\n"+
             "/free_sub - Отдать кому-то бесплатную подписку при условии что у человека нет активной подписки на сервис\n"+
-            "/extend_sub - Продлить подписку всем или кому-то одному при условии что у человека есть активная подписка на сервис\n"+
-            "/cancel - сбросить ввод и начать заново\n"+
-            "/make_partner - присвоить человеку статус партнера"
+            "/extend_sub_for_paid_users - Продлить подписку всем или кому-то одному при условии что у человека есть активная платная подписка на сервис\n"+
+            "/make_partner - присвоить человеку статус партнера\n"+
+            "/extend_free_sub - продление бесплатной подписки \n"+
+            "/cancel - сбросить ввод и начать заново\n"
         )
 
 @dp.message_handler(commands=['free_sub'])
@@ -524,7 +522,7 @@ async def schedule_collecting_volumes():
 async def scheduler():
     # aioschedule.every(1).days.at("12:00").do(unsubscribe)
     aioschedule.every(1).days.at("19:00").do(delivery)
-    aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
+    #aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
     #aioschedule.every(1).minutes.do(collect_volumes_avg)
 
     while True:
@@ -534,7 +532,7 @@ async def scheduler():
 
 
 async def on_startup(_):
-    asyncio.create_task(collect_volumes_avg())
+    #asyncio.create_task(collect_volumes_avg())
     asyncio.create_task(main())
     asyncio.create_task(scheduler())
 

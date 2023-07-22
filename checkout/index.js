@@ -42,7 +42,11 @@ app.get('/getTokenMonth/:account_id/:trxId', function (req, res) {
       return console.log(err.message);
     }
     console.log(`A row has been inserted with rowid ${this.lastID}`);
-    bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
+    try{
+      bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
+    } catch (e){
+      console.log(e)
+    }
     return res.redirect('https://t.me/iss_stocks_bot')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
@@ -59,7 +63,11 @@ app.get('/getTokenSemiYear/:account_id/:trxId', function (req, res) {
       return console.log(err.message);
     }
     console.log(`A row has been inserted with rowid ${this.lastID}`);
-    bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
+    try{
+      bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
+    } catch (e){
+      console.log(e)
+    }
     return res.redirect('https://t.me/iss_stocks_bot')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
@@ -76,7 +84,11 @@ app.get('/getTokenYear/:account_id/:trxId', function (req, res) {
       return console.log(err.message);
     }
     console.log(`A row has been inserted with rowid ${this.lastID}`);
-    bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
+    try{
+      bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
+    } catch (e){
+      console.log(e)
+    }
     return res.redirect('https://t.me/iss_stocks_bot')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.

@@ -78,7 +78,7 @@ def is_in_pay_sys(user_id):
     subs = []
     for sub in client.list_subscriptions(user_id):
         subs.append(user_id)
-    return len(subs)
+    return bool(len(subs)>0)
 
 # check if subed
 def check_if_subed(user_id):
@@ -136,6 +136,3 @@ def update_sub_for_all(days):
                 if sub.status == 'Active' and not do_have_free_sub(user[0]):
                     client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
 
-
-for sub in client.list_subscriptions(764315256):
-    print(sub)
