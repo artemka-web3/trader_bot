@@ -63,7 +63,7 @@ async def get_user_agreement(message: types.Message):
 
 #___________Referral__&&__Subscription__Things___________
 @dp.message_handler(lambda message: message.text.lower() == 'купить подписку' or message.text.lower() == '/subscribe')
-async def buy_sub_first(message: types.Message, state: FSMContext):
+async def buy_sub_first(message: types.Message):
     free_users = get_users_with_free_sub()
     if is_in_pay_sys(message.from_user.id) and not message.from_user.id in free_users:
         if check_if_subed(message.from_user.id):
