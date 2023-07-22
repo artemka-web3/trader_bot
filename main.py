@@ -64,62 +64,20 @@ async def get_user_agreement(message: types.Message):
 #___________Referral__&&__Subscription__Things___________
 @dp.message_handler(lambda message: message.text.lower() == 'купить подписку' or message.text.lower() == '/subscribe')
 async def buy_sub_first(message: types.Message):
-    free_users = get_users_with_free_sub()
-    if is_in_pay_sys(message.from_user.id) and not message.from_user.id in free_users:
-        if check_if_subed(message.from_user.id):
-            await message.answer("У вас есть активная подписка на наш сервис", reply_markup=keyb_for_subed)
+    if is_in_pay_sys(message.from_user.id):
+        if check_if_subed(message.from_user.id) and not do_have_free_sub(message.from_user.id):
+            await message.answer("Вы уже подписаны", reply_markup=keyb_for_subed)
+        elif not check_if_subed(message.from_user.id) and do_have_free_sub(message.from_user.id):
+            await message.answer("У вас есть бесплатная подписка, при покупке платной подписки она отменится. Если вы готовы продолжить,нажми на кнопку под сообщением", reply_markup=ex_b_keyb)
+    else:
+        if do_have_free_sub(message.from_user.id):
+            await message.answer('У вас есть бесплатная подписка. Если купите платную подписку, то она отменится. Если вы готовы так сделать, то нажмите на кнопку под сообщением', reply_markup=create_buying_link(message.from_user.id))
         else:
-            await message.answer('Ваша подписка закончилась, продлите ее нажав на одну из кнопок ниже где вы можете выбрать срок. \n Помните, все бесплатные подписки отменяются при покупке/продлении платной ', reply_markup=ex_b_keyb) 
-    elif is_in_pay_sys(message.from_user.id) and not check_if_subed(message.from_user.id):
-        if message.from_user.id in free_users:
-            await message.answer('Купите подписку нажав на кнопку ниже. Помните, все бесплатные подписки отменяются при покупке платной', reply_markup=create_buying_link(message.from_user.id))
-        else:
-            await message.answer('Купите подписку нажав на кнопку ниже. Помните, все бесплатные подписки отменяются при покупке платной', reply_markup=create_buying_link(message.from_user.id))
-    elif not is_in_pay_sys(message.from_user.id):
-        if message.from_user.id in free_users:
-            await message.answer('Купите подписку нажав на кнопку ниже. Помните, все бесплатные подписки отменяются при покупке платной', reply_markup=create_buying_link(message.from_user.id))
-        else:
-            await message.answer('Купите подписку нажав на кнопку ниже. Помните, все бесплатные подписки отменяются при покупке платной', reply_markup=create_buying_link(message.from_user.id))
-
-# @dp.message_handler(state = BreakFreeSub.CONFIRM)
-# async def confirm_cancel_from_free(message: types.Message, state: FSMContext):
-#     if message.text == 'Да':
-#         if is_in_pay_sys(message.from_user.id):
-#             await message.answer("Когда-то вы уже были подписаны на наш сервис, выберите подписку нажав на кнопку ниже", reply_markup=ex_b_keyb)
-#         else:
-#             await message.answer('Я сформировал ссылку, выберите подписку нажав на одну из кнопок ниже', reply_markup=create_buying_link(message.from_user.id))
-#     elif message.text == 'Нет':
-#         await message.answer('Хорошо, бесплатная подписка осталась нетронутой')
-#         await state.finish()
-#     else:
-#         await state.reset_state()
-#         await message.answer('Вы выбрали непонятный вариант. Попробуйте купить подписку снова', reply_markup=keyb_for_unsubed)
-
-# @dp.callback_query_handler()
-# async def handle_first_time_buying_after_cancelling_from_free_sub(callback_query: types.CallbackQuery, state: FSMContext):
-#     breaking_free = False
-#     if state == BreakFreeSub.CONFIRM:
-#         breaking_free = True
-#     if breaking_free:
-#         if callback_query.data == 'month':
-#             await bot.send_message(callback_query.from_user.id, 'Подписка в процессе активации. Если вам не пришло сообщение о том, что подписка куплена, надо пройти процесс покупки заново',  reply_markup=keyb_for_unsubed)
-#             await state.reset_state()
-#         elif callback_query.data == 'semi_year':
-#             await bot.send_message(callback_query.from_user.id, 'Подписка в процессе активации. Если вам не пришло сообщение о том, что подписка куплена, надо пройти процесс покупки заново',  reply_markup=keyb_for_unsubed)
-#             await state.reset_state()
-            
-#         elif callback_query.data == 'year':
-#             await bot.send_message(callback_query.from_user.id, 'Подписка в процессе активации. Если вам не пришло сообщение о том, что подписка куплена, надо пройти процесс покупки заново',  reply_markup=keyb_for_unsubed)
-#             await state.reset_state()
+            await message.answer("Купите платную подписку нажав на одну из кнопок", reply_markup=create_buying_link(message.from_user.id))
 
 
 @dp.callback_query_handler()
 async def buy_sub_second_more(callback_query: types.CallbackQuery):
-    breaking_free = False
-    free_users = get_users_with_free_sub()
-    if callback_query.from_user.id in free_users and not breaking_free:
-        await callback_query.answer("У вас есть бесплатная подписка ")
-        return
     if callback_query.data == 'exb_month':
         buy_not_first_time(callback_query.from_user.id, 30)
         db.set_free_sub_end(callback_query.from_user.id, None)
@@ -207,7 +165,7 @@ async def admin_things(message: types.Message):
 @dp.message_handler(commands=['free_sub'])
 async def give_free_sub(message: types.Message, state = FSMContext):
     if message.from_user.id in ADMINS:
-        await message.answer('Вам нужно ввести ID человека которому вы хотите продлить подписку. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot')
+        await message.answer('Вам нужно ввести ID человека которому вы хотите дать бесплатную подписку. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot')
         await state.set_state(GiveFreeSub.CHOOSE_USER)
     else:
         await message.answer('Вы не админ!')
@@ -251,7 +209,7 @@ async def give_free_sub_step_choose_time(message: types.Message, state: FSMConte
 @dp.message_handler(commands=['extend_free_sub'])
 async def extend_free_sub(message: types.Message, state: FSMContext):
     if message.from_user.id in ADMINS:
-        await message.answer("Вы хотите продлить подписку одному или всем у кого есть бесплатная подписка.", reply_markup=one_or_m)
+        await message.answer("Вы хотите продлить бесплатную подписку одному или всем у кого есть бесплатная подписка.", reply_markup=one_or_m)
         await state.set_state(ExtendFreeSub.CHOSE_MODE)
     else:
         await message.answer("Вы не админ")
@@ -272,12 +230,11 @@ async def extend_free_sub_all(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         users_with_free = get_users_with_free_sub()
         for user_id in users_with_free:
-            if do_have_free_sub(int(user_id)):
-                    free_sub = db.get_free_sub_end(int(user_id))
-                    if free_sub is not None:
-                        free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
-                        free_sub = free_sub + timedelta(days=int(message.text))
-                        db.set_free_sub_end(int(user_id), free_sub)
+            free_sub = db.get_free_sub_end(int(user_id))
+            if free_sub is not None:
+                free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
+                free_sub = free_sub + timedelta(days=int(message.text))
+                db.set_free_sub_end(int(user_id), free_sub)
     else:
         await state.reset_state()
         await message.answer('Вы должны были ввести число')
@@ -370,12 +327,13 @@ async def extend_sub_id(message: types.Message, state: FSMContext):
                     await message.answer('Теперь надо ввести число дней на которое вы хотите продлить платную подписку пользователю')
                     await state.set_state(ExtendSub.SET_EXTEND_TIME_O)
                 else:
-                    await message.answer("У этого пользователя есть бесплатная подписка, вы не можете продлить ему платную без его предварительного согласия, он должен купить ее сам")
+                    await message.answer("У этого пользователя есть бесплатная подписка, вы не можете продлить ему платную без его предварительного согласия, он должен купить ее сам. \n  Начните заново вызвав команду /extend_sub")
+                    await state.reset_state()
             else: 
-                await message.answer("Этот пользователь не имеет платной подписки") 
+                await message.answer("Этот пользователь не имеет платной подписки.  Начните заново вызвав команду /extend_sub") 
                 await state.reset_state()    
         else:
-            await message.answer("Этот пользователь ни разу не оплачивал подписку")
+            await message.answer("Этот пользователь ни разу не оплачивал подписку.  Начните заново вызвав команду /extend_sub")
             await state.reset_state()
     else:
         await state.reset_state()
@@ -409,6 +367,10 @@ async def make_partner(message: types.Message, state: FSMContext):
 @dp.message_handler(state=MakePartner.CHOOSE_ID)
 async def make_partner_id(message: types.Message, state: FSMContext):
     if message.text.isdigit():
+        if db.is_partner(int(message.text)):
+            await message.answer("Этот человек уже партнер")
+            await state.finish()
+            return
         if check_if_subed(int(message.text)) or do_have_free_sub(int(message.text)):
             await state.finish()
             try:
@@ -469,7 +431,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                 if check_volume * coef <= data[4]:
                     if users_arr:
                         for user in users_arr:
-                            if user[0] in get_subed_users() or user[0] in get_users_with_free_sub():
+                            if user[0] in get_subed_users() or do_have_free_sub(user[0]):
                                 await bot.send_message(
                                     int(user[0]),
                                     f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+

@@ -15,7 +15,6 @@ d3119d06f156dad88a2ed516957b065b
 
 db = BotDB('prod.db')
 client = cloudpayments.CloudPayments('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
-
 def before_end_of_free_sub(user_id):
     free_sub = db.get_free_sub_end(user_id)
     if free_sub is not None:
@@ -41,7 +40,7 @@ def get_users_with_free_sub():
             free_sub = db.get_free_sub_end(user[0])
             if free_sub:
                 free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
-                if free_sub > datetime.now() and user not in free_users:
+                if free_sub > datetime.now() and user[0] not in free_users:
                     free_users.append(user[0])
         return free_users
     return []
@@ -54,7 +53,7 @@ def get_subed_users():
     if all_users:
         for user in all_users:
             for sub in client.list_subscriptions(user[0]):
-                if sub.status == 'Active' and user not in subed_users:
+                if sub.status == 'Active' and user[0] not in subed_users:
                     subed_users.append(user[0])
         return subed_users
     return []
@@ -65,7 +64,7 @@ def get_unsubed_users():
     if all_user_ids:
         for user in all_user_ids:
             for sub in client.list_subscriptions(user[0]):
-                if sub.status == 'Cancelled' and user not in unsubed_users:
+                if sub.status == 'Cancelled' and user[0] not in unsubed_users:
                     unsubed_users.append(user[0])
         return unsubed_users
     return []
@@ -116,6 +115,7 @@ def update_sub(user_id, days):
     for sub in client.list_subscriptions(str(user_id)):
         if sub.status == 'Active':
             start_date = sub.start_date
+            cancel_sub(user_id)
             client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
             return True
     return False
@@ -132,3 +132,4 @@ def update_sub_for_all(days):
             for sub in client.list_subscriptions(str(user[0])):
                 if sub.status == 'Active' and not do_have_free_sub(user[0]):
                     client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
+
