@@ -4,7 +4,7 @@ var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('../prod.db');
 const TelegramBot = require('node-telegram-bot-api');
 const token = '6308710529:AAFl-NaUBefjTjUHFSMBDwtjnMNOgpwdAHs';
-const bot = new TelegramBot(token, {polling: true});
+const bot = new TelegramBot(token, {polling: false});
 
 // Создание приложения
 var app = express();
