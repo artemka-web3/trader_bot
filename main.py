@@ -468,7 +468,7 @@ async def process_stocks():
                             liq_id = row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[-1]
                             coef = 50
                             if liq_id == 0:
-                                coef = 150
+                                coef = 200
                             task = process_stock(stock, volumes_avg_prev, coef)
                             tasks.append(task)
         #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
