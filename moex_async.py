@@ -233,7 +233,7 @@ async def buyers_vs_sellers1(security):
         sellers = 0
 
     return buyers, sellers
-
-# print(loop.run_until_complete(buyers_vs_sellers1("SBER")))
+loop = asyncio.get_event_loop()
+print(loop.run_until_complete(get_current_stock_volume("FESH")))
 # loop.run_until_complete(get_current_stock_volume('SBER'))
 
