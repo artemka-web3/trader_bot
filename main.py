@@ -437,7 +437,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                                     f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
                                     f'Изменение цены: {data[-3]}%\n'+
                                     f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
-                                    (f'<b>Покупка: {data[-2]}%</b> Продажа: {data[-1]}%' if data[-2] > data[-1] else f'Покупка: {data[-2]}% <b>Продажа: {data[-1]}%</b>') +
+                                    (f'<b>Покупка: {data[-2]}%</b> Продажа: {data[-1]}%' if data[-2] > data[-1] else f'Покупка: {data[-2]}% <b>Продажа: {data[-1]}%</b>ё\n') +
                                     f'Время: {current_date[5:]} {current_time}\n'+
                                     f'Цена: {data[3]}₽\n'+ 
                                     f'Изменение за день: {data[2]}%\n\n'+
