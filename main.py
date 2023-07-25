@@ -413,7 +413,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                 current_price = current_stock_data[1] # рублей
                 volume_rub = current_stock_data[4] # М рублей
                 volume_shares = current_stock_data[5] 
-                lot_amount = round(volume_shares / lot_size, 3) # лотов
+                lot_amount = round(volume_shares / lot_size, 2) # лотов
                 price_change = await moex_async.get_price_change(stock[0]) # %
                 buyers_sellers = await moex_async.buyers_vs_sellers1(stock[0])
                 buyers = buyers_sellers[0] # %
@@ -436,7 +436,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                                     int(user[0]),
                                     f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
                                     f'Изменение цены: {data[-3]}%\n'+
-                                    f'Объем: {round(float(data[4])/1000000, 3)}M₽ ({data[-4]} лотов)\n' + 
+                                    f'Объем: {round(float(data[4])/1000000, 2)}M₽ ({data[-4]} лотов)\n' + 
                                     (f'<b>Покупка: {data[-2]}%</b> Продажа: {data[-1]}%' if data[-2] > data[-1] else f'Покупка: {data[-2]}% <b>Продажа: {data[-1]}%</b>\n') +
                                     f'Время: {current_date[5:]} {current_time}\n'+
                                     f'Цена: {data[3]}₽\n'+ 

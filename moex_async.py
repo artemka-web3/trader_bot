@@ -159,7 +159,7 @@ async def get_price_change(security):
     current_close = current_candle[1]
     prev_close = prev_candle[1]
     #return current_candle, current_close, current_close, prev_close
-    return round((float(current_close) * 100 / float(prev_close)) - 100, 3)
+    return round((float(current_close) * 100 / float(prev_close)) - 100, 2)
 
 
 # GET ALL MINUTE VOLUMES WITHIN PAST 7 DAYS
