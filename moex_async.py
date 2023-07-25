@@ -18,7 +18,7 @@ login = 'kazakovoleg797@gmail.com'
 #password – пароль от учетной записи на сайте moex.com
 password = "Inkgroup12!"
 s = re.Session()
-s.get('https://passport.moex.com/authenticate', auth=(login, password))
+s.get('http://passport.moex.com/authenticate', auth=(login, password))
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
 cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
 s.close()
@@ -39,7 +39,7 @@ async def fetch_stock(session, url, headers, cookies):
 
 async def one_stock(url, headers, cookies):
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_stock(session, url, headers, cookies)
         name = await get_value_by_ticker(data['securities']['data'][0][0])
         return (
@@ -51,22 +51,22 @@ async def one_stock(url, headers, cookies):
 
     
 async def get_stock_data(security):
-    url_get_sec = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}.json"
+    url_get_sec = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}.json"
     return await one_stock(url_get_sec, headers, cookies)
 
 # GET ALL SECURITIES
-url_get_secs = 'https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json'
+url_get_secs = 'http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json'
 async def fetch_all_securities(session, url, headers, cookies):
     async with session.get(url, headers=headers, cookies=cookies) as response:
         return await response.json()
 
 async def all_securities(url, headers, cookies):
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_all_securities(session, url, headers, cookies)
         return data['securities']['data']
     
 async def all_marketdata(url, headers, cookies):
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_all_securities(session, url, headers, cookies)
         return data['marketdata']['data']
     
@@ -82,27 +82,19 @@ async def fetch_current_volume(session, url, headers, cookies):
         return await response.json()
 
 async def get_current_volume(url, headers, cookies):
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_current_volume(session, url, headers, cookies)
         return data
     
 async def get_current_stock_volume(security, cur_time):
-    login = 'kazakovoleg797@gmail.com'
-    #password – пароль от учетной записи на сайте moex.com
-    password = "Inkgroup12!"
-    s = re.Session()
-    s.get('https://passport.moex.com/authenticate', auth=(login, password))
-    headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
-    cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
-    s.close()
     current_date = datetime.now(offset) # - timedelta(hours=10)
     #cur_time = ("0" +str(current_date.hour) if len(str(current_date.hour)) < 2 else str(current_date.hour)) + ":" + ("0" +str(current_date.minute) if len(str(current_date.minute)) < 2 else str(current_date.minute))
     today = current_date.strftime('%Y-%m-%d')
     start_from_for_today = 0
     while True:
-        url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
+        url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
         cur_data= await get_current_volume(url, headers, cookies)
-        url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
+        url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
         cur_data = await get_current_volume(url, headers, cookies)
         if len(cur_data['candles']['data']) == 0:
             return -200
@@ -119,25 +111,17 @@ async def fetch_prevmin_price(session, url, headers, cookies):
         return await response.json()
 
 async def get_prevmin_price(url, headers, cookies):
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_prevmin_price(session, url, headers, cookies)
         return data
     
 async def get_prevmin_stock_price(security):
-    login = 'kazakovoleg797@gmail.com'
-    #password – пароль от учетной записи на сайте moex.com
-    password = "Inkgroup12!"
-    s = re.Session()
-    s.get('https://passport.moex.com/authenticate', auth=(login, password))
-    headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
-    cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
-    s.close()
     prevmin_date = datetime.now(offset) - timedelta(minutes=1) # - timedelta(hours=10)
     prevmin_time = ("0" +str(prevmin_date.hour) if len(str(prevmin_date.hour)) < 2 else str(prevmin_date.hour)) + ":" + ("0" +str(prevmin_date.minute) if len(str(prevmin_date.minute)) < 2 else str(prevmin_date.minute))
     today = prevmin_date.strftime('%Y-%m-%d')
     start_from_for_today = 0
     while True:
-        url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
+        url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
         prev_minute_data= await get_prevmin_price(url, headers, cookies)
         if len(prev_minute_data['candles']['data']) == 0:
             return -200
@@ -168,7 +152,7 @@ async def fetch_prev(session, url, headers, cookies):
         return await response.json()
 
 async def get_prev(url, headers, cookies):
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_prev(session, url, headers, cookies)
         return data
     
@@ -183,10 +167,10 @@ async def get_prev_avg_volume(volumes_dict):
         volumes_dict[sec[0]] = 0
         while counter < 8:
             prev_date = (datetime.now(offset)- timedelta(days=counter)).strftime('%Y-%m-%d') # - timedelta(hours=10)
-            url_hour = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=60&start=0"
+            url_hour = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=60&start=0"
             prev_data_hour = await get_prev(url_hour, headers, cookies)
             if len(prev_data_hour['candles']['data']) != 0:  
-                url_day = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=24&start=0"
+                url_day = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=24&start=0"
                 prev_data_day = await get_prev(url_day, headers, cookies)
                 for i in prev_data_day['candles']['data']:
                     if '23:' in i[7]:
@@ -209,14 +193,14 @@ async def fetch_bs(session, url, headers, cookies):
         return await response.json()
 
 async def get_bs(url, headers, cookies):
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_bs(session, url, headers, cookies)
         return data
 
 async def buyers_vs_sellers1(security):
     current_date = datetime.now(offset) # for test: - timedelta(days=1)
     today = current_date.strftime('%Y-%m-%d')
-    url = f'https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1'
+    url = f'http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1'
     response = await get_bs(url, headers, cookies)
     data = response['candles']['data']
     columns = response['candles']['columns']
