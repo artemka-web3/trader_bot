@@ -457,7 +457,7 @@ async def process_stock(stock, volume_avg_prev, coef):
 
 async def process_stocks():
     await collecting_avg_event.wait() 
-    securities = await moex_async.get_securities()
+    securities = moex_sync.get_securities()
     for stock in securities:
         # check if stock[0] in csv
         async with aiofiles.open('shares_v2.csv', mode='r') as reader:
@@ -490,7 +490,7 @@ async def collect_volumes_avg():
     global volumes_avg_prev
     collecting_avg_event.clear() 
     if datetime.now(offset).weekday() < 5:
-        volumes_avg_prev = await moex_async.get_prev_avg_volume(volumes_avg_prev)
+        volumes_avg_prev = moex_sync.get_prev_avg_volume(volumes_avg_prev)
         collecting_avg_event.set() 
         return volumes_avg_prev
     else:
