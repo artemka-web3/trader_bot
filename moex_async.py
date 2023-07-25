@@ -34,7 +34,7 @@ async def get_value_by_ticker(ticker):
 
 # GET ONE STOCK DATA
 async def fetch_stock(session, url, headers, cookies):
-    async with session.get(url, headers=headers, cookies=cookies) as response:
+    async with session.get(url, headers=headers, cookies=cookies, ssl=False) as response:
         return await response.json()
 
 async def one_stock(url, headers, cookies):
@@ -57,7 +57,7 @@ async def get_stock_data(security):
 # GET ALL SECURITIES
 url_get_secs = 'http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json'
 async def fetch_all_securities(session, url, headers, cookies):
-    async with session.get(url, headers=headers, cookies=cookies) as response:
+    async with session.get(url, headers=headers, cookies=cookies, ssl=False) as response:
         return await response.json()
 
 async def all_securities(url, headers, cookies):
@@ -78,7 +78,7 @@ async def get_marketdata():
 
 # TRACK CURRENT VOLUME
 async def fetch_current_volume(session, url, headers, cookies):
-    async with session.get(url, headers=headers, cookies=cookies) as response:
+    async with session.get(url, headers=headers, cookies=cookies, ssl=False) as response:
         return await response.json()
 
 async def get_current_volume(url, headers, cookies):
@@ -100,14 +100,15 @@ async def get_current_stock_volume(security, cur_time):
             return -200
         else: 
             for candle_data in cur_data['candles']['data']:
-                if cur_time in candle_data[6]:
+                if cur_time in candle_data[6][0:16]:
+                    print('CURENT TIME: ', cur_time)
                     print("CUR: ", candle_data)
                     return candle_data
                 else:
                     start_from_for_today += 1
 # TRACK PREV MINUTE TIME
 async def fetch_prevmin_price(session, url, headers, cookies):
-    async with session.get(url, headers=headers, cookies=cookies) as response:
+    async with session.get(url, headers=headers, cookies=cookies, ssl=False) as response:
         return await response.json()
 
 async def get_prevmin_price(url, headers, cookies):
@@ -127,7 +128,7 @@ async def get_prevmin_stock_price(security):
             return -200
         else: 
             for candle_data in prev_minute_data['candles']['data']:
-                if prevmin_time in candle_data[6]:
+                if prevmin_time in candle_data[6][0:16]:
                     print("PREV: ", candle_data)
                     return candle_data
                 else:
@@ -148,7 +149,7 @@ async def get_price_change(security, cur_time):
 
 # GET ALL MINUTE VOLUMES WITHIN PAST 7 DAYS
 async def fetch_prev(session, url, headers, cookies):
-    async with session.get(url, headers=headers, cookies=cookies) as response:
+    async with session.get(url, headers=headers, cookies=cookies, ssl=False) as response:
         return await response.json()
 
 async def get_prev(url, headers, cookies):
@@ -189,7 +190,7 @@ async def get_prev_avg_volume(volumes_dict):
     return volumes_dict
 
 async def fetch_bs(session, url, headers, cookies):
-    async with session.get(url, headers=headers, cookies=cookies) as response:
+    async with session.get(url, headers=headers, cookies=cookies, ssl = False) as response:
         return await response.json()
 
 async def get_bs(url, headers, cookies):
@@ -218,3 +219,5 @@ async def buyers_vs_sellers1(security):
 
     return buyers, sellers
 
+loop = asyncio.get_event_loop()
+loop.run_until_complete(get_prevmin_stock_price("SBER"))
