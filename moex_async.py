@@ -86,7 +86,7 @@ async def get_current_volume(url, headers, cookies):
         data = await fetch_current_volume(session, url, headers, cookies)
         return data
     
-async def get_current_stock_volume(security):
+async def get_current_stock_volume(security, cur_time):
     login = 'kazakovoleg797@gmail.com'
     #password – пароль от учетной записи на сайте moex.com
     password = "Inkgroup12!"
@@ -96,7 +96,7 @@ async def get_current_stock_volume(security):
     cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
     s.close()
     current_date = datetime.now(offset) # - timedelta(hours=10)
-    cur_time = ("0" +str(current_date.hour) if len(str(current_date.hour)) < 2 else str(current_date.hour)) + ":" + ("0" +str(current_date.minute) if len(str(current_date.minute)) < 2 else str(current_date.minute))
+    #cur_time = ("0" +str(current_date.hour) if len(str(current_date.hour)) < 2 else str(current_date.hour)) + ":" + ("0" +str(current_date.minute) if len(str(current_date.minute)) < 2 else str(current_date.minute))
     today = current_date.strftime('%Y-%m-%d')
     start_from_for_today = 0
     while True:
@@ -151,8 +151,8 @@ async def get_prevmin_stock_price(security):
 
 
 # PRICE CHANGE
-async def get_price_change(security):
-    current_candle = await get_current_stock_volume(security)
+async def get_price_change(security, cur_time):
+    current_candle = await get_current_stock_volume(security, cur_time)
     prev_candle = await get_prevmin_stock_price(security)
     if prev_candle == -200 or current_candle == -200:
         raise Exception(f"\n{current_candle}\n{prev_candle}\nPRICE CHANGE COUNTING ERROR")
@@ -233,7 +233,4 @@ async def buyers_vs_sellers1(security):
         sellers = 0
 
     return buyers, sellers
-loop = asyncio.get_event_loop()
-print(loop.run_until_complete(get_current_stock_volume("FESH")))
-# loop.run_until_complete(get_current_stock_volume('SBER'))
 

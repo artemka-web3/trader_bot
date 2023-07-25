@@ -8,7 +8,6 @@ from db import BotDB
 import logging
 import time
 import moex_async
-import moex_sync
 import datetime as dt
 from datetime import datetime, timedelta
 from config import *
@@ -403,20 +402,19 @@ async def process_stock(stock, volume_avg_prev, coef):
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
                 current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
                 current_time = str(current_hour) +":"+ str(current_minute)
-                stock_data = moex_sync.get_stock_data(stock[0]) 
-                print("ТЕК ВремЯ",current_time) 
+                stock_data = await moex_async.get_stock_data(stock[0]) 
                 print(stock_data)
                 sec_id = stock_data[0] # #
                 sec_name = stock_data[1] 
                 lot_size = stock_data[2]
                 day_change = stock_data[3] # %
-                current_stock_data = moex_sync.get_current_stock_volume(stock[0])
+                current_stock_data = await moex_async.get_current_stock_volume(stock[0], current_time)
                 current_price = current_stock_data[1] # рублей
                 volume_rub = current_stock_data[4] # М рублей
                 volume_shares = current_stock_data[5] 
                 lot_amount = round(volume_shares / lot_size, 2) # лотов
-                price_change = moex_sync.get_price_change(stock[0]) # %
-                buyers_sellers = moex_sync.buyers_vs_sellers1(stock[0])
+                price_change = await moex_async.get_price_change(stock[0], current_time) # %
+                buyers_sellers = await moex_async.buyers_vs_sellers1(stock[0])
                 buyers = buyers_sellers[0] # %
                 sellers = buyers_sellers[1] # %
                 data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]
@@ -457,7 +455,7 @@ async def process_stock(stock, volume_avg_prev, coef):
 
 async def process_stocks():
     await collecting_avg_event.wait() 
-    securities = moex_sync.get_securities()
+    securities = await moex_async.get_securities()
     for stock in securities:
         # check if stock[0] in csv
         async with aiofiles.open('shares_v2.csv', mode='r') as reader:
@@ -490,7 +488,7 @@ async def collect_volumes_avg():
     global volumes_avg_prev
     collecting_avg_event.clear() 
     if datetime.now(offset).weekday() < 5:
-        volumes_avg_prev = moex_sync.get_prev_avg_volume(volumes_avg_prev)
+        volumes_avg_prev = await moex_async.get_prev_avg_volume(volumes_avg_prev)
         collecting_avg_event.set() 
         return volumes_avg_prev
     else:
