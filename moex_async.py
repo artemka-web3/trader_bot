@@ -47,7 +47,7 @@ async def one_stock(url, headers, cookies):
             data['securities']['data'][0][0], # SECID, 
             str(name), # SECNAME
             data['securities']['data'][0][4], # LOTSIZE
-            data['marketdata']['data'][0][20], # DAY CHANGE %
+            data['marketdata']['data'][0][25], # DAY CHANGE % prev 20
         )
 
     
@@ -145,7 +145,7 @@ async def get_price_change(security, cur_time):
     if current_candle == -200:
         raise Exception(f"\n{current_candle}\nPRICE CHANGE COUNTING ERROR")
     current_close = current_candle[1]
-    current_open = current_candle[1]
+    current_open = current_candle[0]
     #prev_close = prev_candle[1]
     #return current_candle, current_close, current_close, prev_close
     return round((float(current_close) * 100 / float(current_open)) - 100, 2)
@@ -254,5 +254,5 @@ async def buyers_vs_sellers1(p_ch_status):
 
     return buyers, sellers
 
-#loop = asyncio.get_event_loop()
-#loop.run_until_complete(get_prevmin_stock_price("SBER"))
+loop = asyncio.get_event_loop()
+print(loop.run_until_complete(get_stock_data("SELG")))

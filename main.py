@@ -401,14 +401,13 @@ async def process_stock(stock, volume_avg_prev, coef):
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
                 current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
                 current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second))
-                if int(current_second) > 30:
-                    pass
-                else:
-                    await asyncio.sleep(25)
-                    current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
-                    current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
-                    current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
-                    current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second))
+                if int(current_second) < 50:
+                    while int(current_second) < 50:
+                        current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
+                        current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
+                        current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
+                        current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second))
+                        await asyncio.sleep(1)
                 users_arr = db.get_all_users()
                 current_time = str(current_hour) +":"+ str(current_minute)
                 stock_data = await moex_async.get_stock_data(stock[0]) 
@@ -448,14 +447,14 @@ async def process_stock(stock, volume_avg_prev, coef):
                             if user[0] in get_subed_users() or do_have_free_sub(user[0]):
                                 await bot.send_message(
                                     int(user[0]),
-                                    f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
+                                    f"#{data[0]} <b>{data[1]}</b>\n\n{dir}Аномальный объем\n"+
                                     f'Изменение цены: {data[-3]}%\n'+
                                     f'Объем: {round(float(data[4])/1000000, 2)}M₽ ({data[-4]} лотов)\n' + 
                                     (f'<b>Покупка: {data[-2]}%</b> Продажа: {data[-1]}%\n' if data[-2] > data[-1] else f'Покупка: {data[-2]}% <b>Продажа: {data[-1]}%</b>\n') +
                                     f'Время: {current_date[5:]} {current_time}\n'+
                                     f'Цена: {data[3]}₽\n'+ 
                                     f'Изменение за день: {data[2]}%\n\n'+
-                                    "<b>Заметил Радар МосБиржи</b>\n"
+                                    "<b>Заметил Радар Биржи</b>\n"
                                     f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
                                     disable_notification=False,
                                     parse_mode=types.ParseMode.HTML
@@ -466,7 +465,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                 print(e)
         else:
             print(f'Торги не идут {stock[0]}')
-        await asyncio.sleep(60) 
+        await asyncio.sleep(30) 
 
 async def process_stocks():
     await collecting_avg_event.wait() 
