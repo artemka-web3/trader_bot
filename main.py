@@ -401,7 +401,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
                 current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
                 current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second))
-                if current_second == 55:
+                if int(current_second) == 55:
                     users_arr = db.get_all_users()
                     current_time = str(current_hour) +":"+ str(current_minute)
                     stock_data = await moex_async.get_stock_data(stock[0]) 
