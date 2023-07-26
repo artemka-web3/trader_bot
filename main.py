@@ -397,61 +397,69 @@ async def process_stock(stock, volume_avg_prev, coef):
         end_time = datetime.now(offset).replace(hour=23, minute=50, second=0, microsecond=0).time()
         if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time and datetime.now(offset).weekday() < 5:
             try:
-                users_arr = db.get_all_users()
                 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
                 current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
-                current_time = str(current_hour) +":"+ str(current_minute)
-                stock_data = await moex_async.get_stock_data(stock[0]) 
-                print(stock_data)
-                sec_id = stock_data[0] # #
-                sec_name = stock_data[1] 
-                lot_size = stock_data[2]
-                day_change = stock_data[3] # %
-                current_stock_data = await moex_async.get_current_stock_volume(stock[0], current_time)
-                current_price = current_stock_data[1] # рублей
-                volume_rub = current_stock_data[4] # М рублей
-                volume_shares = current_stock_data[5] 
-                lot_amount = round(volume_shares / lot_size, 2) # лотов
-                price_change = await moex_async.get_price_change(stock[0], current_time) # %
-                buyers_sellers = await moex_async.buyers_vs_sellers1(stock[0])
-                buyers = buyers_sellers[0] # %
-                sellers = buyers_sellers[1] # %
-                data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]
-                dir = '🔵'
-                if data[-3] > 0:
-                    dir = "🟢"
-                elif data[-3] < 0:
-                    dir = "🔴"
-                print(volume_avg_prev[stock[0]])
-                check_volume = volume_avg_prev[stock[0]]
-                print("CHECK VOLUME: ", check_volume)
-                print("DATA 4: ", data[4])
-                if check_volume * coef <= data[4] and data[4] > 1000000:
-                    if users_arr:
-                        for user in users_arr:
-                            if user[0] in get_subed_users() or do_have_free_sub(user[0]):
-                                await bot.send_message(
-                                    int(user[0]),
-                                    f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
-                                    f'Изменение цены: {data[-3]}%\n'+
-                                    f'Объем: {round(float(data[4])/1000000, 2)}M₽ ({data[-4]} лотов)\n' + 
-                                    (f'<b>Покупка: {data[-2]}%</b> Продажа: {data[-1]}%\n' if data[-2] > data[-1] else f'Покупка: {data[-2]}% <b>Продажа: {data[-1]}%</b>\n') +
-                                    f'Время: {current_date[5:]} {current_time}\n'+
-                                    f'Цена: {data[3]}₽\n'+ 
-                                    f'Изменение за день: {data[2]}%\n\n'+
-                                    "<b>Заметил Радар МосБиржи</b>\n"
-                                    f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
-                                    disable_notification=False,
-                                    parse_mode=types.ParseMode.HTML
-                                )
+                current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second))
+                if current_second == 55:
+                    users_arr = db.get_all_users()
+                    current_time = str(current_hour) +":"+ str(current_minute)
+                    stock_data = await moex_async.get_stock_data(stock[0]) 
+                    print(stock_data)
+                    sec_id = stock_data[0] # #
+                    sec_name = stock_data[1] 
+                    lot_size = stock_data[2]
+                    day_change = stock_data[3] # %
+                    current_stock_data = await moex_async.get_current_stock_volume(stock[0], current_time)
+                    current_price = current_stock_data[1] # рублей
+                    volume_rub = current_stock_data[4] # М рублей
+                    volume_shares = current_stock_data[5] 
+                    lot_amount = round(volume_shares / lot_size, 2) # лотов
+                    price_change = await moex_async.get_price_change(stock[0], current_time) # %
+                    price_change_status = 0  #  ноль измнений
+                    if price_change > 0:
+                        price_change_status = 1
+                    elif price_change < 0:
+                        price_change_status = 2
+
+                    buyers_sellers = await moex_async.buyers_vs_sellers1(price_change_status)
+                    buyers = buyers_sellers[0] # %
+                    sellers = buyers_sellers[1] # %
+                    data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]
+                    dir = '🔵'
+                    if data[-3] > 0:
+                        dir = "🟢"
+                    elif data[-3] < 0:
+                        dir = "🔴"
+                    print(volume_avg_prev[stock[0]])
+                    check_volume = volume_avg_prev[stock[0]]
+                    print("CHECK VOLUME: ", check_volume)
+                    print("DATA 4: ", data[4])
+                    if check_volume * coef <= data[4] and data[4] > 1000000:
+                        if users_arr:
+                            for user in users_arr:
+                                if user[0] in get_subed_users() or do_have_free_sub(user[0]):
+                                    await bot.send_message(
+                                        int(user[0]),
+                                        f"#{data[0]} {data[1]}\n{dir}Аномальный объем\n"+
+                                        f'Изменение цены: {data[-3]}%\n'+
+                                        f'Объем: {round(float(data[4])/1000000, 2)}M₽ ({data[-4]} лотов)\n' + 
+                                        (f'<b>Покупка: {data[-2]}%</b> Продажа: {data[-1]}%\n' if data[-2] > data[-1] else f'Покупка: {data[-2]}% <b>Продажа: {data[-1]}%</b>\n') +
+                                        f'Время: {current_date[5:]} {current_time}\n'+
+                                        f'Цена: {data[3]}₽\n'+ 
+                                        f'Изменение за день: {data[2]}%\n\n'+
+                                        "<b>Заметил Радар МосБиржи</b>\n"
+                                        f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
+                                        disable_notification=False,
+                                        parse_mode=types.ParseMode.HTML
+                                    )
             except exceptions.RetryAfter as e:
                 time.sleep(e.timeout)
             except Exception as e:
                 print(e)
         else:
             print(f'Торги не идут {stock[0]}')
-        await asyncio.sleep(60) 
+        # await asyncio.sleep(60) 
 
 async def process_stocks():
     await collecting_avg_event.wait() 
@@ -463,7 +471,6 @@ async def process_stocks():
                 if row is not None:
                     if row['Полное название акций ,тикет,сокращённое название ,ликвидность'] is not None:
                         if row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[1] == stock[0]:
-                            print(stock[0])
                             liq_id = row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[-1]
                             coef = 50
                             if liq_id == 0:
@@ -473,7 +480,7 @@ async def process_stocks():
         #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
     for task in tasks:
         asyncio.create_task(task)
-        await asyncio.sleep(5)
+        await asyncio.sleep(5) 
 
 async def main():
     await process_stocks()
@@ -488,7 +495,7 @@ async def collect_volumes_avg():
     global volumes_avg_prev
     collecting_avg_event.clear() 
     if datetime.now(offset).weekday() < 5:
-        volumes_avg_prev = await moex_async.get_prev_avg_volume(volumes_avg_prev)
+        volumes_avg_prev = await moex_async.get_prev_avg_months(volumes_avg_prev, 1)
         collecting_avg_event.set() 
         return volumes_avg_prev
     else:

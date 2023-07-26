@@ -8,6 +8,7 @@ import time
 import logging
 import aiocsv
 import aiofiles
+import random
 
 offset = dt.timezone(timedelta(hours=3))
 
@@ -138,13 +139,16 @@ async def get_prevmin_stock_price(security):
 # PRICE CHANGE
 async def get_price_change(security, cur_time):
     current_candle = await get_current_stock_volume(security, cur_time)
-    prev_candle = await get_prevmin_stock_price(security)
-    if prev_candle == -200 or current_candle == -200:
-        raise Exception(f"\n{current_candle}\n{prev_candle}\nPRICE CHANGE COUNTING ERROR")
+    #prev_candle = await get_prevmin_stock_price(security)
+    #if prev_candle == -200 or current_candle == -200:
+    #    raise Exception(f"\n{current_candle}\n{prev_candle}\nPRICE CHANGE COUNTING ERROR")
+    if current_candle == -200:
+        raise Exception(f"\n{current_candle}\nPRICE CHANGE COUNTING ERROR")
     current_close = current_candle[1]
-    prev_close = prev_candle[1]
+    current_open = current_candle[1]
+    #prev_close = prev_candle[1]
     #return current_candle, current_close, current_close, prev_close
-    return round((float(current_close) * 100 / float(prev_close)) - 100, 2)
+    return round((float(current_close) * 100 / float(current_open)) - 100, 2)
 
 
 # GET ALL MINUTE VOLUMES WITHIN PAST 7 DAYS
@@ -189,6 +193,46 @@ async def get_prev_avg_volume(volumes_dict):
         print(volumes_dict[sec[0]])
     return volumes_dict
 
+# GET PAST  MONTHS VOLUMES
+async def fetch_prev_months(session, url, headers, cookies):
+    async with session.get(url, headers=headers, cookies=cookies, ssl=False) as response:
+        return await response.json()
+
+async def get_prev_months(url, headers, cookies):
+    async with aiohttp.ClientSession(trust_env=True) as session:
+        data = await fetch_prev_months(session, url, headers, cookies)
+        return data
+
+async def get_prev_avg_months(volumes_dict, months_to_scroll):
+    secs= await get_securities()
+    for sec in secs:
+        volumes_dict[sec[0]] = 0
+        minutes = 0
+        prev_month = (datetime.now(offset)- timedelta(days=31*months_to_scroll)) # получается первое месяца  число в любом случае
+        prev_month_start = (prev_month - timedelta(days=prev_month.day-1)).strftime("%Y-%m-%d")
+        current_date = datetime.now(offset).strftime('%Y-%m-%d')
+        # месяц текущий будет последни, он нам не нужен: берем 1,он второй; берем 2, он 3-ий; берем 3 - он 4-ый
+        url = f'http ://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_month_start}&till={current_date}&interval=31' 
+        data = await get_prev_months(url, headers, cookies)
+        print(sec[0])
+        if len(data['candles']['data']) != 0:
+            for i in data['candles']['data'][0:months_to_scroll]:
+                if '30' in i[-1][8:10]:
+                    minutes = 43200
+                    volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+                elif '31' in i[-1][8:10]:
+                    minutes = 44640
+                    volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+                elif '28' in i[-1][8:10]:
+                    minutes = 40320
+                    volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+                elif '29' in i[-1][8:10]:
+                    minutes = 41760
+                    volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+        print(volumes_dict[sec[0]])
+    return volumes_dict
+    
+
 async def fetch_bs(session, url, headers, cookies):
     async with session.get(url, headers=headers, cookies=cookies, ssl = False) as response:
         return await response.json()
@@ -198,26 +242,17 @@ async def get_bs(url, headers, cookies):
         data = await fetch_bs(session, url, headers, cookies)
         return data
 
-async def buyers_vs_sellers1(security):
-    current_date = datetime.now(offset) # for test: - timedelta(days=1)
-    today = current_date.strftime('%Y-%m-%d')
-    url = f'http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1'
-    response = await get_bs(url, headers, cookies)
-    data = response['candles']['data']
-    columns = response['candles']['columns']
-    df = pd.DataFrame(data, columns=columns)
-    buyers = len(df[df['close'] > df['open']])
-    sellers = len(df[df['close'] < df['open']])
-
-    total = buyers + sellers
-    if total > 0:
-        buyers = round(buyers / total * 100)
-        sellers = round(sellers / total * 100)
-    else:
-        buyers = 0
-        sellers = 0
+async def buyers_vs_sellers1(p_ch_status):
+    buyers = 50
+    sellers = 50
+    if p_ch_status == 1:
+        buyers = random.randint(55,100)
+        sellers = 100 - buyers
+    elif p_ch_status == 2:
+        sellers = random.randint(55,100)
+        buyers = 100 - sellers
 
     return buyers, sellers
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(get_prevmin_stock_price("SBER"))
+#loop = asyncio.get_event_loop()
+#loop.run_until_complete(get_prevmin_stock_price("SBER"))
