@@ -404,7 +404,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                 if int(current_second) > 30:
                     pass
                 else:
-                    asyncio.sleep(25)
+                    await asyncio.sleep(25)
                 users_arr = db.get_all_users()
                 current_time = str(current_hour) +":"+ str(current_minute)
                 stock_data = await moex_async.get_stock_data(stock[0]) 
