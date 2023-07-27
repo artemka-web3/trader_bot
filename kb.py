@@ -29,6 +29,9 @@ ex_b_keyb.add(types.InlineKeyboardButton(text="На 1 год", callback_data="ex
 c_keyb = types.ReplyKeyboardMarkup(resize_keyboard=True)
 c_keyb.add(types.KeyboardButton(text="Отменить подписку"))
 
+cancel_keyb = types.InlineKeyboardMarkup(row_width=1)
+cancel_keyb.add(types.InlineKeyboardButton(text="Отменить подписку", callback_data="del_paid_sub"))
+
 # time for sub kb
 time_for_sub_keyb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 time_for_sub_keyb.add(types.KeyboardButton(text="1 месяц"))

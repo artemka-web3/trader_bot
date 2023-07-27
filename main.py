@@ -98,6 +98,10 @@ async def cancel_subscription(message: types.Message):
     count_money_attracted_by_one(message.from_user.id)
     await message.answer('Вы успешно отписались ✅')
 
+@dp.callback_query_handler(lambda c: c.data == 'del_paid_sub')
+async def del_paid_sub(c: types.CallbackQuery):
+    await c.message.answer("Подписка отменена ✅")
+
 @dp.message_handler(commands=['ref'])
 async def get_yo_ref_data(message: types.Message):
     if db.user_exists(message.from_user.id):
@@ -125,7 +129,7 @@ async def get_profile_data(message: types.Message):
         if is_in_pay_sys(message.from_user.id):
             if check_if_subed(message.from_user.id):
                 #ref_traffic = db.get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(f"Твой ID: {message.from_user.id}\n"+ f"\nДо конца подписки осталось {get_sub_end(message.from_user.id)} дней", reply_markup=c_keyb)
+                await message.answer(f"Твой ID: {message.from_user.id}\n"+ f"\nДо конца подписки осталось {get_sub_end(message.from_user.id)} дней", reply_markup=cancel_keyb)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
         else:
