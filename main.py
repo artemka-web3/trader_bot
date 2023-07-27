@@ -94,13 +94,10 @@ async def buy_sub_second_more(callback_query: types.CallbackQuery):
 
 @dp.message_handler(lambda message: message.text == 'Отменить подписку')
 async def cancel_subscription(message: types.Message):
-    cancel_sub(int(message.from_user.id))
-    count_money_attracted_by_one(message.from_user.id)
+    #cancel_sub(int(message.from_user.id))
+    #count_money_attracted_by_one(message.from_user.id)
     await message.answer('Вы успешно отписались ✅')
 
-@dp.callback_query_handler(lambda c: c.data == 'del_paid_sub')
-async def del_paid_sub(c: types.CallbackQuery):
-    await c.message.answer("Подписка отменена ✅")
 
 @dp.message_handler(commands=['ref'])
 async def get_yo_ref_data(message: types.Message):
@@ -129,7 +126,7 @@ async def get_profile_data(message: types.Message):
         if is_in_pay_sys(message.from_user.id):
             if check_if_subed(message.from_user.id):
                 #ref_traffic = db.get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(f"Твой ID: {message.from_user.id}\n"+ f"\nДо конца подписки осталось {get_sub_end(message.from_user.id)} дней", reply_markup=cancel_keyb)
+                await message.answer(f"Твой ID: {message.from_user.id}\n"+ f"\nДо конца подписки осталось {get_sub_end(message.from_user.id)} дней", reply_markup=keyb_for_subed)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
         else:
@@ -518,7 +515,7 @@ async def collect_volumes_avg():
     global volumes_avg_prev
     collecting_avg_event.clear() 
     if datetime.now(offset).weekday() < 5:
-        volumes_avg_prev = await moex_async.get_prev_avg_months(volumes_avg_prev, 1)
+        volumes_avg_prev = await moex_async.get_prev_avg_months(volumes_avg_prev, 3)
         collecting_avg_event.set() 
         return volumes_avg_prev
     else:

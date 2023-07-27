@@ -10,6 +10,7 @@ keyb_for_subed = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboa
 keyb_for_subed.add(types.KeyboardButton(text="О боте. Руководство")) 
 keyb_for_subed.add(types.KeyboardButton(text="Подписка")) 
 keyb_for_subed.add(types.KeyboardButton(text="Пользовательское соглашение"))
+keyb_for_subed.add(types.KeyboardButton(text="Отменить подписку"))
 
 # buying keyboard
 def create_buying_link(user_id):
@@ -25,12 +26,6 @@ ex_b_keyb.add(types.InlineKeyboardButton(text="На 1 месяц", callback_data
 ex_b_keyb.add(types.InlineKeyboardButton(text="На 6 месяцев", callback_data = "exb_semi_year"))
 ex_b_keyb.add(types.InlineKeyboardButton(text="На 1 год", callback_data="exb_year"))
 
-# cancel keyboard
-c_keyb = types.ReplyKeyboardMarkup(resize_keyboard=True)
-c_keyb.add(types.KeyboardButton(text="Отменить подписку"))
-
-cancel_keyb = types.InlineKeyboardMarkup(row_width=1)
-cancel_keyb.add(types.InlineKeyboardButton(text="Отменить подписку", callback_data="del_paid_sub"))
 
 # time for sub kb
 time_for_sub_keyb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
