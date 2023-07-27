@@ -108,7 +108,6 @@ def count_money_attracted_by_one(user_id):
 
 def count_money_attracted_by_ref(ref_id):
     users = db.get_ref_users(ref_id)
-    print(users)
     money_paid = 0
     for user in users:
         for sub in client.list_subscriptions(str(user[0])):
@@ -120,7 +119,6 @@ def count_money_attracted_by_ref(ref_id):
                 money_paid += sub.amount
                 db.update_money_paid(user[0], sub.amount)
     return money_paid
-print(count_money_attracted_by_ref(764315256))
 def cancel_sub(user_id):
     for sub in client.list_subscriptions(str(user_id)):
         if sub.status == 'Active':

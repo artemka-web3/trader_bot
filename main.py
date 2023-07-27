@@ -385,7 +385,7 @@ async def make_partner_id(message: types.Message, state: FSMContext):
         await state.reset_state()
         await message.answer('Повторите все заново вызвав команду /make_partner. Вы ввели не число!') 
 
-@dp.message_handler(commands=['check_ref'])
+@dp.message_handler(commands=['check_referal'])
 async def check_ref(message: types.Message, state: FSMContext):
     if message.from_user.id in ADMINS:
         await state.set_state(CheckRef.CHOOSE_ID)
