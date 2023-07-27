@@ -96,7 +96,7 @@ async def buy_sub_second_more(callback_query: types.CallbackQuery):
 async def cancel_subscription(message: types.Message):
     #cancel_sub(int(message.from_user.id))
     #count_money_attracted_by_one(message.from_user.id)
-    await message.answer('Вы успешно отписались ✅')
+    await message.answer('Вы успешно отписались ✅', reply_markup=keyb_for_unsubed)
 
 
 @dp.message_handler(commands=['ref'])
