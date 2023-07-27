@@ -274,10 +274,10 @@ async def extend_free_sub_choose_date_for_one(message: types.Message, state: FSM
                 await bot.send_message(user_id, "Вам была продлена бесплатная подписка")
                 await message.answer("Бесплатная подписка для пользователя продлена")
                 db.set_free_sub_end(user_id, free_sub)
+                await state.finish()
             except:
                 await message.answer("Что-то пошло не так на стороне пользователя")
                 await state.finish()
-        await state.finish()
     else: 
         await state.finish()
         await message.answer('Вы прислали не число. Начните заново вызвав команду /extend_free_sub')
@@ -348,9 +348,10 @@ async def extend_sub_date(message: types.Message, state: FSMContext):
             await bot.send_message(user_id, f'Вам продлена платная подписка на {message.text} дней')
             update_sub(user_id, days=int(message.text))
             await message.answer("Подписка успешно продлена и пользователь об этом уведомлен")
+            await state.finish()
         except:
             await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
-        await state.finish()
+            await state.finish()
     else:
         await state.reset_state()
         await message.answer('Вы ввели не число, повторите операции вызвав команду /extend_sub')
@@ -376,9 +377,10 @@ async def make_partner_id(message: types.Message, state: FSMContext):
                 await bot.send_message(message.text, 'Вам просвоен статус партнера')
                 await message.answer("Вы присвоили человеку статус партнера и он об этом уведомлен")
                 db.set_partner(int(message.text))
+                await state.finish()
             except:
                 await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
-            await state.finish()
+                await state.finish()
         else:
             await message.answer("Человек которому вы хотите присвоить статус партнерта не подписан на бота!")
             await state.reset_state()
