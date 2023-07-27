@@ -53,9 +53,9 @@ async def send_welcome(message: types.Message):
         else:
             db.add_user(message.from_user.id)
     if is_in_pay_sys(message.from_user.id) and check_if_subed(message.from_user.id):
-        await message.reply("О боте", reply_markup=keyb_for_subed)
+        await message.reply(""""Радар биржи" анализирует все минутные свечи акций торгуемых на московской бирже.\nЕсли бот видит повышенные обьемы в акции, то он сразу сигнализирует об этом.\n\nБот уведомляет:\n🔸 Какой обьем был куплен\n🔸 Изменение цены на данном обьеме\n🔸 Изменение цены за день в акции.\n🔸 О количестве покупателей и продавцов на данном обьеме.""", reply_markup=keyb_for_subed)
     else:
-        await message.reply("описание бота описание бота описание бота описание бота описание бота описание бота описание бота описание бота", reply_markup=keyb_for_unsubed)
+        await message.reply(""""Радар биржи" анализирует все минутные свечи акций торгуемых на московской бирже.\nЕсли бот видит повышенные обьемы в акции, то он сразу сигнализирует об этом.\n\nБот уведомляет:\n🔸 Какой обьем был куплен\n🔸 Изменение цены на данном обьеме\n🔸 Изменение цены за день в акции.\n🔸 О количестве покупателей и продавцов на данном обьеме.""", reply_markup=keyb_for_unsubed)
 
 @dp.message_handler(lambda message: message.text.lower() == "пользовательское соглашение")
 async def get_user_agreement(message: types.Message):
@@ -92,11 +92,11 @@ async def buy_sub_second_more(callback_query: types.CallbackQuery):
         await callback_query.answer("Подписка успешно продлена на год ✅")
 
 
-@dp.callback_query_handler(lambda callback_query: callback_query.data == 'cancel_sub')
-async def cancel_subscription(callback_query: types.CallbackQuery):
-    cancel_sub(callback_query.from_user.id)
-    count_money_attracted_by_one(callback_query.from_user.id)
-    await callback_query.answer('Вы успешно отписались ✅')
+@dp.message_handler(lambda message: message.text == 'Отменить подписку')
+async def cancel_subscription(message: types.Message):
+    cancel_sub(int(message.from_user.id))
+    count_money_attracted_by_one(message.from_user.id)
+    await message.answer('Вы успешно отписались ✅')
 
 @dp.message_handler(commands=['ref'])
 async def get_yo_ref_data(message: types.Message):
@@ -104,15 +104,15 @@ async def get_yo_ref_data(message: types.Message):
         if is_in_pay_sys(message.from_user.id):
             if check_if_subed(message.from_user.id) and not do_have_free_sub(message.from_user.id):
                 ref_traffic = db.get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\n", reply_markup=keyb_for_subed)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
             elif not check_if_subed(message.from_user.id) and do_have_free_sub(message.from_user.id):
                 ref_traffic = db.get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\n", reply_markup=keyb_for_subed)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
         else:
             if do_have_free_sub(message.from_user.id):
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\n", reply_markup=keyb_for_subed)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
     else:
@@ -125,10 +125,7 @@ async def get_profile_data(message: types.Message):
         if is_in_pay_sys(message.from_user.id):
             if check_if_subed(message.from_user.id):
                 #ref_traffic = db.get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(
-                    f"Твой ID: {message.from_user.id}\n"+ 
-                    f"\nДо конца подписки осталось {get_sub_end(message.from_user.id)} дней", reply_markup=c_keyb
-                )
+                await message.answer(f"Твой ID: {message.from_user.id}\n"+ f"\nДо конца подписки осталось {get_sub_end(message.from_user.id)} дней", reply_markup=c_keyb)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
         else:
@@ -159,6 +156,7 @@ async def admin_things(message: types.Message):
             "/extend_sub_for_paid_users - Продлить подписку всем или кому-то одному при условии что у человека есть активная платная подписка на сервис\n"+
             "/make_partner - присвоить человеку статус партнера\n"+
             "/extend_free_sub - продление бесплатной подписки \n"+
+            "/check_referal -  посмотреть статистику реферала \n" +
             "/cancel - сбросить ввод и начать заново\n"
         )
 
@@ -387,7 +385,22 @@ async def make_partner_id(message: types.Message, state: FSMContext):
         await state.reset_state()
         await message.answer('Повторите все заново вызвав команду /make_partner. Вы ввели не число!') 
 
+@dp.message_handler(commands=['check_ref'])
+async def check_ref(message: types.Message, state: FSMContext):
+    if message.from_user.id in ADMINS:
+        await state.set_state(CheckRef.CHOOSE_ID)
+        await message.answer('Вам нужно ввести ID реферала статистику которого вы хотите проверить. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot')
+    else:
+        await message.answer("Вы не админ")
 
+@dp.message_handler(state=CheckRef.CHOOSE_ID)
+async def get_stat(message: types.Message, state: FSMContext):
+    if message.text.isdigit():
+        ref_traffic = db.get_referer_traffic(message.from_user.id) # кол-во людей
+        await message.answer(f"Реферальная ссылка пользователя: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные юзеры: {count_money_attracted_by_ref(message.from_user.id)}₽")
+    else:
+        await state.reset_state()
+        await message.answer('Вы неправильно ввели данные. введите только id. Вызовите команду /check_ref снова чтобы повторить процесс')
 
 #_____АСИНХРОННЫЕ__ФУНКЦИИ__ДЛЯ__ВЫПОЛНЕНИЯ__ОСНОВНОГО__ФУНКЦИОНАЛА
 async def process_stock(stock, volume_avg_prev, coef):

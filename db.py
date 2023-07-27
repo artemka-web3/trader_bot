@@ -44,6 +44,10 @@ class BotDB:
         result = self.cursor.execute("SELECT COUNT(*) FROM users WHERE referer_id = ?", (referer_id,))
         return result.fetchone()[0]
     
+    def get_ref_users(self, ref_id):
+        result = self.cursor.execute("SELECT user_id FROM users WHERE referer_id = ?", (ref_id,))
+        return result.fetchall()
+    
     def update_money_paid(self, user_id, money_paid):
         self.cursor.execute("UPDATE users SET money_paid = ? WHERE user_id = ?", (money_paid, user_id,))
         return self.conn.commit()

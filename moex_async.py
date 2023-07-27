@@ -254,5 +254,3 @@ async def buyers_vs_sellers1(p_ch_status):
 
     return buyers, sellers
 
-loop = asyncio.get_event_loop()
-print(loop.run_until_complete(get_stock_data("SELG")))

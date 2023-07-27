@@ -27,5 +27,8 @@ class GiveFreeSub(StatesGroup):
     CHOOSE_USER = State()
     SET_TIME_FOR_SUB = State()
 
+class CheckRef(StatesGroup):
+    CHOOSE_ID = State()
+
     
 

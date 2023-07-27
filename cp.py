@@ -106,6 +106,21 @@ def count_money_attracted_by_one(user_id):
             db.update_money_paid(user_id, money_paid)
     return money_paid
 
+def count_money_attracted_by_ref(ref_id):
+    users = db.get_ref_users(ref_id)
+    print(users)
+    money_paid = 0
+    for user in users:
+        for sub in client.list_subscriptions(str(user[0])):
+            if sub.status == 'Active' and sub.successful_transactions_number > 0:
+                # get sub price
+                money_paid += sub.amount * sub.successful_transactions_number
+                db.update_money_paid(user[0], sub.amount * sub.successful_transactions_number)
+            elif sub.status == 'Active' and sub.successful_transactions_number == 0:
+                money_paid += sub.amount
+                db.update_money_paid(user[0], sub.amount)
+    return money_paid
+print(count_money_attracted_by_ref(764315256))
 def cancel_sub(user_id):
     for sub in client.list_subscriptions(str(user_id)):
         if sub.status == 'Active':
