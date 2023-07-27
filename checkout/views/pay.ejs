@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <title>Повторная активация подписки</title>
+  </head>
+  <body>
+    <div class="container py-5">
+      <div class="row">
+        <div class="col-lg-4 mx-auto">
+
+          <div class="card">
+            <div class="card-body text-center">
+              <h4 class="card-title font-weight-bold">Повторная  активация подписки</h4>
+              <p class="card-text">Вы попали сюда так как вы уже покупали подписку раньше. Перед тем как нажать на кнопку ниже, убедитесь что вы прочитали все руководства по использованию бота и пользовательское соглашение. После оплаты вас перекинет обратно в бота!</p>
+              <button id="checkout" class="btn btn-primary mt-3">Оплатить</button>
+            </div>
+          </div> 
+
+        </div>
+      </div>
+    </div>
+
+    <script>
+        document.getElementById('checkout').onclick = function () {
+            var payments = new cp.CloudPayments();
+
+            payments.oncomplete = (result) => {
+                console.log('result', result);
+                window.location.href = "/pay/" + "<%= account_id %>" + '/' + "<%= amount %>";
+            }
+
+            payments.pay("charge", { // options
+                publicId: 'pk_c8695290fec5bcb40f468cca846d2',
+                description: 'Оплата подписки на телеграм бота',
+                accountId: '<%= account_id %>',
+                amount: parseInt('<%= amount %>'),
+                currency: 'RUB',
+            }).then((result) => {
+                // Объект типа WidgetResult
+                console.log('result', result);
+            });
+        }
+      </script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  </body>
+</html>
+

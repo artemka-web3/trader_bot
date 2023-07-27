@@ -4,7 +4,13 @@ var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('../prod.db');
 const TelegramBot = require('node-telegram-bot-api');
 const token = '6308710529:AAFl-NaUBefjTjUHFSMBDwtjnMNOgpwdAHs';
+const cp = require('cloudpayments')
+
 const bot = new TelegramBot(token, {polling: false});
+const client = new cp.ClientService({
+  privateKey: 'd3119d06f156dad88a2ed516957b065b',
+  publicId: 'pk_c8695290fec5bcb40f468cca846d2',
+});
 
 // Создание приложения
 var app = express();
@@ -37,7 +43,7 @@ app.get('/getTokenMonth/:account_id/:trxId', function (req, res) {
   var account_id = req.params.account_id;
 
 
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 500, trxId, null, account_id, function (err) {
+  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 999, trxId, null, account_id, function (err) {
     if (err) {
       return console.log(err.message);
     }
@@ -47,7 +53,7 @@ app.get('/getTokenMonth/:account_id/:trxId', function (req, res) {
     } catch (e){
       console.log(e)
     }
-    return res.redirect('https://t.me/iss_stocks_bot')
+    return res.redirect('https://t.me/RadarMsk_bot')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
@@ -58,7 +64,7 @@ app.get('/getTokenSemiYear/:account_id/:trxId', function (req, res) {
   var account_id = req.params.account_id;
 
 
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 500, trxId, null, account_id, function (err) {
+  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 4999, trxId, null, account_id, function (err) {
     if (err) {
       return console.log(err.message);
     }
@@ -68,7 +74,7 @@ app.get('/getTokenSemiYear/:account_id/:trxId', function (req, res) {
     } catch (e){
       console.log(e)
     }
-    return res.redirect('https://t.me/iss_stocks_bot')
+    return res.redirect('https://t.me/RadarMsk_bott')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
@@ -79,7 +85,7 @@ app.get('/getTokenYear/:account_id/:trxId', function (req, res) {
   var account_id = req.params.account_id;
 
 
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 500, trxId, null, account_id, function (err) {
+  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 7999, trxId, null, account_id, function (err) {
     if (err) {
       return console.log(err.message);
     }
@@ -89,11 +95,74 @@ app.get('/getTokenYear/:account_id/:trxId', function (req, res) {
     } catch (e){
       console.log(e)
     }
-    return res.redirect('https://t.me/iss_stocks_bot')
+    return res.redirect('https://t.me/RadarMsk_bot')
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
-  return res.send('Вы просматриваете информацию о пользователе с trxId ' + trxId);
+});
+
+app.get('/paymentWidget/:account_id/:amount', function (req, res) {
+  var account_id = req.params.account_id;
+  var amount = req.params.amount
+
+  var subs = [];
+
+  res.render('pay', { "account_id": account_id, 'amount': amount })
+});
+
+app.get('/pay/:account_id/:amount', function(req, res){
+  var account_id = req.params.account_id
+  var amount = req.params.amount
+
+  db.run("UPDATE users SET money_paid = money_paid + ?, free_sub_end = ? WHERE user_id = ?", parseInt(amount), null, account_id, function(err){
+    if (err) {
+      return console.log(err.message);
+    }
+    console.log(`A row has been inserted with rowid ${this.lastID}`);
+    try{
+      client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
+        value=>{
+          for(let sub of value.getResponse().Model){
+              if (sub.Status == "Cancelled"){
+                  if (parseInt(amount) == 999) {
+                    const now = new Date();
+                    const futureDate = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+                    client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount:  10, Interval: "Month", Period: 1, Currency: "RUB", StartDate: futureDate})
+                  }
+                  else if (parseInt(amount) == 4999){
+                    const now = new Date();
+                    const futureDate = new Date(now.getTime() + (180 * 24 * 60 * 60 * 1000));
+                    client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount: 10, Interval: "Year", Period: 2, Currency: "RUB", StartDate: futureDate})
+                  }
+                  else if (parseInt(amount) == 7999){
+                      const now = new Date();
+                      const futureDate = new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000));
+                      client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount: 10, Interval: "Year", Period: 1, Currency: "RUB", StartDate: futureDate})
+                  }
+              }
+          }
+        } 
+      )
+      const keyboard = [
+        ['О боте. Руководство'],
+        ['Подписка'],
+      ];
+      
+      const replyKeyboardMarkup = {
+        reply_markup: {
+          keyboard: keyboard,
+          resize_keyboard: true,
+          one_time_keyboard: true,
+        },
+      };
+
+      bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅. Рады видеть вас снова!", replyKeyboardMarkup)
+    } catch (e){
+      console.log(e)
+    }
+    return res.redirect('https://t.me/RadarMsk_bot')
+  });
+
 });
 
 

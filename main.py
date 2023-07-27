@@ -68,35 +68,28 @@ async def buy_sub_first(message: types.Message):
         if check_if_subed(message.from_user.id) and not do_have_free_sub(message.from_user.id):
             await message.answer("Вы уже подписаны", reply_markup=keyb_for_subed)
         elif not check_if_subed(message.from_user.id) and do_have_free_sub(message.from_user.id):
-            await message.answer("У вас есть бесплатная подписка, при покупке платной подписки она отменится. Если вы готовы продолжить,нажми на кнопку под сообщением", reply_markup=ex_b_keyb)
+            await message.answer("У вас есть бесплатная подписка, при покупке платной подписки она отменится. Если вы готовы продолжить,нажми на кнопку под сообщением", reply_markup=create_not_first_time_buying_kb(message.from_user.id))
+        else:
+            await message.answer("Купите платную подписку нажав на одну из кнопок", reply_markup=create_not_first_time_buying_kb(message.from_user.id))
     else:
         if do_have_free_sub(message.from_user.id):
             await message.answer('У вас есть бесплатная подписка. Если купите платную подписку, то она отменится. Если вы готовы так сделать, то нажмите на кнопку под сообщением', reply_markup=create_buying_link(message.from_user.id))
         else:
             await message.answer("Купите платную подписку нажав на одну из кнопок", reply_markup=create_buying_link(message.from_user.id))
 
+# @dp.callback_query_handler()
+# async def cancel_subscription(callback: types.CallbackQuery):
+#     if callback.data == 'cancel_sub':
+#         cancel_sub(int(callback.from_user.id))
+#         count_money_attracted_by_one(callback.from_user.id)
+#         await callback.answer('Вы успешно отписались ✅', reply_markup=keyb_for_unsubed)
 
 @dp.callback_query_handler()
-async def buy_sub_second_more(callback_query: types.CallbackQuery):
-    if callback_query.data == 'exb_month':
-        buy_not_first_time(callback_query.from_user.id, 30)
-        db.set_free_sub_end(callback_query.from_user.id, None)
-        await callback_query.answer("Подписка успешно продлена на 30 дней ✅")
-    elif callback_query.data == 'exb_semi_year':
-        buy_not_first_time(callback_query.from_user.id, 180)
-        db.set_free_sub_end(callback_query.from_user.id, None)
-        await callback_query.answer("Подписка успешно продлена на пол года ✅")
-    elif callback_query.data == 'exb_year':
-        buy_not_first_time(callback_query.from_user.id, 365)
-        db.set_free_sub_end(callback_query.from_user.id, None)
-        await callback_query.answer("Подписка успешно продлена на год ✅")
-
-
-@dp.message_handler(lambda message: message.text == 'Отменить подписку')
-async def cancel_subscription(message: types.Message):
-    cancel_sub(int(message.from_user.id))
-    count_money_attracted_by_one(message.from_user.id)
-    await message.answer('Вы успешно отписались ✅', reply_markup=keyb_for_unsubed)
+async def handle_callbacks(callback_query: types.CallbackQuery):
+    if callback_query.data == 'cancel_sub':
+        cancel_sub(int(callback_query.from_user.id))
+        count_money_attracted_by_one(callback_query.from_user.id)
+        await callback_query.message.answer('Вы успешно отписались ✅', reply_markup=keyb_for_unsubed)
 
 
 @dp.message_handler(commands=['ref'])
@@ -126,7 +119,7 @@ async def get_profile_data(message: types.Message):
         if is_in_pay_sys(message.from_user.id):
             if check_if_subed(message.from_user.id):
                 #ref_traffic = db.get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(f"Твой ID: {message.from_user.id}\n"+ f"\nДо конца подписки осталось {get_sub_end(message.from_user.id)} дней", reply_markup=keyb_for_subed)
+                await message.answer(f"Твой ID: {message.from_user.id}\n"+ f"\nДо конца подписки осталось {get_sub_end(message.from_user.id)} дней", reply_markup=create_cancel_kb())
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
         else:
@@ -539,10 +532,11 @@ async def scheduler():
 
 
 async def on_startup(_):
-    asyncio.create_task(collect_volumes_avg())
-    asyncio.create_task(main())
-    asyncio.create_task(scheduler())
+    #asyncio.create_task(collect_volumes_avg())
+    #asyncio.create_task(main())
+    #asyncio.create_task(scheduler())
+    pass
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=False, on_startup=on_startup)
+    executor.start_polling(dp, on_startup=on_startup)

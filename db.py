@@ -49,7 +49,7 @@ class BotDB:
         return result.fetchall()
     
     def update_money_paid(self, user_id, money_paid):
-        self.cursor.execute("UPDATE users SET money_paid = ? WHERE user_id = ?", (money_paid, user_id,))
+        self.cursor.execute("UPDATE users SET money_paid = money_paid + ? WHERE user_id = ?", (money_paid, user_id,))
         return self.conn.commit()
 
     def get_money_paid_by_user(self, user_id):
@@ -59,6 +59,7 @@ class BotDB:
     def get_money_amount_attracted_by_referer(self, referer_id):
         result = self.cursor.execute("SELECT SUM(money_paid) FROM users WHERE referer_id = ?", (referer_id,))
         return self.cursor.fetchone()[0]
+
 
     def close(self):
         """Закрываем соединение с БД"""
