@@ -177,8 +177,8 @@ async def give_free_sub_step_choose_user(message: types.Message, state: FSMConte
             await state.set_state(GiveFreeSub.SET_TIME_FOR_SUB)
 
     else:
-        await message.answer("Вы прислали не число. Начните заново вызвав /free_sub")
         await state.finish()
+        await message.answer("Вы прислали не число. Начните заново вызвав /free_sub")
 
 @dp.message_handler(state=GiveFreeSub.SET_TIME_FOR_SUB)
 async def give_free_sub_step_choose_time(message: types.Message, state: FSMContext):
@@ -186,6 +186,7 @@ async def give_free_sub_step_choose_time(message: types.Message, state: FSMConte
         async with state.proxy() as data:
             user_id = data['user_id']
             try:
+                await state.finish()
                 await bot.send_message(user_id, f'Вам выдана бесплатная подписка на {message.text} дней')
                 db.set_free_sub_end(user_id, datetime.now() + timedelta(days=int(message.text)))
                 await message.answer(f'Бесплатная подписка на {message.text} дней выдана пользователю и он об этом уведомление')
@@ -193,10 +194,9 @@ async def give_free_sub_step_choose_time(message: types.Message, state: FSMConte
             except:
                 await state.finish()
                 await message.answer("Возникла проблема при отправке уведомления пользователю. Он мог заблокировать бота")
-            await state.finish()
     else:
-        await message.answer("Вы прислали не число. Начните заново вызвав /free_sub")
         await state.finish()
+        await message.answer("Вы прислали не число. Начните заново вызвав /free_sub")
 
 @dp.message_handler(commands=['extend_free_sub'])
 async def extend_free_sub(message: types.Message, state: FSMContext):
@@ -264,13 +264,13 @@ async def extend_free_sub_choose_date_for_one(message: types.Message, state: FSM
             free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
             free_sub = free_sub + timedelta(days=int(message.text))
             try:
+                await state.finish()
                 await bot.send_message(user_id, "Вам была продлена бесплатная подписка")
                 await message.answer("Бесплатная подписка для пользователя продлена")
                 db.set_free_sub_end(user_id, free_sub)
-                await state.finish()
             except:
-                await message.answer("Что-то пошло не так на стороне пользователя")
                 await state.finish()
+                await message.answer("Что-то пошло не так на стороне пользователя")
     else: 
         await state.finish()
         await message.answer('Вы прислали не число. Начните заново вызвав команду /extend_free_sub')
@@ -319,14 +319,14 @@ async def extend_sub_id(message: types.Message, state: FSMContext):
                     await message.answer('Теперь надо ввести число дней на которое вы хотите продлить платную подписку пользователю')
                     await state.set_state(ExtendSub.SET_EXTEND_TIME_O)
                 else:
-                    await message.answer("У этого пользователя есть бесплатная подписка, вы не можете продлить ему платную без его предварительного согласия, он должен купить ее сам. \n  Начните заново вызвав команду /extend_sub")
                     await state.reset_state()
+                    await message.answer("У этого пользователя есть бесплатная подписка, вы не можете продлить ему платную без его предварительного согласия, он должен купить ее сам. \n  Начните заново вызвав команду /extend_sub")
             else: 
-                await message.answer("Этот пользователь не имеет платной подписки.  Начните заново вызвав команду /extend_sub") 
                 await state.reset_state()    
+                await message.answer("Этот пользователь не имеет платной подписки.  Начните заново вызвав команду /extend_sub") 
         else:
-            await message.answer("Этот пользователь ни разу не оплачивал подписку.  Начните заново вызвав команду /extend_sub")
             await state.reset_state()
+            await message.answer("Этот пользователь ни разу не оплачивал подписку.  Начните заново вызвав команду /extend_sub")
     else:
         await state.reset_state()
         await message.answer("Вы сделали неправильный ввод. Начните заново вызвав команду /extend_sub")
@@ -338,13 +338,13 @@ async def extend_sub_date(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             user_id = data['user_id']
         try:
+            await state.finish()
             await bot.send_message(user_id, f'Вам продлена платная подписка на {message.text} дней')
             update_sub(user_id, days=int(message.text))
             await message.answer("Подписка успешно продлена и пользователь об этом уведомлен")
-            await state.finish()
         except:
-            await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
             await state.finish()
+            await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
     else:
         await state.reset_state()
         await message.answer('Вы ввели не число, повторите операции вызвав команду /extend_sub')
@@ -361,22 +361,21 @@ async def make_partner(message: types.Message, state: FSMContext):
 async def make_partner_id(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         if db.is_partner(int(message.text)):
-            await message.answer("Этот человек уже партнер")
             await state.finish()
+            await message.answer("Этот человек уже партнер")
             return
         if check_if_subed(int(message.text)) or do_have_free_sub(int(message.text)):
-            await state.finish()
             try:
+                await state.finish()
                 await bot.send_message(message.text, 'Вам просвоен статус партнера')
                 await message.answer("Вы присвоили человеку статус партнера и он об этом уведомлен")
                 db.set_partner(int(message.text))
-                await state.finish()
             except:
-                await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
                 await state.finish()
+                await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
         else:
-            await message.answer("Человек которому вы хотите присвоить статус партнерта не подписан на бота!")
             await state.reset_state()
+            await message.answer("Человек которому вы хотите присвоить статус партнерта не подписан на бота!")
     else:
         await state.reset_state()
         await message.answer('Повторите все заново вызвав команду /make_partner. Вы ввели не число!') 

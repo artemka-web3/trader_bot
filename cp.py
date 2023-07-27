@@ -102,10 +102,10 @@ def count_money_attracted_by_one(user_id):
             money_paid = sub.amount * sub.successful_transactions_number
             db.update_money_paid(user_id, money_paid)
             break
-        elif sub.status == 'Active' and sub.successful_transactions_number == 0:
-            money_paid = sub.amount
-            db.update_money_paid(user_id, money_paid)
-            break
+        # elif sub.status == 'Active' and sub.successful_transactions_number == 0:
+        #     money_paid = sub.amount
+        #     db.update_money_paid(user_id, money_paid)
+        #     break
     return money_paid
 
 def count_money_attracted_by_ref(ref_id):
@@ -118,10 +118,10 @@ def count_money_attracted_by_ref(ref_id):
                 money_paid += sub.amount * sub.successful_transactions_number
                 db.update_money_paid(user[0], sub.amount * sub.successful_transactions_number)
                 break
-            elif sub.status == 'Active' and sub.successful_transactions_number == 0:
-                money_paid += sub.amount
-                db.update_money_paid(user[0], sub.amount)
-                break
+            # elif sub.status == 'Active' and sub.successful_transactions_number == 0:
+            #     money_paid += sub.amount
+            #     db.update_money_paid(user[0], sub.amount)
+            #     break
     return money_paid
 def cancel_sub(user_id):
     for sub in client.list_subscriptions(str(user_id)):
