@@ -20,16 +20,25 @@ client = cloudpayments.CloudPayments('pk_c8695290fec5bcb40f468cca846d2', 'd3119d
 def if_sub_didnt_end(user_id):
     for sub in client.list_subscriptions(str(user_id)): 
         if sub.interval == 'Month': 
-            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or datetime.now() + timedelta(days=30) < sub.last_transaction_date:
+            cond = False
+            if sub.last_transaction_date is not None:
+                cond = bool(datetime.now(tz=pytz.timezone("UTC")) + timedelta(days=30) < sub.last_transaction_date)
+            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or cond:
                 return True
         elif sub.interval == 'Year' and sub.period == 2:
-            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or datetime.now() + timedelta(days=180) < sub.last_transaction_date:
+            cond = False
+            if sub.last_transaction_date  is not None:
+                cond = bool(datetime.now(tz=pytz.timezone("UTC")) + timedelta(days=180) < sub.last_transaction_date)
+            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or cond:
                 return True
         elif sub.interval == 'Year' and sub.period == 1:
-            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or datetime.now() + timedelta(days=365) < sub.last_transaction_date:
+            cond =  False
+            if sub.last_transaction_date  is not None:
+                cond = bool(datetime.now(tz=pytz.timezone("UTC")) + timedelta(days=365) < sub.last_transaction_date)
+            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or cond:
                 return True
     return False
-            
+print(if_sub_didnt_end(764315256))
 
 def before_end_of_free_sub(user_id):
     free_sub = db.get_free_sub_end(user_id)
