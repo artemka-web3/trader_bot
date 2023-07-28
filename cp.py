@@ -15,6 +15,22 @@ d3119d06f156dad88a2ed516957b065b
 
 db = BotDB('prod.db')
 client = cloudpayments.CloudPayments('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
+
+
+def if_sub_didnt_end(user_id):
+    for sub in client.list_subscriptions(str(user_id)): 
+        if sub.interval == 'Month': 
+            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or datetime.now() + timedelta(days=30) < sub.last_transaction_date:
+                return True
+        elif sub.interval == 'Year' and sub.period == 2:
+            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or datetime.now() + timedelta(days=180) < sub.last_transaction_date:
+                return True
+        elif sub.interval == 'Year' and sub.period == 1:
+            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or datetime.now() + timedelta(days=365) < sub.last_transaction_date:
+                return True
+    return False
+            
+
 def before_end_of_free_sub(user_id):
     free_sub = db.get_free_sub_end(user_id)
     if free_sub is not None:
@@ -53,7 +69,7 @@ def get_subed_users():
     if all_users:
         for user in all_users:
             for sub in client.list_subscriptions(user[0]):
-                if sub.status == 'Active' and user[0] not in subed_users:
+                if sub.status == 'Active' and user[0] not in subed_users and if_sub_didnt_end(user[0]):
                     subed_users.append(user[0])
         return subed_users
     return []
@@ -64,7 +80,7 @@ def get_unsubed_users():
     if all_user_ids:
         for user in all_user_ids:
             for sub in client.list_subscriptions(user[0]):
-                if sub.status == 'Cancelled' and user[0] not in unsubed_users:
+                if sub.status == 'Cancelled' and user[0] not in unsubed_users and not if_sub_didnt_end(user[0]):
                     unsubed_users.append(user[0])
         return unsubed_users
     return []
@@ -147,19 +163,5 @@ def update_sub_for_all(days):
                     client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
                     return
                 
-def if_sub_didnt_end(user_id):
-    all_users = db.get_all_users()
-    for sub in client.list_subscriptions(str(user_id)): 
-        if sub.interval == 'Month': 
-            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or datetime.now() + timedelta(days=30) < sub.last_transaction_date:
-                return True
-        elif sub.interval == 'Year' and sub.period == 2:
-            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or datetime.now() + timedelta(days=180) < sub.last_transaction_date:
-                return True
-            
-        elif sub.interval == 'Year' and sub.period == 1:
-            if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or datetime.now() + timedelta(days=365) < sub.last_transaction_date:
-                return True
-    return False
-            
+
 
