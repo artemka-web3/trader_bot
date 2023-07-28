@@ -77,8 +77,11 @@ def get_subed_users():
     if all_users:
         for user in all_users:
             for sub in client.list_subscriptions(user[0]):
-                if sub.status == 'Active' and user[0] not in subed_users and if_sub_didnt_end(user[0]):
+                if sub.status == 'Active' and user[0] not in subed_users:
                     subed_users.append(user[0])
+                elif if_sub_didnt_end(user[0]) and user[0] not in subed_users:
+                    subed_users.append(user[0])
+
         return subed_users
     return []
 
