@@ -38,7 +38,6 @@ def if_sub_didnt_end(user_id):
             if sub.status == 'Cancelled' and datetime.now(tz=pytz.timezone("UTC")) < sub.start_date or cond:
                 return True
     return False
-print(if_sub_didnt_end(764315256))
 
 def before_end_of_free_sub(user_id):
     free_sub = db.get_free_sub_end(user_id)
