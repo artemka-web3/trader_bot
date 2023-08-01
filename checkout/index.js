@@ -3,8 +3,8 @@ var path = require('path');
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('../prod.db');
 const TelegramBot = require('node-telegram-bot-api');
-const token = '6308710529:AAFl-NaUBefjTjUHFSMBDwtjnMNOgpwdAHs';
-const cp = require('cloudpayments')
+const token = '6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A';
+const cp = require('cloudpayments');
 
 const bot = new TelegramBot(token, {polling: false});
 const client = new cp.ClientService({
@@ -144,8 +144,8 @@ app.get('/pay/:account_id/:amount', function(req, res){
         } 
       )
       const keyboard = [
-        ['О боте. Руководство'],
-        ['Подписка'],
+        ['ℹ️ О боте. Руководство '],
+        ['✅ Подписка '],
       ];
       
       const replyKeyboardMarkup = {
@@ -165,6 +165,61 @@ app.get('/pay/:account_id/:amount', function(req, res){
 
 });
 
+app.get("/cancel/:account_id", function(req, res){
+    account_id = req.params.account_id
+    res.render('cancel', { "account_id": account_id})
+});
+app.get("/cancel_result/:account_id", function(req, res){
+  var account_id = req.params.account_id
+  try{
+    client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
+      value=>{
+        let counter = 0
+        for(let sub of value.getResponse().Model){
+            if (sub.Status == "Active"){  
+              counter+=1
+              client.getClientApi().cancelSubscription({Id: sub.Id})
+            }
+        }
+        if(counter>0){
+          const keyboard = [
+            ['ℹ️ О боте. Руководство '],
+            ['Купить подписку'],
+          ];
+          
+          const replyKeyboardMarkup = {
+            reply_markup: {
+              keyboard: keyboard,
+              resize_keyboard: true,
+              one_time_keyboard: true,
+            },
+          };
+          bot.sendMessage(parseInt(account_id), "Подписка успешно отменена!", replyKeyboardMarkup)
+          return res.redirect('https://t.me/RadarMsk_bot')
+        } else {
+          const keyboard = [
+            ['ℹ️ О боте. Руководство '],
+            ['Купить подписку'],
+          ];
+          
+          const replyKeyboardMarkup = {
+            reply_markup: {
+              keyboard: keyboard,
+              resize_keyboard: true,
+              one_time_keyboard: true,
+            },
+          };
+          bot.sendMessage(parseInt(account_id), "У вас нет активных  подписок!", replyKeyboardMarkup)
+          return res.redirect('https://t.me/RadarMsk_bot')
+        }
+
+      }
+    )
+  } catch(error){
+    console.log(error)
+  }
+
+});
 
 
 // Запуск сервера

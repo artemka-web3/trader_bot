@@ -17,7 +17,7 @@ class BotDB:
             self.cursor.execute("INSERT INTO `users` (`user_id`, `referer_id`) VALUES (?, ?)", (user_id, referer_id,))
         else:
             self.cursor.execute("INSERT INTO `users` (`user_id`) VALUES (?)", (user_id,))
-            return self.conn.commit()
+        return self.conn.commit()
     
     def get_all_users(self):
         # всех

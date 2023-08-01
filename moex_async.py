@@ -25,7 +25,7 @@ cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
 s.close()
 
 async def get_value_by_ticker(ticker):
-    async with aiofiles.open('shares.csv', 'r') as reader:
+    async with aiofiles.open('shares_v2.csv', 'r') as reader:
         async for row in aiocsv.AsyncDictReader(reader, delimiter='\n'):
             # Обработка словаря данных
             if row is not None:
