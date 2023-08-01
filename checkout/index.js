@@ -1,7 +1,7 @@
 var express = require('express');
 var path = require('path');
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('../prod.db');
+var db = new sqlite3.Database('../prod.sqlite3');
 const TelegramBot = require('node-telegram-bot-api');
 const token = '6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A';
 const cp = require('cloudpayments');
@@ -209,7 +209,7 @@ app.get("/cancel_result/:account_id", function(req, res){
               one_time_keyboard: true,
             },
           };
-          bot.sendMessage(parseInt(account_id), "У вас нет активных  подписок!", replyKeyboardMarkup)
+          bot.sendMessage(parseInt(account_id), "У вас нет активных подписок!", replyKeyboardMarkup)
           return res.redirect('https://t.me/RadarMsk_bot')
         }
 

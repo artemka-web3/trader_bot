@@ -34,10 +34,10 @@ tasks = []
 bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
-db = BotDB('prod.db')
+db = BotDB('prod.sqlite3')
 
 
-@dp.message_handler(lambda message: 'о боте. руководство' in message.text.lower() or message.text.lower() == '/start' or message.text.lower() == '/help')
+@dp.message_handler(lambda message: 'ℹ️ О боте. Руководство' == message.text or message.text.lower() == '/start' or message.text.lower() == '/help')
 async def send_welcome(message: types.Message):
     user_exists = await db.user_exists(message.from_user.id)
     if not user_exists:
@@ -61,7 +61,7 @@ async def send_welcome(message: types.Message):
     else:
         await message.reply(""""Радар биржи" анализирует все минутные свечи акций торгуемых на московской бирже.\nЕсли бот видит повышенные обьемы в акции, то он сразу сигнализирует об этом.\n\nБот уведомляет:\n🔸 Какой обьем был куплен\n🔸 Изменение цены на данном обьеме\n🔸 Изменение цены за день в акции.\n🔸 О количестве покупателей и продавцов на данном обьеме.""", reply_markup=keyb_for_unsubed)
 
-@dp.message_handler(lambda message: "пользовательское соглашение" in message.text.lower())
+@dp.message_handler(lambda message: "📋 Пользовательское соглашение" == message.text)
 async def get_user_agreement(message: types.Message):
     await message.reply('Пользовательское соглашение: https://telegra.ph/Polzovatelskoe-soglashenie-07-13-5')
 
@@ -117,7 +117,7 @@ async def get_yo_ref_data(message: types.Message):
         await db.add_user(message.from_user.id)
         await message.answer("Вы не были занесены в БД, но я это исправил, подпишитесь на бота чтоб выполнить эту команду!", reply_markup=keyb_for_unsubed)
 
-@dp.message_handler(lambda message: 'подписка' in message.text.lower() or message.text.lower() == '/profile')
+@dp.message_handler(lambda message: '✅ Подписка' == message.text or message.text.lower() == '/profile')
 async def get_profile_data(message: types.Message):
     user_exists = await db.user_exists(message.from_user.id)
     if user_exists:

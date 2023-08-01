@@ -15,7 +15,7 @@ pk_c8695290fec5bcb40f468cca846d2
 d3119d06f156dad88a2ed516957b065b
 """
 
-db = BotDB('prod.db')
+db = BotDB('prod.sqlite3')
 client = AioCpClient('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
 
 
@@ -142,7 +142,6 @@ async def get_sub_end(user_id):
             left_days = str(sub_start_datetime - datetime.now(tz=pytz.timezone('UTC'))).split(',')[0]
             return left_days.split(' ')[0]
         elif await if_sub_didnt_end(user_id):
-            print("if_sub_didnt_end")
             sub_start_datetime = 0
             sub_last_trx_datetime = 0
             if sub.start_date is not None and sub.last_transaction_date is None:

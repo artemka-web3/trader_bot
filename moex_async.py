@@ -29,9 +29,9 @@ async def get_value_by_ticker(ticker):
         async for row in aiocsv.AsyncDictReader(reader, delimiter='\n'):
             # Обработка словаря данных
             if row is not None:
-                if row['Полное название акций ,тикет,сокращённое название '] is not None:
-                    if row['Полное название акций ,тикет,сокращённое название '].split(',')[1] == ticker:
-                        return row['Полное название акций ,тикет,сокращённое название '].split(',')[2] 
+                if row['Полное название акций ,тикет,сокращённое название ,ликвидность'] is not None:
+                    if row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[1] == ticker:
+                        return row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[2] 
 
 # GET ONE STOCK DATA
 async def fetch_stock(session, url, headers, cookies):
