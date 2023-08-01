@@ -34,7 +34,7 @@ tasks = []
 bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
-db = BotDB('prod.sqlite3')
+db = BotDB('prod.db')
 
 
 @dp.message_handler(lambda message: 'о боте. руководство' in message.text.lower() or message.text.lower() == '/start' or message.text.lower() == '/help')

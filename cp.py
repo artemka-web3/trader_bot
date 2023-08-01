@@ -15,7 +15,7 @@ pk_c8695290fec5bcb40f468cca846d2
 d3119d06f156dad88a2ed516957b065b
 """
 
-db = BotDB('prod.sqlite3')
+db = BotDB('prod.db')
 client = AioCpClient('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
 
 
