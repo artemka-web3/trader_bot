@@ -26,6 +26,8 @@ logging.basicConfig(level=logging.INFO)
 offset = dt.timezone(timedelta(hours=3))
 volumes_avg_prev = {}
 collecting_avg_event = asyncio.Event()
+another_share_event = asyncio.Event()
+
 tasks = []
 
 
@@ -102,15 +104,15 @@ async def get_yo_ref_data(message: types.Message):
         if await is_in_pay_sys(message.from_user.id):
             if await check_if_subed(message.from_user.id) and not await do_have_free_sub(message.from_user.id):
                 ref_traffic = await db.get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
             elif not await check_if_subed(message.from_user.id) and await do_have_free_sub(message.from_user.id):
                 ref_traffic = await db.get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
         else:
             if await do_have_free_sub(message.from_user.id):
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
     else:
@@ -400,7 +402,7 @@ async def check_ref(message: types.Message, state: FSMContext):
 async def get_stat(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         ref_traffic = await db.get_referer_traffic(message.from_user.id) # кол-во людей
-        await message.answer(f"Реферальная ссылка пользователя: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные юзеры: {count_money_attracted_by_ref(message.from_user.id)}₽")
+        await message.answer(f"Реферальная ссылка пользователя: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽")
     else:
         await state.reset_state()
         await message.answer('Вы неправильно ввели данные. введите только id. Вызовите команду /check_ref снова чтобы повторить процесс')
@@ -443,7 +445,6 @@ async def process_stock(stock, volume_avg_prev, coef):
                     price_change_status = 1
                 elif price_change < 0:
                     price_change_status = 2
-
                 buyers_sellers = await moex_async.buyers_vs_sellers1(price_change_status)
                 buyers = buyers_sellers[0] # %
                 sellers = buyers_sellers[1] # %
@@ -460,7 +461,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                 if check_volume * coef <= data[4] and data[4] > 1000000:
                     if users_arr:
                         for user in users_arr:
-                            if user[0] in await get_subed_users() or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
+                            if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
                                 await bot.send_message(
                                     int(user[0]),
                                     f"#{data[0]} <b>{data[1]}</b>\n\n{dir}Аномальный объем\n"+
@@ -493,16 +494,17 @@ async def process_stocks():
                 if row is not None:
                     if row['Полное название акций ,тикет,сокращённое название ,ликвидность'] is not None:
                         if row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[1] == stock[0]:
-                            liq_id = row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[-1]
-                            coef = 50
-                            if liq_id == 0:
-                                coef = 200
-                            task = process_stock(stock, volumes_avg_prev, coef)
-                            tasks.append(task)
+                            liq_id = int(row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[-1])
+                            if liq_id != 0:
+                                coef = 25
+                                task = process_stock(stock, volumes_avg_prev, coef)
+                                tasks.append(task)
         #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
     for task in tasks:
         asyncio.create_task(task)
-        await asyncio.sleep(5) 
+        await asyncio.sleep(1)
+        
+         
 
 async def main():
     await process_stocks()
