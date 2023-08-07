@@ -16,8 +16,12 @@
 
           <div class="card">
             <div class="card-body text-center">
-              <h4 class="card-title font-weight-bold">Повторная  активация подписки</h4>
+              <h4 class="card-title font-weight-bold">Повторная активация подписки</h4>
               <p class="card-text">Вы попали сюда так как вы уже покупали подписку раньше. Перед тем как нажать на кнопку ниже, убедитесь что вы прочитали все руководства по использованию бота и пользовательское соглашение. После оплаты вас перекинет обратно в бота!</p>
+              <h1>Введите ваш email:</h1>
+              <div class="input-group mb-3">
+                <input type="email" id="emailInput" class="form-control" placeholder="Введите email" required>
+              </div>
               <button id="checkout" class="btn btn-primary mt-3">Оплатить</button>
             </div>
           </div> 
@@ -27,6 +31,16 @@
     </div>
 
     <script>
+        let savedEmail = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+          const emailInput = document.getElementById('emailInput');
+          // Обработчик изменения значения email
+          emailInput.addEventListener('input', function(event) {
+            const newEmail = event.target.value;
+            savedEmail = newEmail;
+          });
+        });
         document.getElementById('checkout').onclick = function () {
             var payments = new cp.CloudPayments();
 
