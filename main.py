@@ -418,14 +418,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
                 current_minute = ("0" +str(datetime.now(offset).minute - 1) if len(str(datetime.now(offset).minute - 1)) < 2 else str(datetime.now(offset).minute - 1))
-                current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second))
-                if int(current_second) < 50:
-                    while int(current_second) < 50:
-                        current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
-                        current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
-                        current_minute = ("0" +str(datetime.now(offset).minute-1) if len(str(datetime.now(offset).minute-1)) < 2 else str(datetime.now(offset).minute-1))
-                        current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second))
-                        await asyncio.sleep(1)
+                #current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second)
                 users_arr = await db.get_all_users()
                 current_time = str(current_hour) +":"+ str(current_minute)
                 stock_data = await moex_async.get_stock_data(stock[0]) 
