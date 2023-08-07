@@ -5,6 +5,11 @@ var db = new sqlite3.Database('../prod.sqlite3');
 const TelegramBot = require('node-telegram-bot-api');
 const token = '6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A';
 const cp = require('cloudpayments');
+const axios = require('axios');
+
+
+const GROUP_CODE = 'your_group_code';
+const TOKEN = 'your_auth_token';
 
 const bot = new TelegramBot(token, {polling: false});
 const client = new cp.ClientService({
@@ -221,6 +226,63 @@ app.get("/cancel_result/:account_id", function(req, res){
 
 });
 
+// РАБОТА С ЧЕКАМИ
+app.get('/get-evotor-token', async (req, res) => {
+  try {
+    // Prepare the request data
+    const requestData = {
+      login: LOGIN,
+      pass: PASSWORD,
+    };
+
+    // Make the POST request to obtain the token
+    const response = await axios.post(
+      'https://fiscalization.evotor.ru/possystem/v5/getToken',
+      requestData,
+      {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      }
+    );
+
+    // Return the token from the response
+    res.json({ token: response.data.token });
+  } catch (error) {
+    // Handle any errors that occurred during the API call
+    res.status(error.response ? error.response.status : 500).json({
+      error: 'Something went wrong.',
+    });
+  }
+});
+
+app.get('/generate-receipt', async (req, res) => {
+  try {
+    const operation = 'sell'; // Change this to the desired operation type
+
+    // Prepare the receipt data from the request body
+    const receiptData = req.body;
+
+    // Make the request to the API
+    const response = await axios.post(
+      `https://fiscalization.evotor.ru/possystem/v5/${GROUP_CODE}/${operation}?token=${TOKEN}`,
+      receiptData,
+      {
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      }
+    );
+
+    // Return the response from the API
+    res.json(response.data);
+  } catch (error) {
+    // Handle any errors that occurred during the API call
+    res.status(error.response ? error.response.status : 500).json({
+      error: 'Something went wrong.',
+    });
+  }
+});
 
 // Запуск сервера
 app.listen(3000, function () {
