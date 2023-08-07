@@ -18,7 +18,7 @@
             <div class="card-body text-center">
               <h4 class="card-title font-weight-bold">Повторная активация подписки</h4>
               <p class="card-text">Вы попали сюда так как вы уже покупали подписку раньше. Перед тем как нажать на кнопку ниже, убедитесь что вы прочитали все руководства по использованию бота и пользовательское соглашение. После оплаты вас перекинет обратно в бота!</p>
-              <h1>Введите ваш email:</h1>
+              <h3>Введите ваш email</h3>
               <div class="input-group mb-3">
                 <input type="email" id="emailInput" class="form-control" placeholder="Введите email" required>
               </div>
@@ -32,7 +32,6 @@
 
     <script>
         let savedEmail = '';
-
         document.addEventListener('DOMContentLoaded', function() {
           const emailInput = document.getElementById('emailInput');
           // Обработчик изменения значения email
@@ -41,25 +40,31 @@
             savedEmail = newEmail;
           });
         });
+        
         document.getElementById('checkout').onclick = function () {
-            var payments = new cp.CloudPayments();
+            if(savedEmail.includes('@') && savedEmail != ''){
+              var payments = new cp.CloudPayments();
 
-            payments.oncomplete = (result) => {
-                console.log('result', result);
-                window.location.href = "/pay/" + "<%= account_id %>" + '/' + "<%= amount %>";
+              payments.oncomplete = (result) => {
+                  console.log('result', result);
+                  window.location.href = "/pay/" + "<%= account_id %>" + '/' + "<%= amount %>";
+              }
+
+              payments.pay("charge", { // options
+                  publicId: 'pk_c8695290fec5bcb40f468cca846d2',
+                  description: 'Оплата подписки на телеграм бота',
+                  accountId: '<%= account_id %>',
+                  amount: parseInt('<%= amount %>'),
+                  currency: 'RUB',
+              }).then((result) => {
+                  // Объект типа WidgetResult
+                  console.log('result', result);
+              });
+            } else {
+              alert('Введите email')
             }
-
-            payments.pay("charge", { // options
-                publicId: 'pk_c8695290fec5bcb40f468cca846d2',
-                description: 'Оплата подписки на телеграм бота',
-                accountId: '<%= account_id %>',
-                amount: parseInt('<%= amount %>'),
-                currency: 'RUB',
-            }).then((result) => {
-                // Объект типа WidgetResult
-                console.log('result', result);
-            });
-        }
+          }
+        
       </script>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

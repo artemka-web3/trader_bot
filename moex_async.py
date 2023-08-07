@@ -18,7 +18,7 @@ ctx.set_ciphers('ALL:@SECLEVEL=0')
 
 # Create an instance of asyncio event loop
 async def authenticate(login, password):
-    url = "https://passport.moex.com/authenticate"
+    url = "http://passport.moex.com/authenticate"
     auth = aiohttp.BasicAuth(login, password)
     headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
 
@@ -36,7 +36,7 @@ async def login_moex():
 # #password – пароль от учетной записи на сайте moex.com
 # password = "Inkgroup12!"
 # s = re.Session()
-# s.get("httpss://passport.moex.com/authenticate', auth=(login, password))
+# s.get("http://passport.moex.com/authenticate', auth=(login, password))
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
 # cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
 # s.close()
@@ -70,11 +70,11 @@ async def one_stock(url, headers, cookies):
     
 async def get_stock_data(security):
     cookies = await login_moex()
-    url_get_sec = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}.json"
+    url_get_sec = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}.json"
     return await one_stock(url_get_sec, headers, cookies)
 
 # GET ALL SECURITIES
-url_get_secs = "https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json"
+url_get_secs = "http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json"
 async def fetch_all_securities(session, url, headers, cookies):
     async with session.get(url, headers=headers, cookies=cookies) as response:
         return await response.json()
@@ -114,9 +114,9 @@ async def get_current_stock_volume(security, cur_time):
     start_from_for_today = 0
     cookies = await login_moex()
     while True:
-        url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
+        url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
         cur_data= await get_current_volume(url, headers, cookies)
-        url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
+        url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
         cur_data = await get_current_volume(url, headers, cookies)
         if len(cur_data['candles']['data']) == 0:
             return -200
@@ -166,10 +166,10 @@ async def get_prev_avg_volume(volumes_dict):
         volumes_dict[sec[0]] = 0
         while counter < 8:
             prev_date = (datetime.now(offset)- timedelta(days=counter)).strftime('%Y-%m-%d') # - timedelta(hours=10)
-            url_hour = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=60&start=0"
+            url_hour = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=60&start=0"
             prev_data_hour = await get_prev(url_hour, headers, cookies)
             if len(prev_data_hour['candles']['data']) != 0:  
-                url_day = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=24&start=0"
+                url_day = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=24&start=0"
                 prev_data_day = await get_prev(url_day, headers, cookies)
                 for i in prev_data_day['candles']['data']:
                     if '23:' in i[7]:
@@ -208,7 +208,7 @@ async def get_prev_avg_months(volumes_dict, months_to_scroll):
         prev_month_start = (prev_month - timedelta(days=prev_month.day-1)).strftime("%Y-%m-%d")
         current_date = datetime.now(offset).strftime('%Y-%m-%d')
         # месяц текущий будет последни, он нам не нужен: берем 1,он второй; берем 2, он 3-ий; берем 3 - он 4-ый
-        url = f"https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_month_start}&till={current_date}&interval=31"
+        url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_month_start}&till={current_date}&interval=31"
         data = await get_prev_months(url, headers, cookies)
         print(sec[0])
         if len(data['candles']['data']) != 0:
