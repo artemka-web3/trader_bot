@@ -451,8 +451,8 @@ async def process_stock(stock, volume_avg_prev, coef):
                 check_volume = volume_avg_prev[stock[0]]
                 print("CHECK VOLUME: ", check_volume)
                 print("DATA 4: ", data[4])
-                dif = check_volume * 99.75 / 100
-                if check_volume + dif <= data[4] and data[4] > 1000000:
+                dif = check_volume * 10 / 100
+                if check_volume * 10 <= data[4] and data[4] > 1000000:
                     if users_arr:
                         for user in users_arr:
                             if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
@@ -489,9 +489,11 @@ async def process_stocks():
                     if row['Полное название акций ,тикет,сокращённое название ,ликвидность'] is not None:
                         if row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[1] == stock[0]:
                             liq_id = int(row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[-1])
-                            if liq_id != 0:
-                                coef = 25
-                                task = process_stock(stock, volumes_avg_prev, coef)
+                            if liq_id == 0:
+                                task = process_stock(stock, volumes_avg_prev, 100)
+                                tasks.append(task)
+                            else:
+                                task = process_stock(stock, volumes_avg_prev, 10)
                                 tasks.append(task)
         #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
     for task in tasks:
