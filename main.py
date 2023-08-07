@@ -417,13 +417,13 @@ async def process_stock(stock, volume_avg_prev, coef):
             try:
                 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
-                current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
+                current_minute = ("0" +str(datetime.now(offset).minute - 1) if len(str(datetime.now(offset).minute - 1)) < 2 else str(datetime.now(offset).minute - 1))
                 current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second))
                 if int(current_second) < 50:
                     while int(current_second) < 50:
                         current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                         current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
-                        current_minute = ("0" +str(datetime.now(offset).minute) if len(str(datetime.now(offset).minute)) < 2 else str(datetime.now(offset).minute))
+                        current_minute = ("0" +str(datetime.now(offset).minute-1) if len(str(datetime.now(offset).minute-1)) < 2 else str(datetime.now(offset).minute-1))
                         current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second))
                         await asyncio.sleep(1)
                 users_arr = await db.get_all_users()

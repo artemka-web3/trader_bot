@@ -12,8 +12,6 @@ import ssl
 import random
 
 offset = dt.timezone(timedelta(hours=3))
-ctx = ssl.SSLContext()
-ctx.set_ciphers('ALL:@SECLEVEL=0')
 
 
 # Create an instance of asyncio event loop
@@ -22,7 +20,7 @@ async def authenticate(login, password):
     auth = aiohttp.BasicAuth(login, password)
     headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
 
-    async with aiohttp.ClientSession(headers=headers, auth=auth, connector=aiohttp.TCPConnector(ssl=False, force_close=True)) as session:
+    async with aiohttp.ClientSession(headers=headers, auth=auth) as session:
         async with session.get(url) as response:
             cookies = {'MicexPassportCert': response.cookies['MicexPassportCert']}
             return cookies
@@ -57,7 +55,7 @@ async def fetch_stock(session, url, headers, cookies):
 
 async def one_stock(url, headers, cookies):
 
-    async with aiohttp.ClientSession(trust_env=True, connector=aiohttp.TCPConnector(ssl=False, force_close=True)) as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_stock(session, url, headers, cookies)
         name = await get_value_by_ticker(data['securities']['data'][0][0])
         return (
@@ -80,12 +78,12 @@ async def fetch_all_securities(session, url, headers, cookies):
         return await response.json()
 
 async def all_securities(url, headers, cookies):
-    async with aiohttp.ClientSession(trust_env=True, connector=aiohttp.TCPConnector(ssl=False, force_close=True)) as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_all_securities(session, url, headers, cookies)
         return data['securities']['data']
     
 async def all_marketdata(url, headers, cookies):
-    async with aiohttp.ClientSession(trust_env=True, connector=aiohttp.TCPConnector(ssl=False, force_close=True)) as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_all_securities(session, url, headers, cookies)
         return data['marketdata']['data']
     
@@ -103,7 +101,7 @@ async def fetch_current_volume(session, url, headers, cookies):
         return await response.json()
 
 async def get_current_volume(url, headers, cookies):
-    async with aiohttp.ClientSession(trust_env=True, connector=aiohttp.TCPConnector(ssl=False, force_close=True)) as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_current_volume(session, url, headers, cookies)
         return data
     
@@ -150,7 +148,7 @@ async def fetch_prev(session, url, headers, cookies):
         return await response.json()
 
 async def get_prev(url, headers, cookies):
-    async with aiohttp.ClientSession(trust_env=True, connector=aiohttp.TCPConnector(ssl=False, force_close=True)) as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_prev(session, url, headers, cookies)
         return data
     
@@ -193,7 +191,7 @@ async def fetch_prev_months(session, url, headers, cookies):
         return await response.json()
 
 async def get_prev_months(url, headers, cookies):
-    async with aiohttp.ClientSession(trust_env=True, connector=aiohttp.TCPConnector(ssl=False, force_close=True)) as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_prev_months(session, url, headers, cookies)
         return data
 
@@ -235,7 +233,7 @@ async def fetch_bs(session, url, headers, cookies):
         return await response.json()
 
 async def get_bs(url, headers, cookies):
-    async with aiohttp.ClientSession(trust_env=True, connector=aiohttp.TCPConnector(ssl=False, force_close=True)) as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         data = await fetch_bs(session, url, headers, cookies)
         return data
 
@@ -251,3 +249,5 @@ async def buyers_vs_sellers1(p_ch_status):
 
     return buyers, sellers
 
+loop = asyncio.get_event_loop()
+print(loop.run_until_complete(get_current_stock_volume("BANE", '11:43')))
