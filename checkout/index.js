@@ -247,7 +247,7 @@ app.get('/get-evotor-token', async (req, res) => {
     );
 
     // Return the token from the response
-    res.json({ token: response.data.token });
+    //res.json({ token: response.data.token });
   } catch (error) {
     // Handle any errors that occurred during the API call
     res.status(error.response ? error.response.status : 500).json({

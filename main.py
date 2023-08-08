@@ -451,7 +451,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                 check_volume = volume_avg_prev[stock[0]]
                 print("CHECK VOLUME: ", check_volume)
                 print("DATA 4: ", data[4])
-                dif = check_volume * 30 / 100
+                dif = check_volume * 25 / 100
                 if check_volume * 30 <= data[4] and data[4] > 1000000:
                     if users_arr:
                         for user in users_arr:
@@ -468,7 +468,8 @@ async def process_stock(stock, volume_avg_prev, coef):
                                     "<b>Заметил Радар Биржи</b>\n"
                                     f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
                                     disable_notification=False,
-                                    parse_mode=types.ParseMode.HTML
+                                    parse_mode=types.ParseMode.HTML,
+                                    disable_web_page_preview=True
                                 )
             except exceptions.RetryAfter as e:
                 time.sleep(e.timeout)
