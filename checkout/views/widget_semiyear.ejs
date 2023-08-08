@@ -27,6 +27,15 @@
     </div>
 
     <script>
+        let savedEmail = '';
+        document.addEventListener('DOMContentLoaded', function() {
+          const emailInput = document.getElementById('emailInput');
+          // Обработчик изменения значения email
+          emailInput.addEventListener('input', function(event) {
+            const newEmail = event.target.value;
+            savedEmail = newEmail;
+          });
+        });
         document.getElementById('checkout').onclick = function () {
             var payments = new cp.CloudPayments({
                 yandexPaySupport: false,
@@ -38,7 +47,7 @@
     
             payments.oncomplete = (result) => {
                 console.log('result', result);
-                window.location.href = "/getTokenSemiYear/" + "<%= account_id %>" + '/' +(result.data.transactionId).toString();
+                window.location.href = "/getTokenSemiYear/" + "<%= account_id %>" + '/' +(result.data.transactionId).toString() + '/' + '4999' + '/' + `${savedEmail}`;;
             }
     
             var receipt = {

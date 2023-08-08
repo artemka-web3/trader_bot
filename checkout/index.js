@@ -43,9 +43,11 @@ app.get('/year/:account_id', function (req, res) {
   res.render('widget_year', { "account_id": account_id })
 });
 
-app.get('/getTokenMonth/:account_id/:trxId', function (req, res) {
+app.get('/getTokenMonth/:account_id/:trxId/:price/:email', function (req, res) {
   var trxId = req.params.trxId;
   var account_id = req.params.account_id;
+  var amount = req.params.price
+  var email = req.params.email
 
 
   db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 999, trxId, null, account_id, function (err) {
@@ -58,16 +60,18 @@ app.get('/getTokenMonth/:account_id/:trxId', function (req, res) {
     } catch (e){
       console.log(e)
     }
-    return res.redirect('https://t.me/RadarMsk_bot')
+    return res.redirect(`/get-evotor-token/${account_id}/${amount}/${email}`)
+
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
 });
 
-app.get('/getTokenSemiYear/:account_id/:trxId', function (req, res) {
+app.get('/getTokenSemiYear/:account_id/:trxId/:price/:email', function (req, res) {
   var trxId = req.params.trxId;
   var account_id = req.params.account_id;
-
+  var amount = req.params.price
+  var email = req.params.email
 
   db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 4999, trxId, null, account_id, function (err) {
     if (err) {
@@ -79,15 +83,17 @@ app.get('/getTokenSemiYear/:account_id/:trxId', function (req, res) {
     } catch (e){
       console.log(e)
     }
-    return res.redirect('https://t.me/RadarMsk_bott')
+    return res.redirect(`/get-evotor-token/${account_id}/${amount}/${email}`)
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
 });
 
-app.get('/getTokenYear/:account_id/:trxId', function (req, res) {
+app.get('/getTokenYear/:account_id/:trxId/:price/:email', function (req, res) {
   var trxId = req.params.trxId;
   var account_id = req.params.account_id;
+  var amount = req.params.price
+  var email = req.params.email
 
 
   db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 7999, trxId, null, account_id, function (err) {
@@ -100,7 +106,8 @@ app.get('/getTokenYear/:account_id/:trxId', function (req, res) {
     } catch (e){
       console.log(e)
     }
-    return res.redirect('https://t.me/RadarMsk_bot')
+    return res.redirect(`/get-evotor-token/${account_id}/${amount}/${email}`)
+
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
@@ -115,9 +122,10 @@ app.get('/paymentWidget/:account_id/:amount', function (req, res) {
   res.render('pay', { "account_id": account_id, 'amount': amount })
 });
 
-app.get('/pay/:account_id/:amount', function(req, res){
+app.get('/pay/:account_id/:amount/:email', function(req, res){
   var account_id = req.params.account_id
   var amount = req.params.amount
+  var email = req.params.email
 
   db.run("UPDATE users SET money_paid = money_paid + ?, free_sub_end = ? WHERE user_id = ?", parseInt(amount), null, account_id, function(err){
     if (err) {
@@ -165,7 +173,7 @@ app.get('/pay/:account_id/:amount', function(req, res){
     } catch (e){
       console.log(e)
     }
-    return res.redirect('https://t.me/RadarMsk_bot')
+    return res.redirect(`/get-evotor-token/${account_id}/${amount}/${email}`)
   });
 
 });
@@ -334,7 +342,7 @@ app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) =
     );
 
     // Return the response from the API
-    res.redirect()
+    res.redirect('https://t.me/RadarMsk_bot')
     // res.json(response.data);
   } catch (error) {
     // Handle any errors that occurred during the API call

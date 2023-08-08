@@ -18,6 +18,10 @@
             <div class="card-body text-center">
               <h4 class="card-title font-weight-bold">Оплата подписки на год</h4>
               <p class="card-text">Перед тем как нажать на кнопку ниже, убедитесь что вы прочитали все руководства по использованию бота и пользовательское соглашение. После оплаты вас перекинет обратно в бота!</p>
+              <h3>Введите ваш email</h3>
+              <div class="input-group mb-3">
+                <input type="email" id="emailInput" class="form-control" placeholder="Введите email" required>
+              </div>
               <button id="checkout" class="btn btn-primary mt-3">Оплатить</button>
             </div>
           </div> 
@@ -27,6 +31,15 @@
     </div>
 
     <script>
+        let savedEmail = '';
+        document.addEventListener('DOMContentLoaded', function() {
+          const emailInput = document.getElementById('emailInput');
+          // Обработчик изменения значения email
+          emailInput.addEventListener('input', function(event) {
+            const newEmail = event.target.value;
+            savedEmail = newEmail;
+          });
+        });
         document.getElementById('checkout').onclick = function () {
             var payments = new cp.CloudPayments({
                 yandexPaySupport: false,
@@ -38,7 +51,7 @@
     
             payments.oncomplete = (result) => {
                 console.log('result', result);
-                window.location.href = "/getTokenYear/" + "<%= account_id %>" + '/' +(result.data.transactionId).toString();
+                window.location.href = "/getTokenYear/" + "<%= account_id %>" + '/' +(result.data.transactionId).toString() + '/' + '7999' + '/' + `${savedEmail}`;
             }
     
             var receipt = {
