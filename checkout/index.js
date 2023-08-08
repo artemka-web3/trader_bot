@@ -7,9 +7,10 @@ const token = '6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A';
 const cp = require('cloudpayments');
 const axios = require('axios');
 
-
-const GROUP_CODE = 'your_group_code';
-const TOKEN = 'your_auth_token';
+const LOGIN = 'partnerTest1.2'
+const PASSWORD = 'partnerTest1.2Pass'
+const GROUP_CODE = 'cf0a2212-2e39-463f-9bff-30874b570f75';
+const URL = 'https://fiscalization-test.evotor.ru'
 
 const bot = new TelegramBot(token, {polling: false});
 const client = new cp.ClientService({
@@ -303,7 +304,7 @@ app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) =
               "email": "email@evotor.ru",
               "sno": "osn",
               "inn": "5010051677",
-              "payment_address": "shop-url.ru"
+              "payment_address": `${URL}`
           },
           "items": [
               {
