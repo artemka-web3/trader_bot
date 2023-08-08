@@ -227,7 +227,10 @@ app.get("/cancel_result/:account_id", function(req, res){
 });
 
 // РАБОТА С ЧЕКАМИ
-app.get('/get-evotor-token', async (req, res) => {
+app.get('/get-evotor-token/:account_id/:email/:price', async (req, res) => {
+  let account_id = req.params.account_id
+  let email = req.params.email
+  let price = req.params.price
   try {
     // Prepare the request data
     const requestData = {
@@ -245,7 +248,7 @@ app.get('/get-evotor-token', async (req, res) => {
         },
       }
     );
-
+    res.redirect(`/generate-receipt/${response.data.token}/${account_id}/${email}/${price}`)
     // Return the token from the response
     //res.json({ token: response.data.token });
   } catch (error) {
@@ -256,16 +259,72 @@ app.get('/get-evotor-token', async (req, res) => {
   }
 });
 
-app.get('/generate-receipt', async (req, res) => {
+app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) => {
+  let token_p = req.params.token 
+  let email = req.params.email
+  let account_id = req.params.account_id
+  let price = req.params.price
   try {
     const operation = 'sell'; // Change this to the desired operation type
+    const currentDateISO = new Date();
 
+    const options = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false, // Use 24-hour format
+    };
+    
+    const formattedDate = new Intl.DateTimeFormat('en-US', options).format(currentDateISO);
+    const currentDate = new Date();
+    const timestampInSeconds = Math.floor(currentDate.getTime() / 1000);
     // Prepare the receipt data from the request body
-    const receiptData = req.body;
+    const receiptData = 
+      {
+        "timestamp": `${formattedDate}`,
+        "external_id": `${account_id}${timestampInSeconds}`,
+        "receipt": {
+          "client": {
+              "email": `${email}`,
+              "name": `${(await bot.getChat(account_id)).first_name} ${(await bot.getChat(account_id)).last_name}`
+          },
+          "company": {
+              "email": "email@evotor.ru",
+              "sno": "osn",
+              "inn": "5010051677",
+              "payment_address": "shop-url.ru"
+          },
+          "items": [
+              {
+                "name": "Ваш любимый товар1",
+                "price": {price},
+                "quantity": 1.0,
+                "measure": 0,
+                "sum": {price},
+                "payment_method": "full_payment",
+                "payment_object": 4,
+                "vat": {
+                    "type": "vat20",
+                    "sum": 20.0
+                },
+              }
+          ],
+          "payments":[
+              {
+                "type": 1,
+                "sum": {price}
+              }
+          ],
+          "total": {price},
+        }
+    }; 
 
     // Make the request to the API
     const response = await axios.post(
-      `https://fiscalization.evotor.ru/possystem/v5/${GROUP_CODE}/${operation}?token=${TOKEN}`,
+      `https://fiscalization.evotor.ru/possystem/v5/${GROUP_CODE}/${operation}?token=${token_p}`,
       receiptData,
       {
         headers: {
@@ -275,7 +334,8 @@ app.get('/generate-receipt', async (req, res) => {
     );
 
     // Return the response from the API
-    res.json(response.data);
+    res.redirect()
+    // res.json(response.data);
   } catch (error) {
     // Handle any errors that occurred during the API call
     res.status(error.response ? error.response.status : 500).json({

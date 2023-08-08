@@ -12,32 +12,40 @@ import ssl
 import random
 
 offset = dt.timezone(timedelta(hours=3))
-
+login = 'kazakovoleg797@gmail.com'
+#password – пароль от учетной записи на сайте moex.com
+password = "Inkgroup12!"
+s = re.Session()
+s.get('http://passport.moex.com/authenticate', auth=(login, password))
+headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
+cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
+s.close()
 
 # Create an instance of asyncio event loop
-async def authenticate(login, password):
-    url = "http://passport.moex.com/authenticate"
-    auth = aiohttp.BasicAuth(login, password)
-    headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
+# async def authenticate(login, password):
+#     url = "http://passport.moex.com/authenticate"
+#     auth = aiohttp.BasicAuth(login, password)
+#     headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
 
-    async with aiohttp.ClientSession(headers=headers, auth=auth) as session:
-        async with session.get(url) as response:
-            cookies = {'MicexPassportCert': response.cookies['MicexPassportCert']}
-            return cookies
-async def login_moex():
-    login = 'kazakovoleg797@gmail.com'
-    password = "Inkgroup12!"
+#     async with aiohttp.ClientSession(headers=headers, auth=auth) as session:
+#         async with session.get(url) as response:
+#             cookies = {'MicexPassportCert': response.cookies['MicexPassportCert']}
+#             return cookies
+# async def login_moex():
+#     login = 'kazakovoleg797@gmail.com'
+#     password = "Inkgroup12!"
 
-    return await authenticate(login, password)
+#     return await authenticate(login, password)
 # #login – email, указанный при регистрации на сайте moex.com
 # login = 'kazakovoleg797@gmail.com'
 # #password – пароль от учетной записи на сайте moex.com
 # password = "Inkgroup12!"
 # s = re.Session()
 # s.get("http://passport.moex.com/authenticate', auth=(login, password))
-headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
+#headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
 # cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
 # s.close()
+#cookies = 
 
 async def get_value_by_ticker(ticker):
     async with aiofiles.open('shares_v2.csv', 'r') as reader:
@@ -67,7 +75,7 @@ async def one_stock(url, headers, cookies):
 
     
 async def get_stock_data(security):
-    cookies = await login_moex()
+    global cookies
     url_get_sec = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}.json"
     return await one_stock(url_get_sec, headers, cookies)
 
@@ -88,11 +96,11 @@ async def all_marketdata(url, headers, cookies):
         return data['marketdata']['data']
     
 async def get_securities():
-    cookies = await login_moex()
+    global cookies
     return await all_securities(url_get_secs, headers, cookies)
 
 async def get_marketdata():
-    cookies = await login_moex()
+    global cookies
     return await all_marketdata(url_get_secs, headers, cookies)
 
 # TRACK CURRENT VOLUME
@@ -110,7 +118,7 @@ async def get_current_stock_volume(security, cur_time):
     #cur_time = ("0" +str(current_date.hour) if len(str(current_date.hour)) < 2 else str(current_date.hour)) + ":" + ("0" +str(current_date.minute) if len(str(current_date.minute)) < 2 else str(current_date.minute))
     today = current_date.strftime('%Y-%m-%d')
     start_from_for_today = 0
-    cookies = await login_moex()
+    global cookies
     while True:
         url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
         cur_data= await get_current_volume(url, headers, cookies)
@@ -154,7 +162,7 @@ async def get_prev(url, headers, cookies):
     
 async def get_prev_avg_volume(volumes_dict):
     secs = await get_securities()
-    cookies = await login_moex()
+    global cookies
     for sec in secs:
         counter = 1
         empty_days = 0
@@ -197,7 +205,7 @@ async def get_prev_months(url, headers, cookies):
 
 async def get_prev_avg_months(volumes_dict, months_to_scroll):
     secs= await get_securities()
-    cookies = await login_moex()
+    global cookies
 
     for sec in secs:
         volumes_dict[sec[0]] = 0
