@@ -7,10 +7,10 @@ const token = '6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A';
 const cp = require('cloudpayments');
 const axios = require('axios');
 
-const LOGIN = 'partnerTest1.2'
-const PASSWORD = 'partnerTest1.2Pass'
-const GROUP_CODE = 'cf0a2212-2e39-463f-9bff-30874b570f75';
-const URL = 'https://fiscalization-test.evotor.ru'
+const LOGIN = 'KDeOYMPCsp'
+const PASSWORD = 'cgdCYjFcOSWJYHW'
+const GROUP_CODE = '9fab4def-2fed-4b05-8b31-a23a3904b043';
+const URL = 'https://t.me/RadarMsk_bot'
 
 const bot = new TelegramBot(token, {polling: false});
 const client = new cp.ClientService({
@@ -242,9 +242,9 @@ app.get('/get-evotor-token/:account_id/:email/:price', async (req, res) => {
   let price = req.params.price
   try {
     // Prepare the request data
-    const requestData = {
-      login: LOGIN,
-      pass: PASSWORD,
+    const requestData ={
+      "login": LOGIN,
+      "pass": PASSWORD,
     };
 
     // Make the POST request to obtain the token
@@ -257,11 +257,13 @@ app.get('/get-evotor-token/:account_id/:email/:price', async (req, res) => {
         },
       }
     );
+    //await axios.post(`/generate-receipt/${response.data.token}/${account_id}/${email}/${price}`)
     res.redirect(`/generate-receipt/${response.data.token}/${account_id}/${email}/${price}`)
     // Return the token from the response
     //res.json({ token: response.data.token });
   } catch (error) {
     // Handle any errors that occurred during the API call
+    console.log(error)
     res.status(error.response ? error.response.status : 500).json({
       error: 'Something went wrong.',
     });
@@ -269,88 +271,70 @@ app.get('/get-evotor-token/:account_id/:email/:price', async (req, res) => {
 });
 
 app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) => {
-  let token_p = req.params.token 
-  let email = req.params.email
-  let account_id = req.params.account_id
-  let price = req.params.price
-  try {
-    const operation = 'sell'; // Change this to the desired operation type
-    const currentDateISO = new Date();
+  let token_evotor = req.params.token;
+  let email = req.params.email;
+  let account_id = req.params.account_id;
+  let price = req.params.price;
+  const currentDate = new Date();
+  const year = currentDate.getFullYear();
+  const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = currentDate.getDate().toString().padStart(2, '0');
+  const hours = currentDate.getHours().toString().padStart(2, '0');
+  const minutes = currentDate.getMinutes().toString().padStart(2, '0');
+  const seconds = currentDate.getSeconds().toString().padStart(2, '0');  
+  const formattedDate = `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
+  const timestampInSeconds = Math.floor(currentDate.getTime() / 1000);
 
-    const options = {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false, // Use 24-hour format
-    };
-    
-    const formattedDate = new Intl.DateTimeFormat('en-US', options).format(currentDateISO);
-    const currentDate = new Date();
-    const timestampInSeconds = Math.floor(currentDate.getTime() / 1000);
-    // Prepare the receipt data from the request body
-    const receiptData = 
-      {
-        "timestamp": `${formattedDate}`,
-        "external_id": `${account_id}${timestampInSeconds}`,
-        "receipt": {
-          "client": {
-              "email": `${email}`,
-              "name": `${(await bot.getChat(account_id)).first_name} ${(await bot.getChat(account_id)).last_name}`
+  const apiUrl = 'https://fiscalization.evotor.ru/possystem/v5';
+  const groupCode = GROUP_CODE;
+  const option = 'sell';
+  const token_ev = token_evotor;
+  const urlWithParams = `${apiUrl}/${groupCode}/${option}?token=${token_ev}`;
+  const receiptData = {
+    timestamp: formattedDate,
+    external_id: `${account_id}${timestampInSeconds}`,
+    receipt: {
+      client: {
+        email: email,
+        name: `${(await bot.getChat(account_id)).first_name} ${(await bot.getChat(account_id)).last_name}`
+      },
+      company: {
+        email: "romanovcapi@gmail.com",
+        sno: "usn_income",
+        inn: "434586393116",
+        payment_address: 'https://t.me/RadarMsk_bot'
+      },
+      items: [
+        {
+          name: "Подписка на телеграм-бота",
+          price: parseInt(price), // Interpolate the price value
+          quantity: 1.0,
+          measure: 0,
+          sum: parseInt(price), // Interpolate the price value
+          payment_method: "full_payment",
+          payment_object: 4, // Change to the appropriate payment object type
+          vat: {
+            type: "vat20",
           },
-          "company": {
-              "email": "email@evotor.ru",
-              "sno": "osn",
-              "inn": "5010051677",
-              "payment_address": `${URL}`
-          },
-          "items": [
-              {
-                "name": "Ваш любимый товар1",
-                "price": {price},
-                "quantity": 1.0,
-                "measure": 0,
-                "sum": {price},
-                "payment_method": "full_payment",
-                "payment_object": 4,
-                "vat": {
-                    "type": "vat20",
-                    "sum": 20.0
-                },
-              }
-          ],
-          "payments":[
-              {
-                "type": 1,
-                "sum": {price}
-              }
-          ],
-          "total": {price},
         }
-    }; 
+      ],
+      payments: [
+        {
+          type: 2,
+          sum: parseInt(price), // Interpolate the price value
+        }
+      ],
+      total: parseInt(price), // Interpolate the price value
+    }
+  };
 
-    // Make the request to the API
-    const response = await axios.post(
-      `https://fiscalization.evotor.ru/possystem/v5/${GROUP_CODE}/${operation}?token=${token_p}`,
-      receiptData,
-      {
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-        },
-      }
-    );
-
-    // Return the response from the API
-    res.redirect('https://t.me/RadarMsk_bot')
-    // res.json(response.data);
-  } catch (error) {
-    // Handle any errors that occurred during the API call
-    res.status(error.response ? error.response.status : 500).json({
-      error: 'Something went wrong.',
-    });
-  }
+  headers = {
+    'Content-Type': 'application/json',
+  };  
+  await axios.post(urlWithParams, receiptData, {headers})
+    .then(response => function(){
+      res.redirect('https://t.me/RadarMsk_bot')})
+    .catch(error => console.error('Ошибка:', error));
 });
 
 // Запуск сервера

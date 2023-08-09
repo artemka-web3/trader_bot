@@ -8,7 +8,6 @@ import time
 import logging
 import aiocsv
 import aiofiles
-import ssl
 import random
 
 offset = dt.timezone(timedelta(hours=3))
@@ -47,37 +46,39 @@ s.close()
 # s.close()
 #cookies = 
 
-async def get_value_by_ticker(ticker):
-    async with aiofiles.open('shares_v2.csv', 'r') as reader:
+async def load_csv_data(filename):
+    async with aiofiles.open(filename, 'r') as reader:
+        data = []
         async for row in aiocsv.AsyncDictReader(reader, delimiter='\n'):
-            # Обработка словаря данных
-            if row is not None:
-                if row['Полное название акций ,тикет,сокращённое название ,ликвидность'] is not None:
-                    if row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[1] == ticker:
-                        return row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[2] 
+            data.append(row)
+        return data
 
-# GET ONE STOCK DATA
+async def get_value_by_ticker(data, ticker):
+    for row in data:
+        if row is not None:
+            parts = row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')
+            if len(parts) >= 2 and parts[1] == ticker:
+                return parts[2]
+
 async def fetch_stock(session, url, headers, cookies):
     async with session.get(url, headers=headers, cookies=cookies) as response:
         return await response.json()
 
-async def one_stock(url, headers, cookies):
+async def one_stock(session, data, url, headers, cookies):
+    stock_data = await fetch_stock(session, url, headers, cookies)
+    ticker = stock_data['securities']['data'][0][0]
+    name = await get_value_by_ticker(data, ticker)
+    return (
+        ticker,
+        str(name),
+        stock_data['securities']['data'][0][4],
+        stock_data['marketdata']['data'][0][25]
+    )
 
-    async with aiohttp.ClientSession(trust_env=True) as session:
-        data = await fetch_stock(session, url, headers, cookies)
-        name = await get_value_by_ticker(data['securities']['data'][0][0])
-        return (
-            data['securities']['data'][0][0], # SECID, 
-            str(name), # SECNAME
-            data['securities']['data'][0][4], # LOTSIZE
-            data['marketdata']['data'][0][25], # DAY CHANGE % prev 20
-        )
-
-    
-async def get_stock_data(security):
-    global cookies
+async def get_stock_data(security, data, headers, cookies):
     url_get_sec = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}.json"
-    return await one_stock(url_get_sec, headers, cookies)
+    async with aiohttp.ClientSession(trust_env=True) as session:
+        return await one_stock(session, data, url_get_sec, headers, cookies)
 
 # GET ALL SECURITIES
 url_get_secs = "http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json"
@@ -122,8 +123,6 @@ async def get_current_stock_volume(security, cur_time):
     while True:
         url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
         cur_data= await get_current_volume(url, headers, cookies)
-        url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
-        cur_data = await get_current_volume(url, headers, cookies)
         if len(cur_data['candles']['data']) == 0:
             return -200
         else: 
@@ -149,49 +148,6 @@ async def get_price_change(security, cur_time):
     #return current_candle, current_close, current_close, prev_close
     return round((float(current_close) * 100 / float(current_open)) - 100, 2)
 
-
-# GET ALL MINUTE VOLUMES WITHIN PAST 7 DAYS
-async def fetch_prev(session, url, headers, cookies):
-    async with session.get(url, headers=headers, cookies=cookies) as response:
-        return await response.json()
-
-async def get_prev(url, headers, cookies):
-    async with aiohttp.ClientSession(trust_env=True) as session:
-        data = await fetch_prev(session, url, headers, cookies)
-        return data
-    
-async def get_prev_avg_volume(volumes_dict):
-    secs = await get_securities()
-    global cookies
-    for sec in secs:
-        counter = 1
-        empty_days = 0
-        minutes = 0
-        value = 0
-        print(sec[0])
-        volumes_dict[sec[0]] = 0
-        while counter < 8:
-            prev_date = (datetime.now(offset)- timedelta(days=counter)).strftime('%Y-%m-%d') # - timedelta(hours=10)
-            url_hour = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=60&start=0"
-            prev_data_hour = await get_prev(url_hour, headers, cookies)
-            if len(prev_data_hour['candles']['data']) != 0:  
-                url_day = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_date}&till={prev_date}&interval=24&start=0"
-                prev_data_day = await get_prev(url_day, headers, cookies)
-                for i in prev_data_day['candles']['data']:
-                    if '23:' in i[7]:
-                        minutes = 840
-                    elif '18:' in i[7]:
-                        minutes = 540
-                value = prev_data_day['candles']['data'][0][4]
-            counter += 1
-        if value != 0:
-            volumes_dict[sec[0]] += round(value / minutes, 6)
-            volumes_dict[sec[0]] = volumes_dict[sec[0]] / (counter - 1)
-        else:
-            volumes_dict[sec[0]] = f'Ошибка получения данных об акции {sec[0]}'
-
-        print(volumes_dict[sec[0]])
-    return volumes_dict
 
 # GET PAST  MONTHS VOLUMES
 async def fetch_prev_months(session, url, headers, cookies):
@@ -234,6 +190,39 @@ async def get_prev_avg_months(volumes_dict, months_to_scroll):
         print(volumes_dict[sec[0]])
         await asyncio.sleep(.1)
     return volumes_dict
+
+
+async def get_prev_avg_months_for_table(volumes_dict, months_to_scroll):
+    secs= await get_securities()
+    global cookies
+
+    for sec in secs:
+        volumes_dict[sec[0]] = 0
+        minutes = 0
+        prev_month = (datetime.now(offset)- timedelta(days=31*months_to_scroll)) # получается первое месяца  число в любом случае
+        prev_month_start = (prev_month - timedelta(days=prev_month.day-1)).strftime("%Y-%m-%d")
+        current_date = datetime.now(offset).strftime('%Y-%m-%d')
+        # месяц текущий будет последни, он нам не нужен: берем 1,он второй; берем 2, он 3-ий; берем 3 - он 4-ый
+        url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_month_start}&till={current_date}&interval=31"
+        data = await get_prev_months(url, headers, cookies)
+        print(sec[0])
+        if len(data['candles']['data']) != 0:
+            for i in data['candles']['data'][0:months_to_scroll]:
+                if '30' in i[-1][8:10]:
+                    minutes = 43200
+                    volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
+                elif '31' in i[-1][8:10]:
+                    minutes = 44640
+                    volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
+                elif '28' in i[-1][8:10]:
+                    minutes = 40320
+                    volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
+                elif '29' in i[-1][8:10]:
+                    minutes = 41760
+                    volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
+        print(volumes_dict[sec[0]])
+        await asyncio.sleep(.1)
+    return volumes_dict
     
 
 async def fetch_bs(session, url, headers, cookies):
@@ -258,4 +247,6 @@ async def buyers_vs_sellers1(p_ch_status):
     return buyers, sellers
 
 loop = asyncio.get_event_loop()
-print(loop.run_until_complete(get_current_stock_volume("BANE", '11:43')))
+print(loop.run_until_complete(get_stock_data('ABRD')))
+print(loop.run_until_complete(get_securities()))
+print(loop.run_until_complete(get_current_stock_volume('ABRD', '13:47')))

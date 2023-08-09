@@ -9,12 +9,12 @@ from pytz import timezone
 from kb import *
 from fsm import *
 from cp import *
+from moex_async import *
 
 import asyncio
 import aioschedule
 import logging
 import time
-import moex_async
 import datetime as dt
 import pytz
 import aiofiles
@@ -421,24 +421,24 @@ async def process_stock(stock, volume_avg_prev, coef):
                 #current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second)
                 users_arr = await db.get_all_users()
                 current_time = str(current_hour) +":"+ str(current_minute)
-                stock_data = await moex_async.get_stock_data(stock[0]) 
+                stock_data = await get_stock_data(stock[0]) 
                 print(stock_data)
                 sec_id = stock_data[0] # #
                 sec_name = stock_data[1] 
                 lot_size = stock_data[2]
                 day_change = stock_data[3] # %
-                current_stock_data = await moex_async.get_current_stock_volume(stock[0], current_time)
+                current_stock_data = await get_current_stock_volume(stock[0], current_time)
                 current_price = current_stock_data[1] # рублей
                 volume_rub = current_stock_data[4] # М рублей
                 volume_shares = current_stock_data[5] 
                 lot_amount = round(volume_shares / lot_size, 2) # лотов
-                price_change = await moex_async.get_price_change(stock[0], current_time) # %
+                price_change = await get_price_change(stock[0], current_time) # %
                 price_change_status = 0  #  ноль измнений
                 if price_change > 0:
                     price_change_status = 1
                 elif price_change < 0:
                     price_change_status = 2
-                buyers_sellers = await moex_async.buyers_vs_sellers1(price_change_status)
+                buyers_sellers = await buyers_vs_sellers1(price_change_status)
                 buyers = buyers_sellers[0] # %
                 sellers = buyers_sellers[1] # %
                 data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]
@@ -451,8 +451,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                 check_volume = volume_avg_prev[stock[0]]
                 print("CHECK VOLUME: ", check_volume)
                 print("DATA 4: ", data[4])
-                dif = check_volume * 25 / 100
-                if check_volume * 30 <= data[4] and data[4] > 1000000:
+                if check_volume * coef <= data[4] and data[4] > 1000000:
                     if users_arr:
                         for user in users_arr:
                             if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
@@ -481,7 +480,7 @@ async def process_stock(stock, volume_avg_prev, coef):
 
 async def process_stocks():
     await collecting_avg_event.wait() 
-    securities = await moex_async.get_securities()
+    securities = await get_securities()
 
     # check if stock[0] in csv
     async with aiofiles.open('shares_v2.csv', mode='r') as reader:
@@ -490,13 +489,9 @@ async def process_stocks():
                 for stock in securities:
                     if row['Полное название акций ,тикет,сокращённое название ,ликвидность'] is not None:
                         if row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[1] == stock[0]:
-                            liq_id = int(row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[-1])
-                            if liq_id == 0:
-                                task = process_stock(stock, volumes_avg_prev, 100)
-                                tasks.append(task)
-                            else:
-                                task = process_stock(stock, volumes_avg_prev, 10)
-                                tasks.append(task)
+                            coef = int(row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[-1])
+                            task = process_stock(stock, volumes_avg_prev, coef)
+                            tasks.append(task)
             
         #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
     for task in tasks:
@@ -518,7 +513,7 @@ async def collect_volumes_avg():
     global volumes_avg_prev
     collecting_avg_event.clear() 
     if datetime.now(offset).weekday() < 5:
-        volumes_avg_prev = await moex_async.get_prev_avg_months(volumes_avg_prev, 3)
+        volumes_avg_prev = await get_prev_avg_months(volumes_avg_prev, 3)
         collecting_avg_event.set() 
         return volumes_avg_prev
     else:
