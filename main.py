@@ -422,7 +422,6 @@ async def process_stock(stock, volume_avg_prev, coef):
                 users_arr = await db.get_all_users()
                 current_time = str(current_hour) +":"+ str(current_minute)
                 stock_data = await get_stock_data(stock[0]) 
-                print(stock_data)
                 sec_id = stock_data[0] # #
                 sec_name = stock_data[1] 
                 lot_size = stock_data[2]
@@ -447,11 +446,9 @@ async def process_stock(stock, volume_avg_prev, coef):
                     dir = "🟢"
                 elif data[-3] < 0:
                     dir = "🔴"
-                print(volume_avg_prev[stock[0]])
-                check_volume = volume_avg_prev[stock[0]]
-                print("CHECK VOLUME: ", check_volume)
-                print("DATA 4: ", data[4])
+                check_volume = volume_avg_prev[stock[0]]           
                 if check_volume * coef <= data[4] and data[4] > 1000000:
+                    print(f"Акция: {data[0]}\nСредний объем: {round(float(check_volume)/1000000, 2)}M ₽\nЗафиксированный объем: {round(float(data[4])/1000000, 2)}M ₽\n____________________")
                     if users_arr:
                         for user in users_arr:
                             if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
@@ -470,6 +467,8 @@ async def process_stock(stock, volume_avg_prev, coef):
                                     parse_mode=types.ParseMode.HTML,
                                     disable_web_page_preview=True
                                 )
+                else:
+                    print(f"Акция: {data[0]}\nНе хватило объемов!!!\n____________________")
             except exceptions.RetryAfter as e:
                 time.sleep(e.timeout)
             except Exception as e:
