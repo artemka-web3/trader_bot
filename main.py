@@ -10,6 +10,7 @@ from kb import *
 from fsm import *
 from cp import *
 from moex_async import *
+from db_import import db
 
 import asyncio
 import aioschedule
@@ -36,7 +37,6 @@ tasks = []
 bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
-db = BotDB('prod.sqlite3')
 
 
 @dp.message_handler(lambda message: 'ℹ️ О боте. Руководство' == message.text or message.text.lower() == '/start' or message.text.lower() == '/help')
