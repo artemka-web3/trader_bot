@@ -31,6 +31,7 @@
     </div>
 
     <script>
+        
         let savedEmail = '';
         document.addEventListener('DOMContentLoaded', function() {
           const emailInput = document.getElementById('emailInput');
@@ -40,7 +41,6 @@
             savedEmail = newEmail;
           });
         });
-        
         document.getElementById('checkout').onclick = function () {
             if(savedEmail.includes('@') && savedEmail != ''){
               var payments = new cp.CloudPayments();

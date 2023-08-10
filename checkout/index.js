@@ -6,6 +6,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const token = '6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A';
 const cp = require('cloudpayments');
 const axios = require('axios');
+const alert = require('alert')
 
 const LOGIN = 'KDeOYMPCsp'
 const PASSWORD = 'cgdCYjFcOSWJYHW'
@@ -29,19 +30,55 @@ app.set('views', path.join(__dirname, 'views'));
 // Маршрут по умолчанию
 app.get('/semi_year/:account_id', function (req, res) {
   var account_id = req.params.account_id;
-  res.render('widget_semiyear', { "account_id": account_id })
+  client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
+    value=>{
+      for(let sub of value.getResponse().Model){
+        if (sub){
+          alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
+          res.redirect('https://t.me/RadarMsk_bot')
+        }
+        else{
+          res.render('widget_semiyear', { "account_id": account_id })
+        }
+      }
+    }
+  );
   // res.sendFile(path.join(__dirname + '/public/widget_semiyear.html'));
 });
 
 app.get('/month/:account_id', function (req, res) {
   var account_id = req.params.account_id;
-  res.render('widget_month', { "account_id": account_id })
+  client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
+    value=>{
+      for(let sub of value.getResponse().Model){
+        if (sub){
+          alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
+          res.redirect('https://t.me/RadarMsk_bot')
+        }
+        else{
+          res.render('widget_month', { "account_id": account_id })
+        }
+      }
+    }
+  );
 
 });
 
 app.get('/year/:account_id', function (req, res) {
   var account_id = req.params.account_id;
-  res.render('widget_year', { "account_id": account_id })
+  client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
+    value=>{
+      for(let sub of value.getResponse().Model){
+        if (sub){
+          alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
+          res.redirect('https://t.me/RadarMsk_bot')
+        }
+        else{
+          res.render('widget_year', { "account_id": account_id })
+        }
+      }
+    }
+  );
 });
 
 app.get('/getTokenMonth/:account_id/:trxId/:price/:email', function (req, res) {
@@ -49,8 +86,6 @@ app.get('/getTokenMonth/:account_id/:trxId/:price/:email', function (req, res) {
   var account_id = req.params.account_id;
   var amount = req.params.price
   var email = req.params.email
-
-
   db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 999, trxId, null, account_id, function (err) {
     if (err) {
       return console.log(err.message);
@@ -73,7 +108,6 @@ app.get('/getTokenSemiYear/:account_id/:trxId/:price/:email', function (req, res
   var account_id = req.params.account_id;
   var amount = req.params.price
   var email = req.params.email
-
   db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 4999, trxId, null, account_id, function (err) {
     if (err) {
       return console.log(err.message);
@@ -95,7 +129,7 @@ app.get('/getTokenYear/:account_id/:trxId/:price/:email', function (req, res) {
   var account_id = req.params.account_id;
   var amount = req.params.price
   var email = req.params.email
-
+  
 
   db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 7999, trxId, null, account_id, function (err) {
     if (err) {
@@ -117,10 +151,21 @@ app.get('/getTokenYear/:account_id/:trxId/:price/:email', function (req, res) {
 app.get('/paymentWidget/:account_id/:amount', function (req, res) {
   var account_id = req.params.account_id;
   var amount = req.params.amount
-
+  let params = { "account_id": account_id, 'amount': amount}
+  client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
+    value=>{
+      for(let sub of value.getResponse().Model){
+        if (!sub){
+          alert('Вы попали не на ту страницу. Вам нужно оформить подписку, так как у вас ее никогда не было! Вернитесь в телеграм бота и выберите нужную ссылку!')
+          res.redirect('https://t.me/RadarMsk_bot')
+        }
+        else{
+          res.render('pay', params)
+        }
+      }
+    }
+  );
   var subs = [];
-
-  res.render('pay', { "account_id": account_id, 'amount': amount })
 });
 
 app.get('/pay/:account_id/:amount/:email', function(req, res){
@@ -176,62 +221,6 @@ app.get('/pay/:account_id/:amount/:email', function(req, res){
     }
     return res.redirect(`/get-evotor-token/${account_id}/${amount}/${email}`)
   });
-
-});
-
-app.get("/cancel/:account_id", function(req, res){
-    account_id = req.params.account_id
-    res.render('cancel', { "account_id": account_id})
-});
-app.get("/cancel_result/:account_id", function(req, res){
-  var account_id = req.params.account_id
-  try{
-    client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
-      value=>{
-        let counter = 0
-        for(let sub of value.getResponse().Model){
-            if (sub.Status == "Active"){  
-              counter+=1
-              client.getClientApi().cancelSubscription({Id: sub.Id})
-            }
-        }
-        if(counter>0){
-          const keyboard = [
-            ['ℹ️ О боте. Руководство '],
-            ['Купить подписку'],
-          ];
-          
-          const replyKeyboardMarkup = {
-            reply_markup: {
-              keyboard: keyboard,
-              resize_keyboard: true,
-              one_time_keyboard: true,
-            },
-          };
-          bot.sendMessage(parseInt(account_id), "Подписка успешно отменена!", replyKeyboardMarkup)
-          return res.redirect('https://t.me/RadarMsk_bot')
-        } else {
-          const keyboard = [
-            ['ℹ️ О боте. Руководство '],
-            ['Купить подписку'],
-          ];
-          
-          const replyKeyboardMarkup = {
-            reply_markup: {
-              keyboard: keyboard,
-              resize_keyboard: true,
-              one_time_keyboard: true,
-            },
-          };
-          bot.sendMessage(parseInt(account_id), "У вас нет активных подписок!", replyKeyboardMarkup)
-          return res.redirect('https://t.me/RadarMsk_bot')
-        }
-
-      }
-    )
-  } catch(error){
-    console.log(error)
-  }
 
 });
 
@@ -335,6 +324,10 @@ app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) =
     .then(response => function(){
       res.redirect('https://t.me/RadarMsk_bot')})
     .catch(error => console.error('Ошибка:', error));
+});
+
+app.get("/thanks", function(req, res){
+  res.render('thanks')
 });
 
 // Запуск сервера

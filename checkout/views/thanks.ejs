@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js"></script>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <title>Повторная активация подписки</title>
+  </head>
+  <body>
+    <div class="container py-5">
+      <div class="row">
+        <div class="col-lg-4 mx-auto">
+
+          <div class="card">
+            <div class="card-body text-center">
+              <h4 class="card-title font-weight-bold">Спасибо за покупку подписки</h4>
+              <p class="card-text">Мы рады, что вы доверились нам и купили подписку на наш сервис. Ожидайте, скоро вам придет чек!</p>
+              
+              <button id="checkout" class="btn btn-primary mt-3">Перейти в телеграм бота</button>
+            </div>
+          </div> 
+
+        </div>
+      </div>
+    </div>
+
+    <script>
+        
+        document.getElementById('checkout').onclick = function () {
+            window.location.href = 'https://t.me/RadarMsk_bot';
+        }
+        
+      </script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  </body>
+</html>
+
