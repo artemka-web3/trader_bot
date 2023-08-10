@@ -75,7 +75,8 @@ async def one_stock(session, data, url, headers, cookies):
         stock_data['marketdata']['data'][0][25]
     )
 
-async def get_stock_data(security, data, headers, cookies):
+async def get_stock_data(security):
+    data = await load_csv_data('shares_v2.csv')
     url_get_sec = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}.json"
     async with aiohttp.ClientSession(trust_env=True) as session:
         return await one_stock(session, data, url_get_sec, headers, cookies)
