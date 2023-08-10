@@ -56,7 +56,7 @@ async def load_csv_data(filename):
 async def get_value_by_ticker(data, ticker):
     for row in data:
         if row is not None:
-            parts = row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')
+            parts = row['Полное название акций,тикет,сокращённое название,ликвидность'].split(',')
             if len(parts) >= 2 and parts[1] == ticker:
                 return parts[2]
 

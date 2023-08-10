@@ -486,9 +486,9 @@ async def process_stocks():
         async for row in aiocsv.AsyncDictReader(reader, delimiter='\n'):
             if row is not None:
                 for stock in securities:
-                    if row['Полное название акций ,тикет,сокращённое название ,ликвидность'] is not None:
-                        if row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[1] == stock[0]:
-                            coef = int(row['Полное название акций ,тикет,сокращённое название ,ликвидность'].split(',')[-1])
+                    if row['Полное название акций,тикет,сокращённое название,ликвидность'] is not None:
+                        if row['Полное название акций,тикет,сокращённое название,ликвидность'].split(',')[1] == stock[0]:
+                            coef = int(row['Полное название акций,тикет,сокращённое название,ликвидность'].split(',')[-1])
                             task = process_stock(stock, volumes_avg_prev, coef)
                             tasks.append(task)
             
