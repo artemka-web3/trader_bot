@@ -129,8 +129,6 @@ async def get_current_stock_volume(security, cur_time):
         else: 
             for candle_data in cur_data['candles']['data']:
                 if cur_time in candle_data[6][0:16]:
-                    print('CURENT TIME: ', cur_time)
-                    print("CUR: ", candle_data)
                     return candle_data
                 else:
                     start_from_for_today += 1
