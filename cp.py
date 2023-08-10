@@ -4,6 +4,7 @@ from aiocloudpayments import AioCpClient
 from datetime import datetime, timedelta
 import pytz
 import asyncio
+from db_import import db
 
 """
 v1 - 
@@ -15,7 +16,6 @@ pk_c8695290fec5bcb40f468cca846d2
 d3119d06f156dad88a2ed516957b065b
 """
 
-db = BotDB('prod.sqlite3')
 client = AioCpClient('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
 
 

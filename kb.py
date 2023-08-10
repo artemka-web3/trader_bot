@@ -12,7 +12,7 @@ keyb_for_subed.add(types.KeyboardButton(text="✅ Подписка "))
 
 def create_cancel_kb(user_id):
     cancel_keyb = types.InlineKeyboardMarkup(row_width=1)
-    cancel_keyb.add(types.InlineKeyboardButton(text="Отменить подписку", callback_data='cancel_sub', url=f"http://45.9.42.131:3000/cancel/{user_id}"))
+    cancel_keyb.add(types.InlineKeyboardButton(text="Отменить подписку", callback_data='cancel_sub', url=f"https://my.cloudpayments.ru/"))
     return cancel_keyb
 
 # buying keyboard
