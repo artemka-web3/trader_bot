@@ -38,7 +38,7 @@ app.get('/semi_year/:account_id', function (req, res) {
           res.redirect('https://t.me/RadarMsk_bot')
         }
         else{
-          res.render('widget_semiyear', { "account_id": account_id })
+          return res.render('widget_semiyear', { "account_id": account_id })
         }
       }
     }
@@ -56,11 +56,13 @@ app.get('/month/:account_id', function (req, res) {
           res.redirect('https://t.me/RadarMsk_bot')
         }
         else{
-          res.render('widget_month', { "account_id": account_id })
+          return res.render('widget_month', { "account_id": account_id })
+
         }
       }
     }
   );
+
 
 });
 
@@ -74,7 +76,7 @@ app.get('/year/:account_id', function (req, res) {
           res.redirect('https://t.me/RadarMsk_bot')
         }
         else{
-          res.render('widget_year', { "account_id": account_id })
+          return res.render('widget_year', { "account_id": account_id })
         }
       }
     }
@@ -160,7 +162,7 @@ app.get('/paymentWidget/:account_id/:amount', function (req, res) {
           res.redirect('https://t.me/RadarMsk_bot')
         }
         else{
-          res.render('pay', params)
+          return res.render('pay', params)
         }
       }
     }
