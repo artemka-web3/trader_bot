@@ -410,7 +410,7 @@ async def get_stat(message: types.Message, state: FSMContext):
 #_____АСИНХРОННЫЕ__ФУНКЦИИ__ДЛЯ__ВЫПОЛНЕНИЯ__ОСНОВНОГО__ФУНКЦИОНАЛА
 async def process_stock(stock, volume_avg_prev, coef):
     while True:
-        await collecting_avg_event.wait()
+        #await collecting_avg_event.wait()
         start_time = datetime.now(offset).replace(hour=9, minute=50, second=0, microsecond=0).time()
         end_time = datetime.now(offset).replace(hour=23, minute=50, second=0, microsecond=0).time()
         if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time and datetime.now(offset).weekday() < 5:
@@ -418,57 +418,18 @@ async def process_stock(stock, volume_avg_prev, coef):
                 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
                 current_minute = ("0" +str(datetime.now(offset).minute - 1) if len(str(datetime.now(offset).minute - 1)) < 2 else str(datetime.now(offset).minute - 1))
-                #current_second = ("0" +str(datetime.now(offset).second) if len(str(datetime.now(offset).second)) < 2 else str(datetime.now(offset).second)
-                users_arr = await db.get_all_users()
                 current_time = str(current_hour) +":"+ str(current_minute)
-                stock_data = await get_stock_data(stock[0]) 
-                sec_id = stock_data[0] # #
-                sec_name = stock_data[1] 
-                lot_size = stock_data[2]
-                day_change = stock_data[3] # %
+                stock_data = await get_stock_data(stock[0])
                 current_stock_data = await get_current_stock_volume(stock[0], current_time)
-                current_price = current_stock_data[1] # рублей
-                volume_rub = current_stock_data[4] # М рублей
-                volume_shares = current_stock_data[5] 
-                lot_amount = round(volume_shares / lot_size, 2) # лотов
-                price_change = await get_price_change(stock[0], current_time) # %
-                price_change_status = 0  #  ноль измнений
-                if price_change > 0:
-                    price_change_status = 1
-                elif price_change < 0:
-                    price_change_status = 2
-                buyers_sellers = await buyers_vs_sellers1(price_change_status)
-                buyers = buyers_sellers[0] # %
-                sellers = buyers_sellers[1] # %
-                data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]
-                dir = '🔵'
-                if data[-3] > 0:
-                    dir = "🟢"
-                elif data[-3] < 0:
-                    dir = "🔴"
-                check_volume = volume_avg_prev[stock[0]]           
-                if check_volume * coef <= data[4] and data[4] > 1000000:
-                    print(f"Акция: {data[0]}\nСредний объем: {round(float(check_volume)/1000000, 2)}M ₽\nЗафиксированный объем: {round(float(data[4])/1000000, 2)}M ₽\n____________________")
-                    if users_arr:
-                        for user in users_arr:
-                            if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
-                                await bot.send_message(
-                                    int(user[0]),
-                                    f"#{data[0]} <b>{data[1]}</b>\n\n{dir}Аномальный объем\n"+
-                                    f'Изменение цены: {data[-3]}%\n'+
-                                    f'Объем: {round(float(data[4])/1000000, 2)}M₽ ({data[-4]} лотов)\n' + 
-                                    (f'<b>Покупка: {data[-2]}%</b> Продажа: {data[-1]}%\n' if data[-2] > data[-1] else f'Покупка: {data[-2]}% <b>Продажа: {data[-1]}%</b>\n') +
-                                    f'Время: {current_date[5:]} {current_time}\n'+
-                                    f'Цена: {data[3]}₽\n'+ 
-                                    f'Изменение за день: {data[2]}%\n\n'+
-                                    "<b>Заметил Радар Биржи</b>\n"
-                                    f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
-                                    disable_notification=False,
-                                    parse_mode=types.ParseMode.HTML,
-                                    disable_web_page_preview=True
-                                )
-                else:
-                    print(f"Акция: {data[0]}\nНе хватило объемов!!!\n____________________")
+                price_change = await get_price_change(current_stock_data[0], current_stock_data[1])
+                sec_id = stock_data[0]
+                print('Акция - ', sec_id)
+                #volume_rub = current_stock_data[4]
+                print('Объем - ', current_stock_data)
+                print('price change - ', price_change)
+                print('_________')
+
+
             except exceptions.RetryAfter as e:
                 time.sleep(e.timeout)
             except Exception as e:
@@ -478,7 +439,7 @@ async def process_stock(stock, volume_avg_prev, coef):
         await asyncio.sleep(60) 
 
 async def process_stocks():
-    await collecting_avg_event.wait() 
+    #await collecting_avg_event.wait() 
     securities = await get_securities()
 
     # check if stock[0] in csv
@@ -532,7 +493,7 @@ async def scheduler():
 
 async def on_startup(_):
     asyncio.create_task(db.connect())
-    asyncio.create_task(collect_volumes_avg())
+    #asyncio.create_task(collect_volumes_avg())
     asyncio.create_task(main())
     asyncio.create_task(scheduler())
 
