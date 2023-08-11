@@ -423,7 +423,6 @@ async def process_stock(stock, volume_avg_prev, coef):
                 stock_data = await get_stock_data(stock[0])
                 current_stock_data = await get_current_stock_volume(stock[0], current_time)
                 price_change = await get_price_change(current_stock_data[0], current_stock_data[1])
-                buyers_sellers = await buyers_vs_sellers1(price_change_status)
                 sec_id = stock_data[0]
                 sec_name = stock_data[1] 
                 lot_size = stock_data[2]
@@ -437,6 +436,8 @@ async def process_stock(stock, volume_avg_prev, coef):
                     price_change_status = 1
                 elif price_change < 0:
                     price_change_status = 2
+                buyers_sellers = await buyers_vs_sellers1(price_change_status)
+
                 buyers = buyers_sellers[0] # %
                 sellers = buyers_sellers[1] # %
                 data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]
