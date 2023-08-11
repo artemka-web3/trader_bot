@@ -537,7 +537,7 @@ async def scheduler():
 
 async def on_startup(_):
     asyncio.create_task(db.connect())
-    #asyncio.create_task(collect_volumes_avg())
+    asyncio.create_task(collect_volumes_avg())
     asyncio.create_task(main())
     asyncio.create_task(scheduler())
 
