@@ -410,12 +410,14 @@ async def get_stat(message: types.Message, state: FSMContext):
 #_____АСИНХРОННЫЕ__ФУНКЦИИ__ДЛЯ__ВЫПОЛНЕНИЯ__ОСНОВНОГО__ФУНКЦИОНАЛА
 async def process_stock(stock, volume_avg_prev, coef):
     while True:
-        #await collecting_avg_event.wait()
+        await collecting_avg_event.wait()
         start_time = datetime.now(offset).replace(hour=9, minute=50, second=0, microsecond=0).time()
         end_time = datetime.now(offset).replace(hour=23, minute=50, second=0, microsecond=0).time()
         if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time and datetime.now(offset).weekday() < 5:
             try:
+                await db.connect()
                 users_arr = await db.get_all_users()
+                await db.close()
                 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
                 current_minute = ("0" +str(datetime.now(offset).minute - 1) if len(str(datetime.now(offset).minute - 1)) < 2 else str(datetime.now(offset).minute - 1))
@@ -448,7 +450,6 @@ async def process_stock(stock, volume_avg_prev, coef):
                     dir = "🔴"
                 check_volume = volume_avg_prev[stock[0]]           
                 if check_volume * coef <= data[4] and data[4] > 1000000:
-                    print(f"Акция: {data[0]}\nСредний объем: {round(float(check_volume)/1000000, 2)}M ₽\nЗафиксированный объем: {round(float(data[4])/1000000, 2)}M ₽\n____________________")
                     if users_arr:
                         for user in users_arr:
                             if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
@@ -467,12 +468,19 @@ async def process_stock(stock, volume_avg_prev, coef):
                                     parse_mode=types.ParseMode.HTML,
                                     disable_web_page_preview=True
                                 )
-                print('Акция - ', sec_id)
-                #volume_rub = current_stock_data[4]
-                print('Объем - ', current_stock_data)
-                print('price change - ', price_change)
-                print('_________')
-
+                                print('ПОВЫШЕННЫЙ ОБЪЕМ', sec_id)
+                                print('Акция - ', sec_id)
+                                #volume_rub = current_stock_data[4]
+                                print('Объем - ', current_stock_data)
+                                print('price change - ', price_change)
+                                print('_________')
+                else:
+                    print('ПРОПУУУСК', sec_id)
+                    print('Акция - ', sec_id)
+                    #volume_rub = current_stock_data[4]
+                    print('Объем - ', current_stock_data)
+                    print('price change - ', price_change)
+                    print('_________')
 
             except exceptions.RetryAfter as e:
                 time.sleep(e.timeout)
@@ -483,7 +491,7 @@ async def process_stock(stock, volume_avg_prev, coef):
         await asyncio.sleep(60) 
 
 async def process_stocks():
-    #await collecting_avg_event.wait() 
+    await collecting_avg_event.wait() 
     securities = await get_securities()
 
     # check if stock[0] in csv
@@ -536,7 +544,6 @@ async def scheduler():
 
 
 async def on_startup(_):
-    asyncio.create_task(db.connect())
     asyncio.create_task(collect_volumes_avg())
     asyncio.create_task(main())
     asyncio.create_task(scheduler())
