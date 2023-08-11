@@ -415,6 +415,7 @@ async def process_stock(stock, volume_avg_prev, coef):
         end_time = datetime.now(offset).replace(hour=23, minute=50, second=0, microsecond=0).time()
         if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time and datetime.now(offset).weekday() < 5:
             try:
+                users_arr = await db.get_all_users()
                 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
                 current_minute = ("0" +str(datetime.now(offset).minute - 1) if len(str(datetime.now(offset).minute - 1)) < 2 else str(datetime.now(offset).minute - 1))
@@ -422,7 +423,49 @@ async def process_stock(stock, volume_avg_prev, coef):
                 stock_data = await get_stock_data(stock[0])
                 current_stock_data = await get_current_stock_volume(stock[0], current_time)
                 price_change = await get_price_change(current_stock_data[0], current_stock_data[1])
+                buyers_sellers = await buyers_vs_sellers1(price_change_status)
                 sec_id = stock_data[0]
+                sec_name = stock_data[1] 
+                lot_size = stock_data[2]
+                day_change = stock_data[3]
+                current_price = current_stock_data[1]
+                volume_rub = current_stock_data[4]
+                volume_shares = current_stock_data[5] 
+                lot_amount = round(volume_shares / lot_size, 2)
+                price_change_status = 0
+                if price_change > 0:
+                    price_change_status = 1
+                elif price_change < 0:
+                    price_change_status = 2
+                buyers = buyers_sellers[0] # %
+                sellers = buyers_sellers[1] # %
+                data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]
+                dir = '🔵'
+                if data[-3] > 0:
+                    dir = "🟢"
+                elif data[-3] < 0:
+                    dir = "🔴"
+                check_volume = volume_avg_prev[stock[0]]           
+                if check_volume * coef <= data[4] and data[4] > 1000000:
+                    print(f"Акция: {data[0]}\nСредний объем: {round(float(check_volume)/1000000, 2)}M ₽\nЗафиксированный объем: {round(float(data[4])/1000000, 2)}M ₽\n____________________")
+                    if users_arr:
+                        for user in users_arr:
+                            if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
+                                await bot.send_message(
+                                    int(user[0]),
+                                    f"#{data[0]} <b>{data[1]}</b>\n\n{dir}Аномальный объем\n"+
+                                    f'Изменение цены: {data[-3]}%\n'+
+                                    f'Объем: {round(float(data[4])/1000000, 2)}M₽ ({data[-4]} лотов)\n' + 
+                                    (f'<b>Покупка: {data[-2]}%</b> Продажа: {data[-1]}%\n' if data[-2] > data[-1] else f'Покупка: {data[-2]}% <b>Продажа: {data[-1]}%</b>\n') +
+                                    f'Время: {current_date[5:]} {current_time}\n'+
+                                    f'Цена: {data[3]}₽\n'+ 
+                                    f'Изменение за день: {data[2]}%\n\n'+
+                                    "<b>Заметил Радар Биржи</b>\n"
+                                    f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
+                                    disable_notification=False,
+                                    parse_mode=types.ParseMode.HTML,
+                                    disable_web_page_preview=True
+                                )
                 print('Акция - ', sec_id)
                 #volume_rub = current_stock_data[4]
                 print('Объем - ', current_stock_data)
