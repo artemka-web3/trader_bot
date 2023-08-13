@@ -103,7 +103,7 @@ async def get_marketdata():
 
 # TRACK CURRENT VOLUME    
 async def get_current_stock_volume(security, cur_time):
-    current_date = datetime.now(offset) # - timedelta(hours=10)
+    current_date = datetime.now(offset)
     #cur_time = ("0" +str(current_date.hour) if len(str(current_date.hour)) < 2 else str(current_date.hour)) + ":" + ("0" +str(current_date.minute) if len(str(current_date.minute)) < 2 else str(current_date.minute))
     today = current_date.strftime('%Y-%m-%d')
     start_from_for_today = 0
@@ -113,14 +113,13 @@ async def get_current_stock_volume(security, cur_time):
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, cookies=cookies) as response:
                 cur_data = await response.json()
-        if len(cur_data['candles']['data']) == 0:
-            return -200
-        else: 
-            for candle_data in cur_data['candles']['data']:
-                if cur_time in candle_data[6][0:16]:
-                    return candle_data
-                else:
-                    start_from_for_today += 1
+                await asyncio.sleep(0.5)
+                if len(cur_data['candles']['data']) != 0:
+                    for candle_data in cur_data['candles']['data']:
+                        if cur_time in candle_data[6][0:16]:
+                            return candle_data
+                        else:
+                            start_from_for_today += 1
 
 # PRICE CHANGE
 async def get_price_change(open_p, close_p):
@@ -136,30 +135,30 @@ async def get_prev_avg_months(volumes_dict, months_to_scroll):
         volumes_dict[sec[0]] = 0
         minutes = 0
         prev_month = (datetime.now(offset)- timedelta(days=31*months_to_scroll)) # получается первое месяца  число в любом случае
-        prev_month_start = (prev_month - timedelta(days=prev_month.day-1)).strftime("%Y-%m-%d")
+        prev_month_start = (prev_month - timedelta(days=prev_month.day)).strftime("%Y-%m-%d")
         current_date = datetime.now(offset).strftime('%Y-%m-%d')
         # месяц текущий будет последни, он нам не нужен: берем 1,он второй; берем 2, он 3-ий; берем 3 - он 4-ый
         url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_month_start}&till={current_date}&interval=31"
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, cookies=cookies) as response:
                 data = await response.json()
-        print(sec[0])
-        if len(data['candles']['data']) != 0:
-            for i in data['candles']['data'][0:months_to_scroll]:
-                if '30' in i[-1][8:10]:
-                    minutes = 43200
-                    volumes_dict[sec[0]] += round(i[4]/minutes, 3)
-                elif '31' in i[-1][8:10]:
-                    minutes = 44640
-                    volumes_dict[sec[0]] += round(i[4]/minutes, 3)
-                elif '28' in i[-1][8:10]:
-                    minutes = 40320
-                    volumes_dict[sec[0]] += round(i[4]/minutes, 3)
-                elif '29' in i[-1][8:10]:
-                    minutes = 41760
-                    volumes_dict[sec[0]] += round(i[4]/minutes, 3)
-        print(volumes_dict[sec[0]])
-        await asyncio.sleep(.1)
+                print(sec[0])
+                if len(data['candles']['data']) != 0:
+                    for i in data['candles']['data'][0:months_to_scroll]:
+                        if '30' in i[-1][8:10]:
+                            minutes = 43200
+                            volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+                        elif '31' in i[-1][8:10]:
+                            minutes = 44640
+                            volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+                        elif '28' in i[-1][8:10]:
+                            minutes = 40320
+                            volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+                        elif '29' in i[-1][8:10]:
+                            minutes = 41760
+                            volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+                print(volumes_dict[sec[0]])
+                await asyncio.sleep(.1)
     return volumes_dict
 
 
@@ -178,23 +177,23 @@ async def get_prev_avg_months_for_table(volumes_dict, months_to_scroll):
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, cookies=cookies) as response:
                 data = await response.json()
-        print(sec[0])
-        if len(data['candles']['data']) != 0:
-            for i in data['candles']['data'][0:months_to_scroll]:
-                if '30' in i[-1][8:10]:
-                    minutes = 43200
-                    volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
-                elif '31' in i[-1][8:10]:
-                    minutes = 44640
-                    volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
-                elif '28' in i[-1][8:10]:
-                    minutes = 40320
-                    volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
-                elif '29' in i[-1][8:10]:
-                    minutes = 41760
-                    volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
-        print(volumes_dict[sec[0]])
-        await asyncio.sleep(.1)
+                print(sec[0])
+                if len(data['candles']['data']) != 0:
+                    for i in data['candles']['data'][0:months_to_scroll]:
+                        if '30' in i[-1][8:10]:
+                            minutes = 43200
+                            volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
+                        elif '31' in i[-1][8:10]:
+                            minutes = 44640
+                            volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
+                        elif '28' in i[-1][8:10]:
+                            minutes = 40320
+                            volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
+                        elif '29' in i[-1][8:10]:
+                            minutes = 41760
+                            volumes_dict[sec[0]] = {'Средние за минуту': round(i[4]/minutes, 3), "За 3 месяца": i[4]}
+                print(volumes_dict[sec[0]])
+                await asyncio.sleep(.1)
     return volumes_dict
     
 async def buyers_vs_sellers1(p_ch_status):

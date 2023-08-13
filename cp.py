@@ -184,8 +184,8 @@ async def count_money_attracted_by_one(user_id):
         #     money_paid = sub.amount
         #     db.update_money_paid(user_id, money_paid)
         #     break
-    await client.disconnect()
     await db.close()
+    await client.disconnect()
     return money_paid
 
 async def count_money_attracted_by_ref(ref_id):
@@ -204,8 +204,8 @@ async def count_money_attracted_by_ref(ref_id):
             #     money_paid += sub.amount
             #     db.update_money_paid(user[0], sub.amount)
             #     break
-    await client.disconnect()
     await db.close()
+    await client.disconnect()
     return money_paid
 async def cancel_sub(user_id):
     client = AioCpClient('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
@@ -237,8 +237,8 @@ async def update_sub_for_all(days):
             for sub in await client.find_subscriptions(str(user[0])):
                 if sub.status == 'Active' and not do_have_free_sub(user[0]):
                     await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
-    await client.disconnect()
     await db.close()
+    await client.disconnect()
 
 # async def main():
 #     client_demo = AioCpClient('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')

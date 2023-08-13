@@ -439,13 +439,12 @@ async def get_stat(message: types.Message, state: FSMContext):
 async def process_stock(stock, volume_avg_prev, coef):
     while True:
         await collecting_avg_event.wait()
+        await db.connect()
+        users_arr = await db.get_all_users()
         start_time = datetime.now(offset).replace(hour=9, minute=50, second=0, microsecond=0).time()
         end_time = datetime.now(offset).replace(hour=23, minute=50, second=0, microsecond=0).time()
-        if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time and datetime.now(offset).weekday() < 5:
+        if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time and datetime.now(offset).weekday() < 6:
             try:
-                await db.connect()
-                users_arr = await db.get_all_users()
-                await db.close()
                 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
                 current_minute = ("0" +str(datetime.now(offset).minute - 1) if len(str(datetime.now(offset).minute - 1)) < 2 else str(datetime.now(offset).minute - 1))
@@ -467,7 +466,6 @@ async def process_stock(stock, volume_avg_prev, coef):
                 elif price_change < 0:
                     price_change_status = 2
                 buyers_sellers = await buyers_vs_sellers1(price_change_status)
-
                 buyers = buyers_sellers[0] # %
                 sellers = buyers_sellers[1] # %
                 data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]
@@ -500,20 +498,26 @@ async def process_stock(stock, volume_avg_prev, coef):
                                 print('Акция - ', sec_id)
                                 #volume_rub = current_stock_data[4]
                                 print('Объем - ', current_stock_data)
+                                print('Средний объем - ', check_volume)
+                                print('Коэф - ', coef)
+                                print("Уверенность?", bool(check_volume * 4 < current_stock_data[4] and current_stock_data[4]>1000000))
                                 print('price change - ', price_change)
                                 print('_________')
                 else:
                     print('ПРОПУУУСК', sec_id)
                     print('Акция - ', sec_id)
                     #volume_rub = current_stock_data[4]
-                    print('Объем - ', current_stock_data)
+                    print('Объем - ', current_stock_data[4])
+                    print('Средний объем - ', check_volume)
+                    print('Коэф - ', coef)
+                    print("Уверенность?", bool(check_volume * 4 < current_stock_data[4] and current_stock_data[4]>1000000))
                     print('price change - ', price_change)
                     print('_________')
 
             except exceptions.RetryAfter as e:
                 time.sleep(e.timeout)
             except Exception as e:
-                print(e)
+                print(f"{stock[0]}", e)
         else:
             print(f'Торги не идут {stock[0]}')
         await asyncio.sleep(60) 
@@ -536,7 +540,7 @@ async def process_stocks():
         #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
     for task in tasks:
         asyncio.create_task(task)
-        await asyncio.sleep(1)
+        await asyncio.sleep(5)
         
          
 
@@ -552,7 +556,7 @@ async def delivery():
 async def collect_volumes_avg():
     global volumes_avg_prev
     collecting_avg_event.clear() 
-    if datetime.now(offset).weekday() < 5:
+    if datetime.now(offset).weekday() < 6:
         volumes_avg_prev = await get_prev_avg_months(volumes_avg_prev, 3)
         collecting_avg_event.set() 
         return volumes_avg_prev

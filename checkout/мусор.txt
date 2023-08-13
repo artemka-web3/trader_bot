@@ -93,14 +93,11 @@
 
 
 
-
-
-
-
-
-
-
-
+pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh rus>
+Failed password for root from 218.92.0.22 port 11032 ssh2
+Received disconnect from 218.92.0.22 port 11032:11:  [preauth]
+Disconnected from authenticating user root 218.92.0.22 port 11032 [preauth]
+PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost>
 
 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))

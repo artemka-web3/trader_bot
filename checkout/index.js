@@ -98,7 +98,7 @@ app.get('/getTokenMonth/:account_id/:trxId/:price/:email', function (req, res) {
     } catch (e){
       console.log(e)
     }
-    return res.redirect(`/get-evotor-token/${account_id}/${amount}/${email}`)
+    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
 
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
@@ -120,7 +120,8 @@ app.get('/getTokenSemiYear/:account_id/:trxId/:price/:email', function (req, res
     } catch (e){
       console.log(e)
     }
-    return res.redirect(`/get-evotor-token/${account_id}/${amount}/${email}`)
+    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
+
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
@@ -143,7 +144,8 @@ app.get('/getTokenYear/:account_id/:trxId/:price/:email', function (req, res) {
     } catch (e){
       console.log(e)
     }
-    return res.redirect(`/get-evotor-token/${account_id}/${amount}/${email}`)
+    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
+
 
   });
   // Затем можно использовать это значение для отображения информации о пользователе.
@@ -221,7 +223,7 @@ app.get('/pay/:account_id/:amount/:email', function(req, res){
     } catch (e){
       console.log(e)
     }
-    return res.redirect(`/get-evotor-token/${account_id}/${amount}/${email}`)
+    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
   });
 
 });
@@ -324,7 +326,7 @@ app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) =
   };  
   await axios.post(urlWithParams, receiptData, {headers})
     .then(response => function(){
-      res.redirect('https://t.me/RadarMsk_bot')})
+      res.redirect('/thanks')})
     .catch(error => console.error('Ошибка:', error));
 });
 
