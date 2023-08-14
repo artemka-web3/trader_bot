@@ -8,7 +8,7 @@ from config import *
 from pytz import timezone
 from kb import *
 from fsm import *
-from cp import *
+from aiocp import *
 from moex_async import *
 from db_import import db
 
@@ -474,35 +474,40 @@ async def process_stock(stock, volume_avg_prev, coef):
                     dir = "🟢"
                 elif data[-3] < 0:
                     dir = "🔴"
-                check_volume = volume_avg_prev[stock[0]]           
-                if check_volume * coef <= data[4] and data[4] > 1000000:
+                check_volume = volume_avg_prev[stock[0]]
+                          
+                if check_volume * 0 <= data[4] and current_stock_data[4] > 1000000:
                     if users_arr:
                         for user in users_arr:
                             if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
-                                await bot.send_message(
-                                    int(user[0]),
-                                    f"#{data[0]} <b>{data[1]}</b>\n\n{dir}Аномальный объем\n"+
-                                    f'Изменение цены: {data[-3]}%\n'+
-                                    f'Объем: {round(float(data[4])/1000000, 2)}M₽ ({data[-4]} лотов)\n' + 
-                                    (f'<b>Покупка: {data[-2]}%</b> Продажа: {data[-1]}%\n' if data[-2] > data[-1] else f'Покупка: {data[-2]}% <b>Продажа: {data[-1]}%</b>\n') +
-                                    f'Время: {current_date[5:]} {current_time}\n'+
-                                    f'Цена: {data[3]}₽\n'+ 
-                                    f'Изменение за день: {data[2]}%\n\n'+
-                                    "<b>Заметил Радар Биржи</b>\n"
-                                    f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
-                                    disable_notification=False,
-                                    parse_mode=types.ParseMode.HTML,
-                                    disable_web_page_preview=True
-                                )
-                                print('ПОВЫШЕННЫЙ ОБЪЕМ', sec_id)
-                                print('Акция - ', sec_id)
-                                #volume_rub = current_stock_data[4]
-                                print('Объем - ', current_stock_data)
-                                print('Средний объем - ', check_volume)
-                                print('Коэф - ', coef)
-                                print("Уверенность?", bool(check_volume * 4 < current_stock_data[4] and current_stock_data[4]>1000000))
-                                print('price change - ', price_change)
-                                print('_________')
+                                try:
+                                    await bot.send_message(
+                                       int(user[0]),
+                                       f"#{data[0]} <b>{data[1]}</b>\n\n{dir}Аномальный объем\n"+
+                                       f'Изменение цены: {data[-3]}%\n'+
+                                       f'Объем: {round(float(data[4])/1000000, 2)}M₽ ({data[-4]} лотов)\n' + 
+                                       (f'<b>Покупка: {data[-2]}%</b> Продажа: {data[-1]}%\n' if data[-2] > data[-1] else f'Покупка: {data[-2]}% <b>Продажа: {data[-1]}%</b>\n') +
+                                       f'Время: {current_date[5:]} {current_time}\n'+
+                                       f'Цена: {data[3]}₽\n'+ 
+                                       f'Изменение за день: {data[2]}%\n\n'+
+                                       "<b>Заметил Радар Биржи</b>\n"
+                                       f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
+                                       disable_notification=False,
+                                       parse_mode=types.ParseMode.HTML,
+                                       disable_web_page_preview=True
+                                    )
+                                    print('ПОВЫШЕННЫЙ ОБЪЕМ', sec_id)
+                                    print('Акция - ', sec_id)
+                                    #volume_rub = current_stock_data[4]
+                                    print('Объем - ', current_stock_data)
+                                    print('Средний объем - ', check_volume)
+                                    print('Коэф - ', coef)
+                                    print("Уверенность?", bool(check_volume * coef < current_stock_data[4] and current_stock_data[4]>1000000))
+                                    print('price change - ', price_change)
+                                    print('_________')
+                                except:
+                                    continue
+
                 else:
                     print('ПРОПУУУСК', sec_id)
                     print('Акция - ', sec_id)
@@ -510,7 +515,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                     print('Объем - ', current_stock_data[4])
                     print('Средний объем - ', check_volume)
                     print('Коэф - ', coef)
-                    print("Уверенность?", bool(check_volume * 4 < current_stock_data[4] and current_stock_data[4]>1000000))
+                    print("Уверенность?", bool(check_volume * coef < current_stock_data[4] and current_stock_data[4]>1000000))
                     print('price change - ', price_change)
                     print('_________')
 
@@ -583,4 +588,11 @@ async def on_startup(_):
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, on_startup=on_startup)
+    executor.start_polling(dp, on_startup=on_startup, skip_updates=True)
+
+
+
+
+# ERRORS
+# :Unclosed client session
+# Forbidden: bot was blocked by the user
