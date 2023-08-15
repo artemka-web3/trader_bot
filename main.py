@@ -8,7 +8,7 @@ from config import *
 from pytz import timezone
 from kb import *
 from fsm import *
-from aiocp import *
+from cp import *
 from moex_async import *
 from db_import import db
 
