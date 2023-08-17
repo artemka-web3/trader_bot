@@ -436,7 +436,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                     dir = "🔴"
                 check_volume = volume_avg_prev[stock[0]]
                           
-                if check_volume * 0 <= data[4] and current_stock_data[4] > 1000000:
+                if check_volume * coef <= data[4] and current_stock_data[4] > 1000000:
                     if users_arr:
                         for user in users_arr:
                             if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
