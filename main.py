@@ -71,18 +71,23 @@ async def get_user_agreement(message: types.Message):
 #___________Referral__&&__Subscription__Things___________
 @dp.message_handler(lambda message: message.text.lower() == 'купить подписку' or message.text.lower() == '/subscribe')
 async def buy_sub_first(message: types.Message):
-    if await is_in_pay_sys(message.from_user.id):
-        if await check_if_subed(message.from_user.id) and not await do_have_free_sub(message.from_user.id):
-            await message.answer("Вы уже подписаны", reply_markup=keyb_for_subed)
-        elif not await check_if_subed(message.from_user.id) and await do_have_free_sub(message.from_user.id):
-            await message.answer("У вас есть бесплатная подписка, при покупке платной подписки она отменится. Если вы готовы продолжить,нажми на кнопку под сообщением", reply_markup=create_not_first_time_buying_kb(message.from_user.id))
+    user_exists = await if_user_exists(message.from_user.id)
+    if user_exists:
+        if await is_in_pay_sys(message.from_user.id):
+            if await check_if_subed(message.from_user.id) and not await do_have_free_sub(message.from_user.id):
+                await message.answer("Вы уже подписаны", reply_markup=keyb_for_subed)
+            elif not await check_if_subed(message.from_user.id) and await do_have_free_sub(message.from_user.id):
+                await message.answer("У вас есть бесплатная подписка, при покупке платной подписки она отменится. Если вы готовы продолжить,нажми на кнопку под сообщением", reply_markup=create_not_first_time_buying_kb(message.from_user.id))
+            else:
+                await message.answer("Купите платную подписку нажав на одну из кнопок", reply_markup=create_not_first_time_buying_kb(message.from_user.id))
         else:
-            await message.answer("Купите платную подписку нажав на одну из кнопок", reply_markup=create_not_first_time_buying_kb(message.from_user.id))
+            if await do_have_free_sub(message.from_user.id):
+                await message.answer('У вас есть бесплатная подписка. Если купите платную подписку, то она отменится. Если вы готовы так сделать, то нажмите на кнопку под сообщением', reply_markup=create_buying_link(message.from_user.id))
+            else:
+                await message.answer("Купите платную подписку нажав на одну из кнопок", reply_markup=create_buying_link(message.from_user.id))
     else:
-        if await do_have_free_sub(message.from_user.id):
-            await message.answer('У вас есть бесплатная подписка. Если купите платную подписку, то она отменится. Если вы готовы так сделать, то нажмите на кнопку под сообщением', reply_markup=create_buying_link(message.from_user.id))
-        else:
-            await message.answer("Купите платную подписку нажав на одну из кнопок", reply_markup=create_buying_link(message.from_user.id))
+        await add_user(user_id=message.from_user.id)
+        await message.answer('Попробуйте еще раз. Вызовите /subscribe или напишите "Купить Подписку"')
 
 @dp.message_handler(commands=['ref'])
 async def get_yo_ref_data(message: types.Message):
@@ -158,23 +163,29 @@ async def give_free_sub(message: types.Message, state = FSMContext):
         await message.answer('Вы не админ!')
 @dp.message_handler(state=GiveFreeSub.CHOOSE_USER)
 async def give_free_sub_step_choose_user(message: types.Message, state: FSMContext):
-    if message.text.isdigit():
-        if await check_if_subed(int(message.text)) and await is_in_pay_sys(int(message.text)):
-            await state.finish()
-            await message.answer("Этот пользователь имеет подписку оформленную через cloud payments")
-        elif not await check_if_subed(int(message.text)) and await is_in_pay_sys(int(message.text)):
-            await state.update_data(user_id = message.text)
-            await message.answer("Теперь надо ввести число дней на которое будет оформлена бесплатная подписка")
-            await state.set_state(GiveFreeSub.SET_TIME_FOR_SUB)
-        else:
-            await state.update_data(user_id = message.text)
-            await message.answer("Теперь надо ввести число дней на которое будет оформлена бесплатная подписка")
-            await state.set_state(GiveFreeSub.SET_TIME_FOR_SUB)
+    user_exists = await if_user_exists(int(message.text))
+    if user_exists:
+        if message.text.isdigit():
+            if await check_if_subed(int(message.text)) and await is_in_pay_sys(int(message.text)):
+                await state.finish()
+                await message.answer("Этот пользователь имеет подписку оформленную через cloud payments")
+            elif not await check_if_subed(int(message.text)) and await is_in_pay_sys(int(message.text)):
+                await state.update_data(user_id = message.text)
+                await message.answer("Теперь надо ввести число дней на которое будет оформлена бесплатная подписка")
+                await state.set_state(GiveFreeSub.SET_TIME_FOR_SUB)
+            else:
+                await state.update_data(user_id = message.text)
+                await message.answer("Теперь надо ввести число дней на которое будет оформлена бесплатная подписка")
+                await state.set_state(GiveFreeSub.SET_TIME_FOR_SUB)
 
+        else:
+            await state.finish()
+            await message.answer("Вы прислали не число. Начните заново вызвав /free_sub")
     else:
-        await state.finish()
-        await message.answer("Вы прислали не число. Начните заново вызвав /free_sub")
-    await ()
+        await state.reset_state()
+        await add_user(user_id=int(message.text))
+        await message.answer("Пользователь с таким id не был добавлен в базу данных, но я это исправил. Начните заново вызвав /free_sub")
+        
 
 @dp.message_handler(state=GiveFreeSub.SET_TIME_FOR_SUB)
 async def give_free_sub_step_choose_time(message: types.Message, state: FSMContext):
@@ -229,25 +240,33 @@ async def extend_free_sub_all(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state= ExtendFreeSub.CHOOSE_ID)
 async def extend_free_sub_id(message: types.Message, state: FSMContext):
-    if message.text.isdigit():
-        if await is_in_pay_sys(message.text) and not await check_if_subed(int(message.text)):
-            if await do_have_free_sub(int(message.text)):
+    user_exists = await if_user_exists(int(message.text))
+    if user_exists:
+        if message.text.isdigit():
+            if await is_in_pay_sys(message.text) and not await check_if_subed(int(message.text)):
+                if await do_have_free_sub(int(message.text)):
+                    await state.update_data(user_id = message.text)
+                    await message.answer('Теперь надо ввести число дней на которое вы хотите продлить бесплатную подписку пользователю')
+                    await state.set_state(ExtendFreeSub.SET_TIME)
+                else:
+                    await state.finish()
+                    await message.answer("У человека нет бесплатной подписки")
+            elif not await is_in_pay_sys(int(message.text)) and await do_have_free_sub(int(message.text)):
                 await state.update_data(user_id = message.text)
                 await message.answer('Теперь надо ввести число дней на которое вы хотите продлить бесплатную подписку пользователю')
                 await state.set_state(ExtendFreeSub.SET_TIME)
             else:
                 await state.finish()
-                await message.answer("У человека нет бесплатной подписки")
-        elif not await is_in_pay_sys(int(message.text)) and await do_have_free_sub(int(message.text)):
-            await state.update_data(user_id = message.text)
-            await message.answer('Теперь надо ввести число дней на которое вы хотите продлить бесплатную подписку пользователю')
-            await state.set_state(ExtendFreeSub.SET_TIME)
+                await message.answer("Возникла ошибка тк у человека есть платная подписка")
         else:
-            await state.finish()
-            await message.answer("Возникла ошибка тк у человека есть платная подписка")
+            await state.reset_state()
+            await message.answer('Вы должны были ввести число')
     else:
         await state.reset_state()
-        await message.answer('Вы должны были ввести число')
+        await add_user(user_id=int(message.text))
+        await message.answer('Этого человека нет в бд. \nНачните заново с другим пользователем либо дайте подписку пользователю с которым вы работали сейчас вызвав команду /free_sub.')
+        
+
 
 @dp.message_handler(state= ExtendFreeSub.SET_TIME)
 async def extend_free_sub_choose_date_for_one(message: types.Message, state: FSMContext):
@@ -307,25 +326,33 @@ async def extend_sub_for_all(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=ExtendSub.CHOOSE_ID)
 async def extend_sub_id(message: types.Message, state: FSMContext):
-    if message.text.isdigit():
-        if await is_in_pay_sys(int(message.text)):
-            if await check_if_subed(int(message.text)):
-                if await do_have_free_sub(int(message.text)) == False:
-                    await state.update_data(user_id = message.text)
-                    await message.answer('Теперь надо ввести число дней на которое вы хотите продлить платную подписку пользователю')
-                    await state.set_state(ExtendSub.SET_EXTEND_TIME_O)
-                else:
-                    await state.reset_state()
-                    await message.answer("У этого пользователя есть бесплатная подписка, вы не можете продлить ему платную без его предварительного согласия, он должен купить ее сам. \n  Начните заново вызвав команду /extend_sub")
-            else: 
-                await state.reset_state()    
-                await message.answer("Этот пользователь не имеет платной подписки.  Начните заново вызвав команду /extend_sub") 
+    user_exists = await if_user_exists(int(message.text))
+    if user_exists:
+        if message.text.isdigit():
+            if await is_in_pay_sys(int(message.text)):
+                if await check_if_subed(int(message.text)):
+                    if await do_have_free_sub(int(message.text)) == False:
+                        await state.update_data(user_id = message.text)
+                        await message.answer('Теперь надо ввести число дней на которое вы хотите продлить платную подписку пользователю')
+                        await state.set_state(ExtendSub.SET_EXTEND_TIME_O)
+                    else:
+                        await state.reset_state()
+                        await message.answer("У этого пользователя есть бесплатная подписка, вы не можете продлить ему платную без его предварительного согласия, он должен купить ее сам. \n  Начните заново вызвав команду /extend_sub")
+                else: 
+                    await state.reset_state()    
+                    await message.answer("Этот пользователь не имеет платной подписки.  Начните заново вызвав команду /extend_sub") 
+            else:
+                await state.reset_state()
+                await message.answer("Этот пользователь ни разу не оплачивал подписку.  Начните заново вызвав команду /extend_sub")
         else:
             await state.reset_state()
-            await message.answer("Этот пользователь ни разу не оплачивал подписку.  Начните заново вызвав команду /extend_sub")
+            await message.answer("Вы сделали неправильный ввод. Начните заново вызвав команду /extend_sub")
     else:
         await state.reset_state()
-        await message.answer("Вы сделали неправильный ввод. Начните заново вызвав команду /extend_sub")
+        await add_user(user_id=int(message.text))
+        await message.answer('Этого человека нет в бд. \nНачните заново с другим пользователем вызвав /extend_sub')
+        
+
 
 @dp.message_handler(state=ExtendSub.SET_EXTEND_TIME_O)
 async def extend_sub_date(message: types.Message, state: FSMContext):
@@ -355,28 +382,36 @@ async def make_partner(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=MakePartner.CHOOSE_ID)
 async def make_partner_id(message: types.Message, state: FSMContext):
-    if message.text.isdigit():
-        is_partner = await is_partner(int(message.text))
-        if is_partner:
-            await state.finish()
-            await message.answer("Этот человек уже партнер")
-            return
-        if await check_if_subed(int(message.text)) or await do_have_free_sub(int(message.text)):
-            try:
+    user_exists = await if_user_exists(int(message.text))
+    if user_exists:
+        if message.text.isdigit():
+            is_partner = await is_partner(int(message.text))
+            if is_partner:
                 await state.finish()
-                await bot.send_message(message.text, 'Вам просвоен статус партнера')
-                await message.answer("Вы присвоили человеку статус партнера и он об этом уведомлен")
-                await set_partner(int(message.text))
+                await message.answer("Этот человек уже партнер")
+                return
+            if await check_if_subed(int(message.text)) or await do_have_free_sub(int(message.text)):
+                try:
+                    await state.finish()
+                    await bot.send_message(message.text, 'Вам просвоен статус партнера')
+                    await message.answer("Вы присвоили человеку статус партнера и он об этом уведомлен")
+                    await set_partner(int(message.text))
 
-            except:
-                await state.finish()
-                await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
+                except:
+                    await state.finish()
+                    await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
+            else:
+                await state.reset_state()
+                await message.answer("Человек которому вы хотите присвоить статус партнерта не подписан на бота!")
         else:
             await state.reset_state()
-            await message.answer("Человек которому вы хотите присвоить статус партнерта не подписан на бота!")
+            await message.answer('Повторите все заново вызвав команду /make_partner. Вы ввели не число!')
     else:
         await state.reset_state()
-        await message.answer('Повторите все заново вызвав команду /make_partner. Вы ввели не число!')
+        await add_user(user_id=int(message.text))
+        await message.answer('Этого человека нет в бд. Я добавил его в базу данных \nТеперь начните заново вызвав /make_partner')
+
+
 
 @dp.message_handler(commands=['check_referal'])
 async def check_ref(message: types.Message, state: FSMContext):

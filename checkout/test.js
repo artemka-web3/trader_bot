@@ -14,7 +14,7 @@ try {
 
 // Имитация параметров запроса
 const trxId = 'transaction123';
-const account_id = 111111111;
+const account_id = 2222222;
 const amount = 999;
 
 // Поиск пользователя по account_id
