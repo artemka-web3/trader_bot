@@ -34,20 +34,15 @@ app.get('/semi_year/:account_id', function (req, res) {
   var account_id = req.params.account_id;
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
-      for(let sub of value.getResponse().Model){
-        if (sub){
-          alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
-          return res.redirect('https://t.me/RadarMsk_bot')
-        }
-        else{
-          return res.render('widget_month', { "account_id": account_id })
-
-        }
-
+      if (value.getResponse().Model != []){ 
+        alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
+        return res.redirect('https://t.me/RadarMsk_bot')
+      } else{
+        return res.render('widget_semiyear', { "account_id": account_id })
       }
     }
   );
-  return res.render('widget_semiyear', { "account_id": account_id })
+  //return res.render('widget_semiyear', { "account_id": account_id })
   // res.sendFile(path.join(__dirname + '/public/widget_semiyear.html'));
 });
 
@@ -55,16 +50,14 @@ app.get('/month/:account_id', function (req, res) {
   var account_id = req.params.account_id;
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
-      for(let sub of value.getResponse().Model){
-        if (sub){
+      console.log(value.getResponse().Model)
+      if (value.getResponse().Model == []){ 
           alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
           return res.redirect('https://t.me/RadarMsk_bot')
-        }
-        else{
-          return res.render('widget_month', { "account_id": account_id })
-
-        }
       }
+      else{
+        return res.render('widget_month', { "account_id": account_id })
+      }      
     }
   );
 
@@ -76,15 +69,12 @@ app.get('/year/:account_id', function (req, res) {
   var account_id = req.params.account_id;
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
-      for(let sub of value.getResponse().Model){
-        if (sub){
-          alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
-          return res.redirect('https://t.me/RadarMsk_bot')
-        }
-        else{
-          return res.render('widget_year', { "account_id": account_id })
-        }
-   
+      if (value.getResponse().Model != []){
+        alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
+        return res.redirect('https://t.me/RadarMsk_bot')
+      }
+      else{
+        return res.render('widget_year', { "account_id": account_id })
       }
     }
   );
@@ -223,15 +213,13 @@ app.get('/paymentWidget/:account_id/:amount', function (req, res) {
   let params = { "account_id": account_id, 'amount': amount}
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
-      for(let sub of value.getResponse().Model){
-        if (sub){
+      if (value.getResponse().Model != []){
           return res.render('pay', params)
-        }
-        else{
-          alert('Вы попали не на ту страницу. Вам нужно оформить подписку, так как у вас ее никогда не было! Вернитесь в телеграм бота и выберите нужную ссылку!')
-          return res.redirect('https://t.me/RadarMsk_bot')
-        }
+      } else{
+        alert('Вы попали не на ту страницу. Вам нужно оформить подписку, так как у вас ее никогда не было! Вернитесь в телеграм бота и выберите нужную ссылку!')
+        return res.redirect('https://t.me/RadarMsk_bot')
       }
+      
     }
   );
 
