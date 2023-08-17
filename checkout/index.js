@@ -37,7 +37,7 @@ app.get('/semi_year/:account_id', function (req, res) {
       for(let sub of value.getResponse().Model){
         if (sub){
           alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
-          res.redirect('https://t.me/RadarMsk_bot')
+          return res.redirect('https://t.me/RadarMsk_bot')
         }
         else{
           return res.render('widget_month', { "account_id": account_id })
@@ -58,7 +58,7 @@ app.get('/month/:account_id', function (req, res) {
       for(let sub of value.getResponse().Model){
         if (sub){
           alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
-          res.redirect('https://t.me/RadarMsk_bot')
+          return res.redirect('https://t.me/RadarMsk_bot')
         }
         else{
           return res.render('widget_month', { "account_id": account_id })
@@ -79,7 +79,7 @@ app.get('/year/:account_id', function (req, res) {
       for(let sub of value.getResponse().Model){
         if (sub){
           alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
-          res.redirect('https://t.me/RadarMsk_bot')
+          return res.redirect('https://t.me/RadarMsk_bot')
         }
         else{
           return res.render('widget_year', { "account_id": account_id })
@@ -229,7 +229,7 @@ app.get('/paymentWidget/:account_id/:amount', function (req, res) {
         }
         else{
           alert('Вы попали не на ту страницу. Вам нужно оформить подписку, так как у вас ее никогда не было! Вернитесь в телеграм бота и выберите нужную ссылку!')
-          res.redirect('https://t.me/RadarMsk_bot')
+          return res.redirect('https://t.me/RadarMsk_bot')
         }
       }
     }
