@@ -195,11 +195,10 @@ async def update_sub_for_all(days):
 
 async def main():
     client_demo = AioCpClient('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
-    subs = await client_demo.find_subscriptions(6132645711)
-    cancel_sub(6132645711)
-    for i in await client_demo.find_subscriptions(6132645711):
+    await cancel_sub(764315256)
+    for i in await client_demo.find_subscriptions(764315256):
         print(i)
     await client_demo.disconnect()
               
 loop = asyncio.get_event_loop()
-print(loop.run_until_complete(main()))
+asyncio.run(main())

@@ -58,6 +58,8 @@
                   currency: 'RUB',
               }).then((result) => {
                   // Объект типа WidgetResult
+                  window.location.href = "/pay/" + "<%= account_id %>" + '/' + "<%= amount %>" + '/' + `${savedEmail}`;
+                  /*window.location.href = "/pay/" + "<%= account_id %>" + '/' + "<%= amount %>" + '/' + `${savedEmail}`;*/
                   console.log('result', result);
               });
             } else {

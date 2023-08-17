@@ -98,6 +98,7 @@
                 currency: 'RUB',
                 data: data
             }).then((result) => {
+                window.location.href = "/getTokenSemiYear/" + "<%= account_id %>" + '/' +(result.data.transactionId).toString() + '/' + '4999' + '/' + `${savedEmail}`;;
                 // Объект типа WidgetResult
                 console.log('result', result);
             });

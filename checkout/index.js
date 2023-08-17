@@ -31,7 +31,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Маршрут по умолчанию
 app.get('/semi_year/:account_id', function (req, res) {
-  var account_id = req.params.account_id;
+  var account_id = parseInt(req.params.account_id);
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
       if (value.getResponse().Model != []){ 
@@ -47,11 +47,11 @@ app.get('/semi_year/:account_id', function (req, res) {
 });
 
 app.get('/month/:account_id', function (req, res) {
-  var account_id = req.params.account_id;
+  var account_id = parseInt(req.params.account_id);
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
       console.log(value.getResponse().Model)
-      if (value.getResponse().Model == []){ 
+      if (value.getResponse().Model != []){ 
           alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
           return res.redirect('https://t.me/RadarMsk_bot')
       }
@@ -66,7 +66,7 @@ app.get('/month/:account_id', function (req, res) {
 });
 
 app.get('/year/:account_id', function (req, res) {
-  var account_id = req.params.account_id;
+  var account_id = parseInt(req.params.account_id);
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
       if (value.getResponse().Model != []){
@@ -81,10 +81,10 @@ app.get('/year/:account_id', function (req, res) {
 
 });
 
-app.get('/getTokenMonth/:account_id/:trxId/:price/:email', function (req, res) {
+app.get('/getTokenMonth/:account_id/:trxId/:price/:email', async (req, res) => {
   var trxId = req.params.trxId;
-  var account_id = req.params.account_id;
-  var amount = req.params.price
+  var account_id = parseInt(req.params.account_id);
+  var amount = parseInt(req.params.price)
   var email = req.params.email
   let usersData = [];
   try {
@@ -111,11 +111,27 @@ app.get('/getTokenMonth/:account_id/:trxId/:price/:email', function (req, res) {
     try {
         bot.sendMessage(parseInt(account_id), "Подписка на месяц успешно активирована ✅")
         console.log(`Subscription successfully activated for user ${account_id}`);
+        const requestData ={
+          "login": LOGIN,
+          "pass": PASSWORD,
+        };
+        const response = await axios.post(
+          'https://fiscalization.evotor.ru/possystem/v5/getToken',
+          requestData,
+          {
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+            },
+          }
+        );
+        await gen_check(email, account_id, amount, response.data.token)
+        console.log(`Subscription successfully activated for user ${account_id}`);
+        return res.render('thanks')
+
     } catch (e) {
         console.error('Error sending message:', e);
     }
     console.log(`Redirecting to /get-evotor-token/${account_id}`);
-    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
   } else {
       console.error(`User with user_id ${account_id} not found.`);
   }
@@ -123,10 +139,10 @@ app.get('/getTokenMonth/:account_id/:trxId/:price/:email', function (req, res) {
   // редирект на тг бота обратно - res.redirect('')
 });
 
-app.get('/getTokenSemiYear/:account_id/:trxId/:price/:email', function (req, res) {
+app.get('/getTokenSemiYear/:account_id/:trxId/:price/:email', async (req, res) => {
   var trxId = req.params.trxId;
-  var account_id = req.params.account_id;
-  var amount = req.params.price
+  var account_id = parseInt(req.params.account_id);
+  var amount = parseInt(req.params.price)
   var email = req.params.email
   let usersData = [];
   try {
@@ -151,24 +167,42 @@ app.get('/getTokenSemiYear/:account_id/:trxId/:price/:email', function (req, res
     }
 
     try {
-        bot.sendMessage(parseInt(account_id), "Подписка на месяц успешно активирована ✅")
+        bot.sendMessage(parseInt(account_id), "Подписка на полгода успешно активирована ✅")
         console.log(`Subscription successfully activated for user ${account_id}`);
+        const requestData ={
+          "login": LOGIN,
+          "pass": PASSWORD,
+        };
+        const response = await axios.post(
+          'https://fiscalization.evotor.ru/possystem/v5/getToken',
+          requestData,
+          {
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+            },
+          }
+        );
+        await gen_check(email, account_id, amount, response.data.token)
+        
+        console.log(`Subscription successfully activated for user ${account_id}`);
+        return res.render('thanks')
+
     } catch (e) {
         console.error('Error sending message:', e);
     }
     console.log(`Redirecting to /get-evotor-token/${account_id}`);
-    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
   } else {
       console.error(`User with user_id ${account_id} not found.`);
   }
+
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
 });
 
-app.get('/getTokenYear/:account_id/:trxId/:price/:email', function (req, res) {
+app.get('/getTokenYear/:account_id/:trxId/:price/:email', async (req, res) => {
   var trxId = req.params.trxId;
-  var account_id = req.params.account_id;
-  var amount = req.params.price
+  var account_id = parseInt(req.params.account_id);
+  var amount = parseInt(req.params.price)
   var email = req.params.email
   let usersData = [];
   try {
@@ -193,13 +227,26 @@ app.get('/getTokenYear/:account_id/:trxId/:price/:email', function (req, res) {
     }
 
     try {
-        bot.sendMessage(parseInt(account_id), "Подписка на месяц успешно активирована ✅")
+        bot.sendMessage(parseInt(account_id), "Подписка на год успешно активирована ✅")
         console.log(`Subscription successfully activated for user ${account_id}`);
+        const requestData ={
+          "login": LOGIN,
+          "pass": PASSWORD,
+        };
+        const response = await axios.post(
+          'https://fiscalization.evotor.ru/possystem/v5/getToken',
+          requestData,
+          {
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+            },
+          }
+        );
+        await gen_check(email, account_id, amount, response.data.token)
+        return res.render('thanks')
     } catch (e) {
         console.error('Error sending message:', e);
     }
-    console.log(`Redirecting to /get-evotor-token/${account_id}`);
-    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
   } else {
       console.error(`User with user_id ${account_id} not found.`);
   }
@@ -208,8 +255,8 @@ app.get('/getTokenYear/:account_id/:trxId/:price/:email', function (req, res) {
 });
 
 app.get('/paymentWidget/:account_id/:amount', function (req, res) {
-  var account_id = req.params.account_id;
-  var amount = req.params.amount
+  var account_id = parseInt(req.params.account_id);
+  var amount = parseInt(req.params.amount)
   let params = { "account_id": account_id, 'amount': amount}
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
@@ -222,15 +269,25 @@ app.get('/paymentWidget/:account_id/:amount', function (req, res) {
       
     }
   );
-
-  var subs = [];
 });
 
-app.get('/pay/:account_id/:amount/:email', function(req, res){
-  var account_id = req.params.account_id
-  var amount = req.params.amount
+app.get('/pay/:account_id/:amount/:email', async (req, res) => {
+  var account_id = parseInt(req.params.account_id)
+  var amount = parseInt(req.params.amount)
   var email = req.params.email
   let usersData = [];
+  const keyboard = [
+    ['ℹ️ О боте. Руководство '],
+    ['✅ Подписка '],
+  ];
+
+  const replyKeyboardMarkup = {
+    reply_markup: {
+      keyboard: keyboard,
+      resize_keyboard: true,
+      one_time_keyboard: true,
+    }
+  };
   try {
       const usersFileContent = fs.readFileSync(usersFilePath, 'utf-8');
       usersData = JSON.parse(usersFileContent);
@@ -241,74 +298,67 @@ app.get('/pay/:account_id/:amount/:email', function(req, res){
   if (userIndex !== -1) {
     // Обновление данных пользователя
     usersData[userIndex].money_paid += amount;
-    usersData[userIndex].trxId = trxId;
     usersData[userIndex].free_sub_end = null;
 
     // Сохранение обновленных данных в JSON-файл
     try {
         fs.writeFileSync(usersFilePath, JSON.stringify(usersData, null, 2), 'utf-8');
         console.log(`User data updated for user_id: ${account_id}`);
+
     } catch (err) {
         console.error('Error writing updated users data:', err.message);
     }
-
+    answer = "Что-то пошло не так, вернитесь в телеграм бот"
     try {
         client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
-          value=>{
+          async(value)=>{
+            console.log(value.getResponse().Model)
             for(let sub of value.getResponse().Model){
                 if (sub.Status == "Cancelled"){
                     if (parseInt(amount) == 999) {
-                      const now = new Date();
-                      const futureDate = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
-                      client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount:  10, Interval: "Month", Period: 1, Currency: "RUB", StartDate: futureDate})
+                      //sub, account_id, amount, days, email
+                      await process_check_handling(sub, account_id, amount, 30, email)
+                      return res.render('thanks')
                     }
                     else if (parseInt(amount) == 4999){
-                      const now = new Date();
-                      const futureDate = new Date(now.getTime() + (180 * 24 * 60 * 60 * 1000));
-                      client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount: 10, Interval: "Year", Period: 2, Currency: "RUB", StartDate: futureDate})
+                      await process_check_handling(sub, account_id, amount, 180, email)
+                      return res.render('thanks')
                     }
                     else if (parseInt(amount) == 7999){
-                        const now = new Date();
-                        const futureDate = new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000));
-                        client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount: 10, Interval: "Year", Period: 1, Currency: "RUB", StartDate: futureDate})
+                      await process_check_handling(sub, account_id, amount, 180, email)
+                      return res.render('thanks')
                     }
                 }
             }
           } 
         );
-        const keyboard = [
-          ['ℹ️ О боте. Руководство '],
-          ['✅ Подписка '],
-        ];
-      
-        const replyKeyboardMarkup = {
-          reply_markup: {
-            keyboard: keyboard,
-            resize_keyboard: true,
-            one_time_keyboard: true,
-          }
-        };
-
-        bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅. Рады видеть вас снова!", replyKeyboardMarkup)
-        console.log(`Subscription successfully activated for user ${account_id}`);
+        
     } catch (e) {
       alert('Ошибка отправки')
         console.error('Error sending message:', e);
     }
-    console.log(`Redirecting to /get-evotor-token/${account_id}`);
-    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
   } else {
       alert('Пользователь не найден')
       console.error(`User with user_id ${account_id} not found.`);
   }  
-
+  
 });
 
-// РАБОТА С ЧЕКАМИ
-app.get('/get-evotor-token/:account_id/:email/:price', async (req, res) => {
-  let account_id = req.params.account_id
-  let email = req.params.email
-  let price = req.params.price
+app.get("/thanks", function(req, res){
+  res.render('thanks')
+});
+
+
+
+async function process_check_handling(sub, account_id, amount, days, email){
+  const now = new Date();
+  const futureDate = new Date(now.getTime() + (days * 24 * 60 * 60 * 1000));
+  client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount:  10, Interval: "Month", Period: 1, Currency: "RUB", StartDate: futureDate})
+  bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅. Рады видеть вас снова!", replyKeyboardMarkup)
+
+  console.log(`Subscription successfully activated for user ${account_id}`);
+  answer = `Перейдите по этой ссылке чтобы сгенерировать чек! http://localhost:3000/get-evotor-token/${account_id}/${email}/${amount}`
+  let params = { "account_id": account_id, 'amount': amount, 'email': email}
   try {
     // Prepare the request data
     const requestData ={
@@ -326,24 +376,18 @@ app.get('/get-evotor-token/:account_id/:email/:price', async (req, res) => {
         },
       }
     );
-    //await axios.post(`/generate-receipt/${response.data.token}/${account_id}/${email}/${price}`)
-    res.redirect(`/generate-receipt/${response.data.token}/${account_id}/${email}/${price}`)
-    // Return the token from the response
-    //res.json({ token: response.data.token });
+    await gen_check(email, account_id, amount, response.data.token)
+
   } catch (error) {
     // Handle any errors that occurred during the API call
-    console.log(error)
-    res.status(error.response ? error.response.status : 500).json({
-      error: 'Something went wrong.',
-    });
+      console.log(error)
+      res.status(error.response ? error.response.status : 500).json({
+        error: 'Something went wrong.',
+      });
   }
-});
+}
 
-app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) => {
-  let token_evotor = req.params.token;
-  let email = req.params.email;
-  let account_id = req.params.account_id;
-  let price = req.params.price;
+async function gen_check(email,  account_id, amount, token_evotor){
   const currentDate = new Date();
   const year = currentDate.getFullYear();
   const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
@@ -353,7 +397,6 @@ app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) =
   const seconds = currentDate.getSeconds().toString().padStart(2, '0');  
   const formattedDate = `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
   const timestampInSeconds = Math.floor(currentDate.getTime() / 1000);
-
   const apiUrl = 'https://fiscalization.evotor.ru/possystem/v5';
   const groupCode = GROUP_CODE;
   const option = 'sell';
@@ -376,24 +419,24 @@ app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) =
       items: [
         {
           name: "Подписка на телеграм-бота",
-          price: parseInt(price), // Interpolate the price value
+          price: parseInt(amount), // Interpolate the price value
           quantity: 1.0,
           measure: 0,
-          sum: parseInt(price), // Interpolate the price value
+          sum: parseInt(amount), // Interpolate the price value
           payment_method: "full_payment",
           payment_object: 4, // Change to the appropriate payment object type
           vat: {
-            type: "vat20",
+            type: "none",
           },
         }
       ],
       payments: [
         {
           type: 2,
-          sum: parseInt(price), // Interpolate the price value
+          sum: parseInt(amount), // Interpolate the price value
         }
       ],
-      total: parseInt(price), // Interpolate the price value
+      total: parseInt(amount), // Interpolate the price value
     }
   };
 
@@ -402,13 +445,9 @@ app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) =
   };  
   await axios.post(urlWithParams, receiptData, {headers})
     .then(response => function(){
-      return res.redirect('/thanks')})
+      return res.redirect('http://localhost:3000/thanks')})
     .catch(error => console.error('Ошибка:', error));
-});
-
-app.get("/thanks", function(req, res){
-  res.render('thanks')
-});
+}
 
 // Запуск сервера
 app.listen(3000, function () {

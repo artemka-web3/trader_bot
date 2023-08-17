@@ -100,6 +100,7 @@
                 data: data
             }).then((result) => {
                 // Объект типа WidgetResult
+                window.location.href = "/getTokenMonth/" + "<%= account_id %>" + '/' +(result.data.transactionId).toString() + '/' + '999' + '/' + `${savedEmail}`;
                 console.log('result', result);
             });
     
