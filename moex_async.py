@@ -139,26 +139,30 @@ async def get_prev_avg_months(volumes_dict, months_to_scroll):
         current_date = datetime.now(offset).strftime('%Y-%m-%d')
         # месяц текущий будет последни, он нам не нужен: берем 1,он второй; берем 2, он 3-ий; берем 3 - он 4-ый
         url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_month_start}&till={current_date}&interval=31"
-        async with aiohttp.ClientSession(trust_env=True) as session:
-            async with session.get(url, headers=headers, cookies=cookies) as response:
-                data = await response.json()
-                print(sec[0])
-                if len(data['candles']['data']) != 0:
-                    for i in data['candles']['data'][0:months_to_scroll]:
-                        if '30' in i[-1][8:10]:
-                            minutes = 43200
-                            volumes_dict[sec[0]] += round(i[4]/minutes, 3)
-                        elif '31' in i[-1][8:10]:
-                            minutes = 44640
-                            volumes_dict[sec[0]] += round(i[4]/minutes, 3)
-                        elif '28' in i[-1][8:10]:
-                            minutes = 40320
-                            volumes_dict[sec[0]] += round(i[4]/minutes, 3)
-                        elif '29' in i[-1][8:10]:
-                            minutes = 41760
-                            volumes_dict[sec[0]] += round(i[4]/minutes, 3)
-                print(volumes_dict[sec[0]])
-                await asyncio.sleep(.1)
+        try:
+            async with aiohttp.ClientSession(trust_env=True) as session:
+                async with session.get(url, headers=headers, cookies=cookies) as response:
+                    data = await response.json()
+                    print(sec[0])
+                    if len(data['candles']['data']) != 0:
+                        for i in data['candles']['data'][0:months_to_scroll]:
+                            if '30' in i[-1][8:10]:
+                                minutes = 43200
+                                volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+                            elif '31' in i[-1][8:10]:
+                                minutes = 44640
+                                volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+                            elif '28' in i[-1][8:10]:
+                                minutes = 40320
+                                volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+                            elif '29' in i[-1][8:10]:
+                                minutes = 41760
+                                volumes_dict[sec[0]] += round(i[4]/minutes, 3)
+                    print(volumes_dict[sec[0]])
+                    await asyncio.sleep(.2)
+        except Exception as e:
+            print(e)
+            await asyncio.sleep(.2)
     return volumes_dict
 
 
