@@ -6,6 +6,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const token = '6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A';
 const cp = require('cloudpayments');
 const axios = require('axios');
+const fs = require('fs');
 const alert = require('alert')
 
 const LOGIN = 'KDeOYMPCsp'
@@ -13,6 +14,7 @@ const PASSWORD = 'cgdCYjFcOSWJYHW'
 const GROUP_CODE = '9fab4def-2fed-4b05-8b31-a23a3904b043';
 const URL = 'https://t.me/RadarMsk_bot'
 
+const usersFilePath = '../db.json';
 const bot = new TelegramBot(token, {polling: false});
 const client = new cp.ClientService({
   privateKey: 'd3119d06f156dad88a2ed516957b065b',
@@ -85,19 +87,39 @@ app.get('/getTokenMonth/:account_id/:trxId/:price/:email', function (req, res) {
   var account_id = req.params.account_id;
   var amount = req.params.price
   var email = req.params.email
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 999, trxId, null, account_id, function (err) {
-    if (err) {
-      return console.log(err.message);
-    }
-    console.log(`A row has been inserted with rowid ${this.lastID}`);
-    try{
-      bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
-    } catch (e){
-      console.log(e)
-    }
-    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
+  let usersData = [];
+  try {
+      const usersFileContent = fs.readFileSync(usersFilePath, 'utf-8');
+      usersData = JSON.parse(usersFileContent);
+  } catch (err) {
+      console.error('Error reading or parsing users data:', err.message);
+  }
+  const userIndex = usersData.findIndex(user => user.user_id === account_id);
+  if (userIndex !== -1) {
+    // Обновление данных пользователя
+    usersData[userIndex].money_paid += amount;
+    usersData[userIndex].trxId = trxId;
+    usersData[userIndex].free_sub_end = null;
 
-  });
+    // Сохранение обновленных данных в JSON-файл
+    try {
+        fs.writeFileSync(usersFilePath, JSON.stringify(usersData, null, 2), 'utf-8');
+        console.log(`User data updated for user_id: ${account_id}`);
+    } catch (err) {
+        console.error('Error writing updated users data:', err.message);
+    }
+
+    try {
+        bot.sendMessage(parseInt(account_id), "Подписка на месяц успешно активирована ✅")
+        console.log(`Subscription successfully activated for user ${account_id}`);
+    } catch (e) {
+        console.error('Error sending message:', e);
+    }
+    console.log(`Redirecting to /get-evotor-token/${account_id}`);
+    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
+  } else {
+      console.error(`User with user_id ${account_id} not found.`);
+  }
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
 });
@@ -107,19 +129,39 @@ app.get('/getTokenSemiYear/:account_id/:trxId/:price/:email', function (req, res
   var account_id = req.params.account_id;
   var amount = req.params.price
   var email = req.params.email
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 4999, trxId, null, account_id, function (err) {
-    if (err) {
-      return console.log(err.message);
-    }
-    console.log(`A row has been inserted with rowid ${this.lastID}`);
-    try{
-      bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
-    } catch (e){
-      console.log(e)
-    }
-    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
+  let usersData = [];
+  try {
+      const usersFileContent = fs.readFileSync(usersFilePath, 'utf-8');
+      usersData = JSON.parse(usersFileContent);
+  } catch (err) {
+      console.error('Error reading or parsing users data:', err.message);
+  }
+  const userIndex = usersData.findIndex(user => user.user_id === account_id);
+  if (userIndex !== -1) {
+    // Обновление данных пользователя
+    usersData[userIndex].money_paid += amount;
+    usersData[userIndex].trxId = trxId;
+    usersData[userIndex].free_sub_end = null;
 
-  });
+    // Сохранение обновленных данных в JSON-файл
+    try {
+        fs.writeFileSync(usersFilePath, JSON.stringify(usersData, null, 2), 'utf-8');
+        console.log(`User data updated for user_id: ${account_id}`);
+    } catch (err) {
+        console.error('Error writing updated users data:', err.message);
+    }
+
+    try {
+        bot.sendMessage(parseInt(account_id), "Подписка на месяц успешно активирована ✅")
+        console.log(`Subscription successfully activated for user ${account_id}`);
+    } catch (e) {
+        console.error('Error sending message:', e);
+    }
+    console.log(`Redirecting to /get-evotor-token/${account_id}`);
+    return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
+  } else {
+      console.error(`User with user_id ${account_id} not found.`);
+  }
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
 });
@@ -129,22 +171,39 @@ app.get('/getTokenYear/:account_id/:trxId/:price/:email', function (req, res) {
   var account_id = req.params.account_id;
   var amount = req.params.price
   var email = req.params.email
-  
+  let usersData = [];
+  try {
+      const usersFileContent = fs.readFileSync(usersFilePath, 'utf-8');
+      usersData = JSON.parse(usersFileContent);
+  } catch (err) {
+      console.error('Error reading or parsing users data:', err.message);
+  }
+  const userIndex = usersData.findIndex(user => user.user_id === account_id);
+  if (userIndex !== -1) {
+    // Обновление данных пользователя
+    usersData[userIndex].money_paid += amount;
+    usersData[userIndex].trxId = trxId;
+    usersData[userIndex].free_sub_end = null;
 
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 7999, trxId, null, account_id, function (err) {
-    if (err) {
-      return console.log(err.message);
+    // Сохранение обновленных данных в JSON-файл
+    try {
+        fs.writeFileSync(usersFilePath, JSON.stringify(usersData, null, 2), 'utf-8');
+        console.log(`User data updated for user_id: ${account_id}`);
+    } catch (err) {
+        console.error('Error writing updated users data:', err.message);
     }
-    console.log(`A row has been inserted with rowid ${this.lastID}`);
-    try{
-      bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅")
-    } catch (e){
-      console.log(e)
+
+    try {
+        bot.sendMessage(parseInt(account_id), "Подписка на месяц успешно активирована ✅")
+        console.log(`Subscription successfully activated for user ${account_id}`);
+    } catch (e) {
+        console.error('Error sending message:', e);
     }
+    console.log(`Redirecting to /get-evotor-token/${account_id}`);
     return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
-
-
-  });
+  } else {
+      console.error(`User with user_id ${account_id} not found.`);
+  }
   // Затем можно использовать это значение для отображения информации о пользователе.
   // редирект на тг бота обратно - res.redirect('')
 });
@@ -171,55 +230,77 @@ app.get('/pay/:account_id/:amount/:email', function(req, res){
   var account_id = req.params.account_id
   var amount = req.params.amount
   var email = req.params.email
+  let usersData = [];
+  try {
+      const usersFileContent = fs.readFileSync(usersFilePath, 'utf-8');
+      usersData = JSON.parse(usersFileContent);
+  } catch (err) {
+      console.error('Error reading or parsing users data:', err.message);
+  }
+  const userIndex = usersData.findIndex(user => user.user_id === account_id);
+  if (userIndex !== -1) {
+    // Обновление данных пользователя
+    usersData[userIndex].money_paid += amount;
+    usersData[userIndex].trxId = trxId;
+    usersData[userIndex].free_sub_end = null;
 
-  db.run("UPDATE users SET money_paid = money_paid + ?, free_sub_end = ? WHERE user_id = ?", parseInt(amount), null, account_id, function(err){
-    if (err) {
-      return console.log(err.message);
+    // Сохранение обновленных данных в JSON-файл
+    try {
+        fs.writeFileSync(usersFilePath, JSON.stringify(usersData, null, 2), 'utf-8');
+        console.log(`User data updated for user_id: ${account_id}`);
+    } catch (err) {
+        console.error('Error writing updated users data:', err.message);
     }
-    console.log(`A row has been inserted with rowid ${this.lastID}`);
-    try{
-      client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
-        value=>{
-          for(let sub of value.getResponse().Model){
-              if (sub.Status == "Cancelled"){
-                  if (parseInt(amount) == 999) {
-                    const now = new Date();
-                    const futureDate = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
-                    client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount:  10, Interval: "Month", Period: 1, Currency: "RUB", StartDate: futureDate})
-                  }
-                  else if (parseInt(amount) == 4999){
-                    const now = new Date();
-                    const futureDate = new Date(now.getTime() + (180 * 24 * 60 * 60 * 1000));
-                    client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount: 10, Interval: "Year", Period: 2, Currency: "RUB", StartDate: futureDate})
-                  }
-                  else if (parseInt(amount) == 7999){
+
+    try {
+        client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
+          value=>{
+            for(let sub of value.getResponse().Model){
+                if (sub.Status == "Cancelled"){
+                    if (parseInt(amount) == 999) {
                       const now = new Date();
-                      const futureDate = new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000));
-                      client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount: 10, Interval: "Year", Period: 1, Currency: "RUB", StartDate: futureDate})
-                  }
-              }
-          }
-        } 
-      )
-      const keyboard = [
-        ['ℹ️ О боте. Руководство '],
-        ['✅ Подписка '],
-      ];
+                      const futureDate = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+                      client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount:  10, Interval: "Month", Period: 1, Currency: "RUB", StartDate: futureDate})
+                    }
+                    else if (parseInt(amount) == 4999){
+                      const now = new Date();
+                      const futureDate = new Date(now.getTime() + (180 * 24 * 60 * 60 * 1000));
+                      client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount: 10, Interval: "Year", Period: 2, Currency: "RUB", StartDate: futureDate})
+                    }
+                    else if (parseInt(amount) == 7999){
+                        const now = new Date();
+                        const futureDate = new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000));
+                        client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount: 10, Interval: "Year", Period: 1, Currency: "RUB", StartDate: futureDate})
+                    }
+                }
+            }
+          } 
+        );
+        const keyboard = [
+          ['ℹ️ О боте. Руководство '],
+          ['✅ Подписка '],
+        ];
       
-      const replyKeyboardMarkup = {
-        reply_markup: {
-          keyboard: keyboard,
-          resize_keyboard: true,
-          one_time_keyboard: true,
-        },
-      };
+        const replyKeyboardMarkup = {
+          reply_markup: {
+            keyboard: keyboard,
+            resize_keyboard: true,
+            one_time_keyboard: true,
+          }
+        };
 
-      bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅. Рады видеть вас снова!", replyKeyboardMarkup)
-    } catch (e){
-      console.log(e)
+        bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅. Рады видеть вас снова!", replyKeyboardMarkup)
+        console.log(`Subscription successfully activated for user ${account_id}`);
+    } catch (e) {
+      alert('Ошибка отправки')
+        console.error('Error sending message:', e);
     }
+    console.log(`Redirecting to /get-evotor-token/${account_id}`);
     return res.redirect(`/get-evotor-token/${account_id}/${email}/${amount}`)
-  });
+  } else {
+      alert('Пользователь не найден')
+      console.error(`User with user_id ${account_id} not found.`);
+  }  
 
 });
 
@@ -321,7 +402,7 @@ app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) =
   };  
   await axios.post(urlWithParams, receiptData, {headers})
     .then(response => function(){
-      res.redirect('/thanks')})
+      return res.redirect('/thanks')})
     .catch(error => console.error('Ошибка:', error));
 });
 

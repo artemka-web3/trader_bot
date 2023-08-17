@@ -1,3 +1,5 @@
 from aiodb import BotDB
+import os.path
 
-db = BotDB('prod.sqlite3')
+filepath = os.path.abspath('prod.sqlite3')
+db = BotDB(filepath)

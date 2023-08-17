@@ -61,7 +61,7 @@ async def get_value_by_ticker(data, ticker):
                 return parts[2]
 
 async def one_stock(data, url, headers, cookies):
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(url, headers=headers, cookies=cookies) as response:
             stock_data = await response.json()
     ticker = stock_data['securities']['data'][0][0]
@@ -82,13 +82,13 @@ async def get_stock_data(security):
 url_get_secs = "http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities.json"
 
 async def all_securities(url, headers, cookies):
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(url, headers=headers, cookies=cookies) as response:
             data = await response.json()
             return data['securities']['data']
     
 async def all_marketdata(url, headers, cookies):
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(url, headers=headers, cookies=cookies) as response:
             data = await response.json()
             return data['marketdata']['data']
@@ -110,7 +110,7 @@ async def get_current_stock_volume(security, cur_time):
     global cookies
     while True:
         url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(trust_env=True) as session:
             async with session.get(url, headers=headers, cookies=cookies) as response:
                 cur_data = await response.json()
                 await asyncio.sleep(0.5)
@@ -139,7 +139,7 @@ async def get_prev_avg_months(volumes_dict, months_to_scroll):
         current_date = datetime.now(offset).strftime('%Y-%m-%d')
         # месяц текущий будет последни, он нам не нужен: берем 1,он второй; берем 2, он 3-ий; берем 3 - он 4-ый
         url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_month_start}&till={current_date}&interval=31"
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(trust_env=True) as session:
             async with session.get(url, headers=headers, cookies=cookies) as response:
                 data = await response.json()
                 print(sec[0])
@@ -174,7 +174,7 @@ async def get_prev_avg_months_for_table(volumes_dict, months_to_scroll):
         current_date = datetime.now(offset).strftime('%Y-%m-%d')
         # месяц текущий будет последни, он нам не нужен: берем 1,он второй; берем 2, он 3-ий; берем 3 - он 4-ый
         url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{sec[0]}/candles.json?from={prev_month_start}&till={current_date}&interval=31"
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(trust_env=True) as session:
             async with session.get(url, headers=headers, cookies=cookies) as response:
                 data = await response.json()
                 print(sec[0])

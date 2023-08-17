@@ -3,14 +3,14 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.types.message import ContentType
 from datetime import datetime, timedelta
-from aiodb import BotDB
 from config import *
 from pytz import timezone
 from kb import *
 from fsm import *
-from cp import *
+from aiocp import *
 from moex_async import *
-from db_import import db
+from json_db import *
+
 
 import asyncio
 import aioschedule
@@ -41,31 +41,23 @@ dp = Dispatcher(bot, storage=storage)
 
 @dp.message_handler(lambda message: 'ℹ️ О боте. Руководство' == message.text or message.text.lower() == '/start' or message.text.lower() == '/help')
 async def send_welcome(message: types.Message):
-    await db.connect()
-    user_exists = await db.user_exists(message.from_user.id)
-    await db.close()
+    user_exists = await if_user_exists(message.from_user.id)
 
     if not user_exists:
         start_command = message.text
         referer_id = str(start_command[7:])
         if str(referer_id) != '':
             if str(referer_id) != str(message.from_user.id):
-                await db.connect()
-                await db.add_user(message.from_user.id, int(referer_id))
-                await db.close()
+                await add_user(user_id=message.from_user.id, referer_id=int(referer_id))
                 try:
                     await bot.send_message(int(referer_id), 'По вашей ссылке зарегался новый юзер', reply_markup=keyb_for_unsubed)
                 except:
                     pass
             else:
-                await db.connect()
-                await db.add_user(message.from_user.id)
-                await db.close()
+                await add_user(user_id=message.from_user.id)
                 await message.answer("Нельзя регаться по своей же реф. ссылке!", reply_markup=keyb_for_unsubed)
         else:
-            await db.connect()
-            await db.add_user(message.from_user.id)
-            await db.close()
+            await add_user(user_id=message.from_user.id)
 
     if await is_in_pay_sys(message.from_user.id) and await check_if_subed(message.from_user.id):
         await message.reply(""""Радар биржи" анализирует все минутные свечи акций торгуемых на московской бирже.\nЕсли бот видит повышенные обьемы в акции, то он сразу сигнализирует об этом.\n\nБот уведомляет:\n🔸 Какой обьем был куплен\n🔸 Изменение цены на данном обьеме\n🔸 Изменение цены за день в акции.\n🔸 О количестве покупателей и продавцов на данном обьеме.""", reply_markup=keyb_for_subed)
@@ -91,37 +83,17 @@ async def buy_sub_first(message: types.Message):
             await message.answer('У вас есть бесплатная подписка. Если купите платную подписку, то она отменится. Если вы готовы так сделать, то нажмите на кнопку под сообщением', reply_markup=create_buying_link(message.from_user.id))
         else:
             await message.answer("Купите платную подписку нажав на одну из кнопок", reply_markup=create_buying_link(message.from_user.id))
-# @dp.callback_query_handler()
-# async def cancel_subscription(callback: types.CallbackQuery):
-#     if callback.data == 'cancel_sub':
-#         cancel_sub(int(callback.from_user.id))
-#         count_money_attracted_by_one(callback.from_user.id)
-#         await callback.answer('Вы успешно отписались ✅', reply_markup=keyb_for_unsubed)
-
-# @dp.callback_query_handler()
-# async def handle_callbacks(callback_query: types.CallbackQuery):
-#     if callback_query.data == 'cancel_sub':
-#         await cancel_sub(int(callback_query.from_user.id))
-#         await count_money_attracted_by_one(callback_query.from_user.id)
-#         await callback_query.message.answer('Вы успешно отписались ✅', reply_markup=keyb_for_unsubed)
-
 
 @dp.message_handler(commands=['ref'])
 async def get_yo_ref_data(message: types.Message):
-    await db.connect()
-    user_exists = await db.user_exists(message.from_user.id)
-    await db.close()
+    user_exists = await if_user_exists(message.from_user.id)
     if user_exists:
         if await is_in_pay_sys(message.from_user.id):
             if await check_if_subed(message.from_user.id) and not await do_have_free_sub(message.from_user.id):
-                await db.connect()
-                ref_traffic = await db.get_referer_traffic(message.from_user.id) # кол-во людей
-                await db.close()
+                ref_traffic = await get_referer_traffic(message.from_user.id) # кол-во людей
                 await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
             elif not await check_if_subed(message.from_user.id) and await do_have_free_sub(message.from_user.id):
-                await db.connect()
-                ref_traffic = await db.get_referer_traffic(message.from_user.id) # кол-во людей
-                await db.close()
+                ref_traffic = await get_referer_traffic(message.from_user.id) # кол-во людей
                 await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
@@ -131,16 +103,12 @@ async def get_yo_ref_data(message: types.Message):
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
     else:
-        await db.connect()
-        await db.add_user(message.from_user.id)
-        await db.close()
+        await add_user(user_id=message.from_user.id)
         await message.answer("Вы не были занесены в БД, но я это исправил, подпишитесь на бота чтоб выполнить эту команду!", reply_markup=keyb_for_unsubed)
 
 @dp.message_handler(lambda message: '✅ Подписка' == message.text or message.text.lower() == '/profile')
 async def get_profile_data(message: types.Message):
-    await db.connect()
-    user_exists = await db.user_exists(message.from_user.id)
-    await db.close()
+    user_exists = await if_user_exists(message.from_user.id)
     if user_exists:
         if await is_in_pay_sys(message.from_user.id):
             if await check_if_subed(message.from_user.id):
@@ -158,9 +126,7 @@ async def get_profile_data(message: types.Message):
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
     else:
-        await db.connect()
-        await db.add_user(message.from_user.id)
-        await db.close()
+        await add_user(user_id=message.from_user.id)
         await message.answer("Вы не были занесены в БД, но я это исправил, подпишитесь на бота чтоб выполнить эту команду!", reply_markup=keyb_for_unsubed)
 
 #______________ADMIN___PANEL___THINGS__________________
@@ -218,7 +184,7 @@ async def give_free_sub_step_choose_time(message: types.Message, state: FSMConte
             try:
                 await state.finish()
                 await bot.send_message(user_id, f'Вам выдана бесплатная подписка на {message.text} дней')
-                await db.set_free_sub_end(user_id, datetime.now() + timedelta(days=int(message.text)))
+                await set_free_sub_end(user_id, datetime.now() + timedelta(days=int(message.text)))
                 await message.answer(f'Бесплатная подписка на {message.text} дней выдана пользователю и он об этом уведомление')
 
             except:
@@ -252,11 +218,11 @@ async def extend_free_sub_all(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         users_with_free = await get_users_with_free_sub()
         for user_id in users_with_free:
-            free_sub = await db.get_free_sub_end(int(user_id))
+            free_sub = await get_free_sub_end(user_id)
             if free_sub is not None:
-                free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
+                free_sub = convert_strdate_to_date(free_sub)
                 free_sub = free_sub + timedelta(days=int(message.text))
-                await db.set_free_sub_end(int(user_id), free_sub)
+                await set_free_sub_end(int(user_id), free_sub)
     else:
         await state.reset_state()
         await message.answer('Вы должны были ввести число')
@@ -289,15 +255,15 @@ async def extend_free_sub_choose_date_for_one(message: types.Message, state: FSM
         user_id = None
         async with state.proxy() as data:
             user_id = data['user_id']
-        free_sub = await db.get_free_sub_end(user_id)
+        free_sub = await get_free_sub_end(user_id)
         if free_sub is not None:
-            free_sub = datetime.strptime(free_sub, '%Y-%m-%d %H:%M:%S.%f')
+            free_sub = convert_strdate_to_date(free_sub)
             free_sub = free_sub + timedelta(days=int(message.text))
             try:
                 await state.finish()
                 await bot.send_message(user_id, "Вам была продлена бесплатная подписка")
                 await message.answer("Бесплатная подписка для пользователя продлена")
-                await db.set_free_sub_end(user_id, free_sub)
+                await set_free_sub_end(user_id, free_sub)
             except:
                 await state.finish()
                 await message.answer("Что-то пошло не так на стороне пользователя")
@@ -390,9 +356,7 @@ async def make_partner(message: types.Message, state: FSMContext):
 @dp.message_handler(state=MakePartner.CHOOSE_ID)
 async def make_partner_id(message: types.Message, state: FSMContext):
     if message.text.isdigit():
-        await db.connect()
-        is_partner = await db.is_partner(int(message.text))
-        await db.close()
+        is_partner = await is_partner(int(message.text))
         if is_partner:
             await state.finish()
             await message.answer("Этот человек уже партнер")
@@ -402,9 +366,7 @@ async def make_partner_id(message: types.Message, state: FSMContext):
                 await state.finish()
                 await bot.send_message(message.text, 'Вам просвоен статус партнера')
                 await message.answer("Вы присвоили человеку статус партнера и он об этом уведомлен")
-                await db.connect()
-                await db.set_partner(int(message.text))
-                await db.close()
+                await set_partner(int(message.text))
 
             except:
                 await state.finish()
@@ -427,9 +389,7 @@ async def check_ref(message: types.Message, state: FSMContext):
 @dp.message_handler(state=CheckRef.CHOOSE_ID)
 async def get_stat(message: types.Message, state: FSMContext):
     if message.text.isdigit():
-        await db.connect()
-        ref_traffic = await db.get_referer_traffic(message.from_user.id) # кол-во людей
-        await db.close()
+        ref_traffic = await get_referer_traffic(message.from_user.id) # кол-во людей
         await message.answer(f"Реферальная ссылка пользователя: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽")
     else:
         await state.reset_state()
@@ -439,11 +399,11 @@ async def get_stat(message: types.Message, state: FSMContext):
 async def process_stock(stock, volume_avg_prev, coef):
     while True:
         await collecting_avg_event.wait()
-        await db.connect()
-        users_arr = await db.get_all_users()
+        users_arr = await get_all_users()
         start_time = datetime.now(offset).replace(hour=9, minute=50, second=0, microsecond=0).time()
         end_time = datetime.now(offset).replace(hour=23, minute=50, second=0, microsecond=0).time()
         if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time and datetime.now(offset).weekday() < 6:
+            print(f'Handling {stock[0]}')
             try:
                 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
