@@ -47,7 +47,7 @@
 
               payments.oncomplete = (result) => {
                   console.log('result', result);
-                  window.location.href = "/pay/" + "<%= account_id %>" + '/' + "<%= amount %>" + '/' + `${savedEmail}`;
+
               }
 
               payments.pay("charge", { // options

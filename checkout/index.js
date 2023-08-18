@@ -276,18 +276,7 @@ app.get('/pay/:account_id/:amount/:email', async (req, res) => {
   var amount = parseInt(req.params.amount)
   var email = req.params.email
   let usersData = [];
-  const keyboard = [
-    ['ℹ️ О боте. Руководство '],
-    ['✅ Подписка '],
-  ];
 
-  const replyKeyboardMarkup = {
-    reply_markup: {
-      keyboard: keyboard,
-      resize_keyboard: true,
-      one_time_keyboard: true,
-    }
-  };
   try {
       const usersFileContent = fs.readFileSync(usersFilePath, 'utf-8');
       usersData = JSON.parse(usersFileContent);
@@ -318,15 +307,15 @@ app.get('/pay/:account_id/:amount/:email', async (req, res) => {
                     if (parseInt(amount) == 999) {
                       //sub, account_id, amount, days, email
                       await process_check_handling(sub, account_id, amount, 30, email)
-                      return res.render('thanks')
+                      res.render('thanks')
                     }
                     else if (parseInt(amount) == 4999){
                       await process_check_handling(sub, account_id, amount, 180, email)
-                      return res.render('thanks')
+                      res.render('thanks')
                     }
                     else if (parseInt(amount) == 7999){
                       await process_check_handling(sub, account_id, amount, 180, email)
-                      return res.render('thanks')
+                      res.render('thanks')
                     }
                 }
             }
@@ -351,6 +340,18 @@ app.get("/thanks", function(req, res){
 
 
 async function process_check_handling(sub, account_id, amount, days, email){
+  const keyboard = [
+    ['ℹ️ О боте. Руководство '],
+    ['✅ Подписка '],
+  ];
+
+  const replyKeyboardMarkup = {
+    reply_markup: {
+      keyboard: keyboard,
+      resize_keyboard: true,
+      one_time_keyboard: true,
+    }
+  };
   const now = new Date();
   const futureDate = new Date(now.getTime() + (days * 24 * 60 * 60 * 1000));
   client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount:  10, Interval: "Month", Period: 1, Currency: "RUB", StartDate: futureDate})
