@@ -193,12 +193,3 @@ async def update_sub_for_all(days):
                 if sub.status == 'Active' and not do_have_free_sub(user[0]):
                     await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
 
-async def main():
-    client_demo = AioCpClient('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
-    await cancel_sub(764315256)
-    for i in await client_demo.find_subscriptions(764315256):
-        print(i)
-    await client_demo.disconnect()
-              
-loop = asyncio.get_event_loop()
-asyncio.run(main())
