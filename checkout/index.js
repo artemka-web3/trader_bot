@@ -451,7 +451,7 @@ async function gen_check(email,  account_id, amount, token_evotor){
 }
 
 // Запуск сервера
-app.listen(3000, function () {
-  console.log('Сервер запущен на порту 3000!');
+app.listen(80, function () {
+  console.log('Сервер запущен на порту 80!');
 
 });
