@@ -192,4 +192,15 @@ async def update_sub_for_all(days):
             for sub in await client.find_subscriptions(str(user[0])):
                 if sub.status == 'Active' and not do_have_free_sub(user[0]):
                     await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
+"""
+ОСУЩЕСТВЛЕНИЕ ОТПРАВКИ ЧЕКОВ По ПЛАТЕЖАМ КОТОРЫЕ ПРОШЛИ НЕ ДЛЯ БОТА
+- вызов раз в день с получением тек. даты в таком формате "2014-08-09"
+- если слово 'подписка':
+    есть: скип
+    нет: 
+        1) получить email & account_id & статус платежа &  terminal url & paymentAmount
+        2) сформировать чек
+        3) отправить запрос на формирование чека
+        4) отправка
+"""
 
