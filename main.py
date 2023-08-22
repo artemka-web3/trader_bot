@@ -466,6 +466,7 @@ async def send():
                     print(f"{item['sec_name']}\nОшибка отправки\n", e)
 
 async def scheduler():
+    aioschedule.every(1).minutes.do(send())
     aioschedule.every(1).days.at('01:00').do(get_prev_avg_months(3))
     while True:
         await aioschedule.run_pending()
