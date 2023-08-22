@@ -123,8 +123,7 @@ async def get_current_stock_volume(security, cur_time):
 
 # PRICE CHANGE
 async def get_price_change(open_p, close_p):
-    return round((float(open_p) * 100 / float(close_p)) - 100, 2)
-
+    return round(((close_p - open_p)/open_p) * 100, 2)
 
 # GET PAST  MONTHS VOLUMES
 async def get_prev_avg_months(volumes_dict, months_to_scroll):

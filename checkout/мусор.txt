@@ -286,3 +286,41 @@ app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) =
       return res.redirect('http://localhost:3000/thanks')})
     .catch(error => console.error('Ошибка:', error));
 });
+
+
+
+
+
+
+
+
+
+
+
+    // {
+    //     "id": 2,
+    //     "user_id": 222222222,
+    //     "referer_id": null,
+    //     "money_paid": 1998,
+    //     "trxId": "transaction123",
+    //     "is_partner": 1,
+    //     "free_sub_end": null
+    // },
+    // {
+    //     "id": 3,
+    //     "user_id": 6132645711,
+    //     "referer_id": null,
+    //     "money_paid": 2000,
+    //     "trxId": "transaction123",
+    //     "is_partner": 1,
+    //     "free_sub_end": null
+    // },
+    // {
+    //     "id": 4,
+    //     "user_id": 1892710536,
+    //     "referer_id": null,
+    //     "money_paid": 0,
+    //     "trxId": null,
+    //     "is_partner": 0,
+    //     "free_sub_end": null
+    // }
