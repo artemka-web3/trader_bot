@@ -16,7 +16,7 @@ login = 'kazakovoleg797@gmail.com'
 password = "Inkgroup12!"
 s = re.Session()
 s.get('http://passport.moex.com/authenticate', auth=(login, password))
-headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0"}
+headers = {'User-Agent':'Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'}
 cookies = {'MicexPassportCert': s.cookies['MicexPassportCert']}
 s.close()
 

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import pytz
 import asyncio
 from json_db import *
+import requests
 
 
 """
@@ -16,6 +17,9 @@ v2
 pk_c8695290fec5bcb40f468cca846d2
 d3119d06f156dad88a2ed516957b065b
 """
+LOGIN = 'KDeOYMPCsp'
+PASSWORD = 'cgdCYjFcOSWJYHW'
+GROUP_CODE = '9fab4def-2fed-4b05-8b31-a23a3904b043'
 client = AioCpClient('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
 
 
@@ -203,4 +207,38 @@ async def update_sub_for_all(days):
         3) отправить запрос на формирование чека
         4) отправка
 """
+async def send_check_to_all():
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    timezone = 'MSK'
+    payments = await client.list_payments(current_date, timezone)
+    for item in payments:
+        if "подписк" in item.description.lower():
+            email_for_check = item.email
+            account_id = item.account_id
+            pay_state = item.status
+            terminal_url = item.terminal_url
+            paymentAmount = item.payment_amount
+            check_token = await get_check_token()
+            # отправить
+
+async def get_check_token():
+    requestData = {
+        "login": LOGIN,
+        "pass": PASSWORD,
+    }
+
+    headers = {
+        'Content-Type': 'application/json; charset=utf-8',
+    }
+
+    response = requests.post(
+        'https://fiscalization.evotor.ru/possystem/v5/getToken',
+        json=requestData,
+        headers=headers
+    )
+    return response.json()['token']
+
+# print(get_check_token())
+#loop = asyncio.get_event_loop()
+#print(loop.run_until_complete(get_check_token()))
 
