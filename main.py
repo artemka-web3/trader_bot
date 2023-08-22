@@ -438,7 +438,7 @@ async def process_stock(stock, volume_avg_prev, coef):
         start_time = datetime.now(offset).replace(hour=9, minute=50, second=0, microsecond=0).time()
         end_time = datetime.now(offset).replace(hour=23, minute=50, second=0, microsecond=0).time()
         if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time and datetime.now(offset).weekday() < 6:
-            print(f'Handling {stock[0]}')
+            #print(f'Handling {stock[0]}')
             try:
                 current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
                 current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
@@ -490,33 +490,32 @@ async def process_stock(stock, volume_avg_prev, coef):
                                         parse_mode=types.ParseMode.HTML,
                                         disable_web_page_preview=True
                                     )
-                                    print('ПОВЫШЕННЫЙ ОБЪЕМ', sec_id)
-                                    print('Акция - ', sec_id)
-                                    #volume_rub = current_stock_data[4]
-                                    print('Объем - ', current_stock_data)
-                                    print('Средний объем - ', check_volume)
-                                    print('Коэф - ', coef)
-                                    print("Уверенность?", bool(check_volume * coef < current_stock_data[4] and current_stock_data[4]>1000000))
-                                    print('price change - ', price_change)
-                                    print('_________')
+                                    # print('ПОВЫШЕННЫЙ ОБЪЕМ', sec_id)
+                                    # print('Акция - ', sec_id)
+                                    # #volume_rub = current_stock_data[4]
+                                    # print('Объем - ', current_stock_data)
+                                    # print('Средний объем - ', check_volume)
+                                    # print('Коэф - ', coef)
+                                    # print("Уверенность?", bool(check_volume * coef < current_stock_data[4] and current_stock_data[4]>1000000))
+                                    # print('price change - ', price_change)
+                                    # print('_________')
                                 except:
                                     continue
-                        else:
-                            print('ПРОПУУУСК', sec_id)
-                            print('Акция - ', sec_id)
-                            #volume_rub = current_stock_data[4]
-                            print('Объем - ', current_stock_data[4])
-                            print('Средний объем - ', check_volume)
-                            print('Коэф - ', coef)
-                            print("Уверенность?", bool(check_volume * coef < current_stock_data[4] and current_stock_data[4]>1000000))
-                            print('price change - ', price_change)
-                            print('_________')
+                        # else:
+                            # print('ПРОПУУУСК', sec_id)
+                            # print('Акция - ', sec_id)
+                            # #volume_rub = current_stock_data[4]
+                            # print('Объем - ', current_stock_data[4])
+                            # print('Средний объем - ', check_volume)
+                            # print('Коэф - ', coef)
+                            # print("Уверенность?", bool(check_volume * coef < current_stock_data[4] and current_stock_data[4]>1000000))
+                            # print('price change - ', price_change)
+                            # print('_________')
             except exceptions.RetryAfter as e:
                 time.sleep(e.timeout)
             except Exception as e:
-                print(f"{stock[0]}", e)
-        else:
-            print(f'Торги не идут {stock[0]}')
+                pass
+                # print(f"{stock[0]}", e)
         await asyncio.sleep(60) 
 
 async def process_stocks():

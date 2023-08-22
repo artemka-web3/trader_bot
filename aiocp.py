@@ -212,7 +212,7 @@ async def send_check_to_all():
     timezone = 'MSK'
     payments = await client.list_payments(current_date, timezone)
     for item in payments:
-        if "подписк" in item.description.lower():
+        if "подписк" not in item.description.lower():
             email_for_check = item.email
             account_id = item.account_id
             pay_state = item.status
