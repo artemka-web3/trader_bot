@@ -453,7 +453,7 @@ async def send():
                         f"Изменение цены: {item['price_change']}%\n"+
                         f"Объем: {round(float(item['volume_rub'])/1000000, 2)}M₽ ({item['lot_amount']} лотов)\n" + 
                         (f"<b>Покупка: {item['buyers']}%</b> Продажа: {item['sellers']}%\n" if data['buyers'] > data['sellers'] else f"Покупка: {data['buyers']}% <b>Продажа: {data['sellers']}%</b>\n") +
-                        f"Время: {item['current_date']} {item['current_time']}\n"+
+                        f"Время: {item['current_date']} {item['time']}\n"+
                         f"Цена: {item['current_price']}₽\n"+ 
                         f"Изменение за день: {item['day_change']}%\n\n"+
                         "<b>Заметил Радар Биржи</b>\n"
