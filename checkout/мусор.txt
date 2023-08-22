@@ -324,3 +324,174 @@ app.get('/generate-receipt/:token/:account_id/:email/:price', async (req, res) =
     //     "is_partner": 0,
     //     "free_sub_end": null
     // }
+
+
+
+
+
+
+    async def process_stocks():
+    await collecting_avg_event.wait() 
+    securities = await get_securities()
+
+    # check if stock[0] in csv
+    async with aiofiles.open('shares_v2.csv', mode='r') as reader:
+        async for row in aiocsv.AsyncDictReader(reader, delimiter='\n'):
+            if row is not None:
+                for stock in securities:
+                    if row['Полное название акций,тикет,сокращённое название,ликвидность'] is not None:
+                        if row['Полное название акций,тикет,сокращённое название,ликвидность'].split(',')[1] == stock[0]:
+                            coef = int(row['Полное название акций,тикет,сокращённое название,ликвидность'].split(',')[-1])
+                            task = process_stock(stock, volumes_avg_prev, coef)
+                            tasks.append(task)
+            
+        #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
+    for task in tasks:
+        asyncio.create_task(task)
+        await asyncio.sleep(5)
+
+
+
+        async def main():
+    await process_stocks()
+
+
+
+
+
+    async def collect_volumes_avg():
+    global volumes_avg_prev
+    collecting_avg_event.clear() 
+    if datetime.now(offset).weekday() < 6:
+        volumes_avg_prev = await get_prev_avg_months(volumes_avg_prev, 3)
+        collecting_avg_event.set() 
+        return volumes_avg_prev
+    else:
+        collecting_avg_event.set() 
+        return {}
+
+async def schedule_collecting_volumes():
+    await collect_volumes_avg()
+
+
+
+
+
+
+
+
+
+    async def process_stock(stock, volume_avg_prev, coef):
+    while True:
+        await collecting_avg_event.wait()
+        users_arr = await get_all_users()
+        start_time = datetime.now(offset).replace(hour=9, minute=50, second=0, microsecond=0).time()
+        end_time = datetime.now(offset).replace(hour=23, minute=50, second=0, microsecond=0).time()
+        if end_time >= datetime.now(offset).time() and datetime.now(offset).time() >= start_time and datetime.now(offset).weekday() < 6:
+            #print(f'Handling {stock[0]}')
+            try:
+                current_date = (datetime.now(offset)).strftime('%Y-%m-%d')
+                current_hour = ("0" +str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
+                current_minute = ("0" +str(datetime.now(offset).minute - 1) if len(str(datetime.now(offset).minute - 1)) < 2 else str(datetime.now(offset).minute - 1))
+                current_time = str(current_hour) +":"+ str(current_minute)
+                stock_data = await get_stock_data(stock[0])
+                current_stock_data = await get_current_stock_volume(stock[0], current_time)
+                price_change = await get_price_change(current_stock_data[0], current_stock_data[1])
+                sec_id = stock_data[0]
+                sec_name = stock_data[1] 
+                lot_size = stock_data[2]
+                day_change = stock_data[3]
+                current_price = current_stock_data[1]
+                volume_rub = current_stock_data[4]
+                volume_shares = current_stock_data[5] 
+                lot_amount = round(volume_shares / lot_size, 2)
+                price_change_status = 0
+                if price_change > 0:
+                    price_change_status = 1
+                elif price_change < 0:
+                    price_change_status = 2
+                buyers_sellers = await buyers_vs_sellers1(price_change_status)
+                buyers = buyers_sellers[0] # %
+                sellers = buyers_sellers[1] # %
+                data = [sec_id, sec_name, day_change, current_price, volume_rub, lot_amount, price_change, buyers, sellers]
+                dir = '🔵'
+                if data[-3] > 0:
+                    dir = "🟢"
+                elif data[-3] < 0:
+                    dir = "🔴"
+                check_volume = volume_avg_prev[stock[0]]
+                print(f"{stock[0]} данные получены\n{data}")
+                if users_arr:
+                    for user in users_arr:
+                        if check_volume * coef <= data[4] and current_stock_data[4] > 1000000:
+                            if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
+                                try:
+                                    await bot.send_message(
+                                        int(user[0]),
+                                        f"#{data[0]} <b>{data[1]}</b>\n\n{dir}Аномальный объем\n"+
+                                        f'Изменение цены: {data[-3]}%\n'+
+                                        f'Объем: {round(float(data[4])/1000000, 2)}M₽ ({data[-4]} лотов)\n' + 
+                                        (f'<b>Покупка: {data[-2]}%</b> Продажа: {data[-1]}%\n' if data[-2] > data[-1] else f'Покупка: {data[-2]}% <b>Продажа: {data[-1]}%</b>\n') +
+                                        f'Время: {current_date[5:]} {current_time}\n'+
+                                        f'Цена: {data[3]}₽\n'+ 
+                                        f'Изменение за день: {data[2]}%\n\n'+
+                                        "<b>Заметил Радар Биржи</b>\n"
+                                        f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
+                                        disable_notification=False,
+                                        parse_mode=types.ParseMode.HTML,
+                                        disable_web_page_preview=True
+                                    )
+                                    # print('ПОВЫШЕННЫЙ ОБЪЕМ', sec_id)
+                                    # print('Акция - ', sec_id)
+                                    # #volume_rub = current_stock_data[4]
+                                    # print('Объем - ', current_stock_data)
+                                    # print('Средний объем - ', check_volume)
+                                    # print('Коэф - ', coef)
+                                    # print("Уверенность?", bool(check_volume * coef < current_stock_data[4] and current_stock_data[4]>1000000))
+                                    # print('price change - ', price_change)
+                                    # print('_________')
+                                except Exception as e:
+                                    print(f'{stock[0]} попытка отправки сообщения\n{e}')
+                                    continue
+                        # else:
+                            # print('ПРОПУУУСК', sec_id)
+                            # print('Акция - ', sec_id)
+                            # #volume_rub = current_stock_data[4]
+                            # print('Объем - ', current_stock_data[4])
+                            # print('Средний объем - ', check_volume)
+                            # print('Коэф - ', coef)
+                            # print("Уверенность?", bool(check_volume * coef < current_stock_data[4] and current_stock_data[4]>1000000))
+                            # print('price change - ', price_change)
+                            # print('_________')
+            except exceptions.RetryAfter as e:
+                time.sleep(e.timeout)
+            except Exception as e:
+                print(f"{stock[0]}", e)
+        await asyncio.sleep(60) 
+
+
+
+
+
+        #_____АСИНХРОННЫЕ__ФУНКЦИИ__ДЛЯ__ВЫПОЛНЕНИЯ__ОСНОВНОГО__ФУНКЦИОНАЛА        
+
+# # async def delivery():
+# #     users = await get_unsubed_users()
+# #     if users:
+# #         for user_id in users:
+# #             await bot.send_message(user_id, 'У тебя нет подписки на нашего бота, советуем тебе оформить ее как можно скорее и приглашать своих друзей сюда. Вызови /subscribe')
+
+
+
+# async def scheduler():
+#     aioschedule.every(1).days.at('01:00').do(collect_volumes_avg)
+
+#     while True:
+#         await aioschedule.run_pending()
+#         await asyncio.sleep(1)
+
+
+# async def on_startup(_):
+#     asyncio.create_task(collect_volumes_avg())
+#     asyncio.create_task(main())
+#     asyncio.create_task(scheduler())

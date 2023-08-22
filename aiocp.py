@@ -1,5 +1,4 @@
 from cloudpayments import CloudPayments
-from aiodb import BotDB
 from aiocloudpayments import AioCpClient
 from datetime import datetime, timedelta
 import pytz
