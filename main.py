@@ -470,7 +470,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                 elif data[-3] < 0:
                     dir = "🔴"
                 check_volume = volume_avg_prev[stock[0]]
-                print(f"{stock[0]} данные получены")
+                print(f"{stock[0]} данные получены\n{data}")
                 if users_arr:
                     for user in users_arr:
                         if check_volume * coef <= data[4] and current_stock_data[4] > 1000000:
@@ -500,8 +500,8 @@ async def process_stock(stock, volume_avg_prev, coef):
                                     # print("Уверенность?", bool(check_volume * coef < current_stock_data[4] and current_stock_data[4]>1000000))
                                     # print('price change - ', price_change)
                                     # print('_________')
-                                except:
-                                    print(f'{stock[0]} попытка отправки сообщения')
+                                except Exception as e:
+                                    print(f'{stock[0]} попытка отправки сообщения\n{e}')
                                     continue
                         # else:
                             # print('ПРОПУУУСК', sec_id)
@@ -516,8 +516,7 @@ async def process_stock(stock, volume_avg_prev, coef):
             except exceptions.RetryAfter as e:
                 time.sleep(e.timeout)
             except Exception as e:
-                pass
-                # print(f"{stock[0]}", e)
+                print(f"{stock[0]}", e)
         await asyncio.sleep(60) 
 
 async def process_stocks():
