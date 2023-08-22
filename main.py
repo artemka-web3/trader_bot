@@ -470,6 +470,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                 elif data[-3] < 0:
                     dir = "🔴"
                 check_volume = volume_avg_prev[stock[0]]
+                print(f"{stock[0]} данные получены")
                 if users_arr:
                     for user in users_arr:
                         if check_volume * coef <= data[4] and current_stock_data[4] > 1000000:
@@ -500,6 +501,7 @@ async def process_stock(stock, volume_avg_prev, coef):
                                     # print('price change - ', price_change)
                                     # print('_________')
                                 except:
+                                    print(f'{stock[0]} попытка отправки сообщения')
                                     continue
                         # else:
                             # print('ПРОПУУУСК', sec_id)
