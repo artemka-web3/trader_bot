@@ -5,11 +5,13 @@ from moex_async import *
 from volumes_json import  *
 
 
+aio_tasks = []
+tasks = []
 
 async def collect_stocks():
+    global tasks
     tasks = []
     securities = await get_securities()
-
     # check if stock[0] in csv
     async with aiofiles.open('shares_v2.csv', mode='r') as reader:
         async for row in aiocsv.AsyncDictReader(reader, delimiter='\n'):
@@ -21,16 +23,18 @@ async def collect_stocks():
                             coef = int(row['Полное название акций,тикет,сокращённое название,ликвидность'].split(',')[-1])
                             task = track_big_volume(stock, coef)
                             tasks.append(task)
-            
-        #task = asyncio.create_task(process_stock(stock, volumes_avg_prev))
+
+async def process_stocks():
+    aio_tasks = []
     for task in tasks:
-        asyncio.create_task(task)
-        await asyncio.sleep(5)
+        aio_tasks.append(asyncio.create_task(task))
+        await asyncio.sleep(1)
+
 
 async def track_big_volume(stock, coef):
+    volume_avg_prev = await read_json_file()
+    tracked_volumes = await read_json()
     while True:
-        volume_avg_prev = await read_json_file()
-        tracked_volumes = await read_json()
         if volume_avg_prev != {}:
             try:
                 current_date = datetime.now().strftime("%Y-%m-%d")
@@ -73,5 +77,25 @@ async def track_big_volume(stock, coef):
                 print(f'{stock[0]}: {e}')
         await asyncio.sleep(60)
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(collect_stocks())
+
+#asyncio.run(collect_stocks())
+async def main():
+    global aio_tasks
+    await collect_stocks()
+    while True:
+        print(len(aio_tasks))
+        await process_stocks()
+        #await asyncio.sleep(200)
+        for task in aio_tasks:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                print("Task was cancelled")
+                continue
+        
+        #await asyncio.gather(*aio_tasks, return_exceptions=True)
+
+asyncio.run(main())
+
+
