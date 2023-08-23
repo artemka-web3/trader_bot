@@ -2,7 +2,6 @@ import asyncio
 from datetime import datetime, timedelta
 import json
 from moex_async import *
-from collect_avg_volumes import read_json_file
 from volumes_json import  *
 
 

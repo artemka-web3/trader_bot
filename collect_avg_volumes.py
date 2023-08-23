@@ -1,4 +1,3 @@
-
 from moex_async import cookies, headers, get_securities
 import aiohttp
 import datetime as dt
