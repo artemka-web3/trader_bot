@@ -33,11 +33,9 @@ def share_thread(stock, coef):
         tracked_volumes = read_json()
         if volume_avg_prev != {}:
             try:
-                hour = (datetime.now()-timedelta(hours=10)).hour
-                minute = (datetime.now()-timedelta(hours=10)).minute
-                current_date = (datetime.now()-timedelta(hours=10)).strftime("%Y-%m-%d")
-                current_hour = ("0" + str(hour) if len(str(hour)) < 2 else str(hour))
-                current_minute = ("0" + str(minute-1) if len(str(minute-1)) < 2 else str(minute - 1))
+                current_date = (datetime.now()-timedelta(days=1, hours=10)).strftime("%Y-%m-%d")
+                current_hour = ("0" + str((datetime.now()-timedelta(hours=10)).hour) if len(str((datetime.now()-timedelta(hours=10)).hour)) < 2 else str((datetime.now()-timedelta(hours=10)).hour))
+                current_minute = ("0" + str(datetime.now().minute-1) if len(str(datetime.now().minute-1)) < 2 else str(datetime.now().minute - 1))
                 current_time = str(current_hour) + ":" + str(current_minute)
                 stock_data = get_stock_data(stock[0])
                 current_stock_data = get_current_stock_volume(stock[0], current_time)
@@ -64,8 +62,7 @@ def share_thread(stock, coef):
                 elif price_change < 0:
                     dir = "🔴"
                 check_volume = volume_avg_prev[stock[0]]
-                coef = 0
-                if check_volume * coef < volume_rub and volume_rub > 1000000:
+                if check_volume * 0 < volume_rub and volume_rub > 1000000:
                     print('Повышенные ', stock[0])
                     data = {
                         "sec_id": sec_id,
@@ -88,6 +85,7 @@ def share_thread(stock, coef):
             except Exception as e:
                 print(f'{stock[0]}: {e}')
         time.sleep(60)
+
 collect_stocks()
 for thread in threads:
     thread.join()
