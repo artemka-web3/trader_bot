@@ -464,6 +464,7 @@ async def send():
                     )
                 except Exception as e:
                     print(f"{item['sec_name']}\nОшибка отправки\n", e)
+        await clear_json()
 
 async def scheduler():
     aioschedule.every(1).minutes.do(send())
