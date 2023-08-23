@@ -33,8 +33,8 @@ def share_thread(stock, coef):
         tracked_volumes = read_json()
         if volume_avg_prev != {}:
             try:
-                current_date = datetime.now().strftime("%Y-%m-%d")
-                current_hour = ("0" + str(datetime.now().hour) if len(str(datetime.now().hour)) < 2 else str(datetime.now().hour))
+                current_date = (datetime.now()-timedelta(hours=10)).strftime("%Y-%m-%d")
+                current_hour = ("0" + str(datetime.now().hour-10) if len(str(datetime.now().hour-10)) < 2 else str(datetime.now().hour-10))
                 current_minute = ("0" + str(datetime.now().minute - 1) if len(str(datetime.now().minute - 1)) < 2 else str(datetime.now().minute - 1))
                 current_time = str(current_hour) + ":" + str(current_minute)
                 stock_data = get_stock_data(stock[0])
