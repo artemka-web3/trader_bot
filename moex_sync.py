@@ -4,7 +4,6 @@ import datetime as dt
 import time
 import logging
 import random
-import csv
 
 offset = dt.timezone(timedelta(hours=3))
 login = 'kazakovoleg797@gmail.com'

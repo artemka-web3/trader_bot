@@ -1,11 +1,8 @@
 import aiohttp
-import pandas as pd
 import asyncio
 import requests as re
 from datetime import datetime, timedelta
 import datetime as dt
-import time
-import logging
 import aiocsv
 import aiofiles
 import random
