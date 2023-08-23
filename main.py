@@ -450,28 +450,29 @@ async def send():
         for item in data:
             print(item)
             for user in users:
-                try:
-                    await bot.send_message(
-                        int(user[0]),
-                        f"#{item['sec_id']} <b>{item['sec_name']}</b>\n\n{item['dir']}Аномальный объем\n"+
-                        f"Изменение цены: {item['price_change']}%\n"+
-                        f"Объем: {round(float(item['volume_rub'])/1000000, 2)}M₽ ({item['lot_amount']} лотов)\n" + 
-                        (f"<b>Покупка: {item['buyers']}%</b> Продажа: {item['sellers']}%\n" if item['buyers'] > item['sellers'] else f"Покупка: {item['buyers']}% <b>Продажа: {item['sellers']}%</b>\n") +
-                        f"Время: {item['current_date']} {item['time']}\n"+
-                        f"Цена: {item['current_price']}₽\n"+ 
-                        f"Изменение за день: {item['day_change']}%\n\n"+
-                        "<b>Заметил Радар Биржи</b>\n"
-                        f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user[0]}">@{BOT_NICK}</a></b>""",
-                        disable_notification=False,
-                        parse_mode=types.ParseMode.HTML,
-                        disable_web_page_preview=True
-                    )
-                except exceptions.RetryAfter as e:
-                    time.sleep(e.timeout)
-                    print(f'блокировка бота на {e.timeout}')
-                except Exception as e:
-                    print(f"{item['sec_name']}\nОшибка отправки\n", e)
-                    continue
+                if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
+                    try:
+                        await bot.send_message(
+                            int(user[0]),
+                            f"#{item['sec_id']} <b>{item['sec_name']}</b>\n\n{item['dir']}Аномальный объем\n"+
+                            f"Изменение цены: {item['price_change']}%\n"+
+                            f"Объем: {round(float(item['volume_rub'])/1000000, 2)}M₽ ({item['lot_amount']} лотов)\n" + 
+                            (f"<b>Покупка: {item['buyers']}%</b> Продажа: {item['sellers']}%\n" if item['buyers'] > item['sellers'] else f"Покупка: {item['buyers']}% <b>Продажа: {item['sellers']}%</b>\n") +
+                            f"Время: {item['current_date']} {item['time']}\n"+
+                            f"Цена: {item['current_price']}₽\n"+ 
+                            f"Изменение за день: {item['day_change']}%\n\n"+
+                            "<b>Заметил Радар Биржи</b>\n"
+                            f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user[0]}">@{BOT_NICK}</a></b>""",
+                            disable_notification=False,
+                            parse_mode=types.ParseMode.HTML,
+                            disable_web_page_preview=True
+                        )
+                    except exceptions.RetryAfter as e:
+                        time.sleep(e.timeout)
+                        print(f'блокировка бота на {e.timeout}')
+                    except Exception as e:
+                        print(f"{item['sec_name']}\nОшибка отправки\n", e)
+                        continue
         await clear_json()
 
 def schedule_tasks():

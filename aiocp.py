@@ -238,6 +238,8 @@ async def get_check_token():
     return response.json()['token']
 
 
+# async def main():
+#     return await check_if_subed(764315256)
 
-
-
+# loop = asyncio.get_event_loop()
+# print(loop.run_until_complete(main()))
