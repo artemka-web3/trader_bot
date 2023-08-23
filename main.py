@@ -10,7 +10,7 @@ from fsm import *
 from aiocp import *
 from moex_async import *
 from json_db import *
-from collect_avg_volumes import get_prev_avg_months
+from collect_avg_volumes import *
 from volumes_json import *
 
 
@@ -441,10 +441,12 @@ async def get_stat(message: types.Message, state: FSMContext):
 # #             await bot.send_message(user_id, 'У тебя нет подписки на нашего бота, советуем тебе оформить ее как можно скорее и приглашать своих друзей сюда. Вызови /subscribe')
 
 async def send():
+    print('send')
     data = await read_json()
     users = await get_all_users()
     if data != []:
         for item in data:
+            print(item)
             for user in users:
                 try:
                     await bot.send_message(
@@ -452,31 +454,38 @@ async def send():
                         f"#{item['sec_id']} <b>{item['sec_name']}</b>\n\n{item['dir']}Аномальный объем\n"+
                         f"Изменение цены: {item['price_change']}%\n"+
                         f"Объем: {round(float(item['volume_rub'])/1000000, 2)}M₽ ({item['lot_amount']} лотов)\n" + 
-                        (f"<b>Покупка: {item['buyers']}%</b> Продажа: {item['sellers']}%\n" if data['buyers'] > data['sellers'] else f"Покупка: {data['buyers']}% <b>Продажа: {data['sellers']}%</b>\n") +
+                        (f"<b>Покупка: {item['buyers']}%</b> Продажа: {item['sellers']}%\n" if item['buyers'] > item['sellers'] else f"Покупка: {item['buyers']}% <b>Продажа: {item['sellers']}%</b>\n") +
                         f"Время: {item['current_date']} {item['time']}\n"+
                         f"Цена: {item['current_price']}₽\n"+ 
                         f"Изменение за день: {item['day_change']}%\n\n"+
                         "<b>Заметил Радар Биржи</b>\n"
-                        f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
+                        f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user[0]}">@{BOT_NICK}</a></b>""",
                         disable_notification=False,
                         parse_mode=types.ParseMode.HTML,
                         disable_web_page_preview=True
                     )
+                except exceptions.RetryAfter as e:
+                    time.sleep(e.timeout)
+                    print(f'блокировка бота на {e.timeout}')
                 except Exception as e:
                     print(f"{item['sec_name']}\nОшибка отправки\n", e)
+                    continue
         await clear_json()
 
-async def scheduler():
-    aioschedule.every(1).minutes.do(send())
-    aioschedule.every(1).days.at('01:00').do(get_prev_avg_months(3))
+def schedule_tasks():
+    aioschedule.every(5).seconds.do(send)
+    aioschedule.every().day.at('01:00').do(collecting_avg)
+
+
+async def main():
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
 
-
 async def on_startup(_):
-    asyncio.create_task(get_prev_avg_months(3))
-    asyncio.create_task(scheduler())
+    schedule_tasks()
+    asyncio.create_task(collecting_avg())
+    asyncio.create_task(main())
 
 
 

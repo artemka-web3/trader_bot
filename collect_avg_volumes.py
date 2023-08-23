@@ -11,14 +11,14 @@ offset = dt.timezone(timedelta(hours=3))
 
 
 
-async def get_prev_avg_months(months_to_scroll):
+async def collecting_avg():
     await clear_json_file()
     secs = await get_securities()
     prev_volumes = await read_json_file()
     for sec in secs:
         prev_volumes[sec[0]] = 0
         minutes = 0
-        prev_month = (datetime.now(offset)- timedelta(days=31*months_to_scroll)) # получается первое месяца  число в любом случае
+        prev_month = (datetime.now(offset)- timedelta(days=31*3)) # получается первое месяца  число в любом случае
         prev_month_start = (prev_month - timedelta(days=prev_month.day)).strftime("%Y-%m-%d")
         current_date = datetime.now(offset).strftime('%Y-%m-%d')
         # месяц текущий будет последни, он нам не нужен: берем 1,он второй; берем 2, он 3-ий; берем 3 - он 4-ый
@@ -28,7 +28,7 @@ async def get_prev_avg_months(months_to_scroll):
                 async with session.get(url, headers=headers, cookies=cookies) as response:
                     data = await response.json()
                     if len(data['candles']['data']) != 0:
-                        for i in data['candles']['data'][0:months_to_scroll]:
+                        for i in data['candles']['data'][0:3]:
                             if '30' in i[-1][8:10]:
                                 minutes = 43200
                                 prev_volumes[sec[0]] += round(i[4]/minutes, 3)
