@@ -66,7 +66,7 @@ async def track_big_volume(stock, coef):
                 elif price_change < 0:
                     dir = "🔴"
                 check_volume = volume_avg_prev[stock[0]]
-                if check_volume * coef < volume_rub and volume_rub > 1000000:
+                if check_volume * 1 < volume_rub and volume_rub > 1000000:
                     print('Повышенные ',stock[0])
                     data = {"sec_id": sec_id, "sec_name": sec_name, "day_change": day_change, "current_price": current_price, "volume_rub": volume_rub, "lot_amount":lot_amount, "price_change": price_change, "buyers": buyers, "sellers": sellers, "dir": dir, "time": current_time, 'current_date': current_date}
                     tracked_volumes.append(data)
