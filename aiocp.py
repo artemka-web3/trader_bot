@@ -237,7 +237,7 @@ async def get_check_token():
     )
     return response.json()['token']
 
-# print(get_check_token())
-#loop = asyncio.get_event_loop()
-#print(loop.run_until_complete(get_check_token()))
+
+
+
 
