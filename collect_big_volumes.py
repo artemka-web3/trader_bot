@@ -25,6 +25,7 @@ def collect_stocks():
         thread = threading.Thread(target=share_thread, args=(task[0], task[1],))
         threads.append(thread)
         thread.start()
+        time.sleep(0.15)
 
 def share_thread(stock, coef):
     while True:
@@ -61,7 +62,7 @@ def share_thread(stock, coef):
                 elif price_change < 0:
                     dir = "🔴"
                 check_volume = volume_avg_prev[stock[0]]
-                if check_volume * 0 < volume_rub and volume_rub > 1000000:
+                if check_volume * coef < volume_rub and volume_rub > 1000000:
                     print('Повышенные ', stock[0])
                     data = {
                         "sec_id": sec_id,
