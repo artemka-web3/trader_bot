@@ -429,7 +429,7 @@ async def check_ref(message: types.Message, state: FSMContext):
 async def get_stat(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         ref_traffic = await get_referer_traffic(message.from_user.id) # кол-во людей
-        await message.answer(f"Реферальная ссылка пользователя: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽")
+        await message.answer(f"Реферальная ссылка пользователя: https://t.me/{BOT_NICK}?start={message.text}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽")
     else:
         await state.reset_state()
         await message.answer('Вы неправильно ввели данные. введите только id. Вызовите команду /check_ref снова чтобы повторить процесс')
