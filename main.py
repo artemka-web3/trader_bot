@@ -428,7 +428,7 @@ async def check_ref(message: types.Message, state: FSMContext):
 @dp.message_handler(state=CheckRef.CHOOSE_ID)
 async def get_stat(message: types.Message, state: FSMContext):
     if message.text.isdigit():
-        ref_traffic = await get_referer_traffic(message.from_user.id) # кол-во людей
+        ref_traffic = await get_referer_traffic(int(message.text)) # кол-во людей
         await message.answer(f"Реферальная ссылка пользователя: https://t.me/{BOT_NICK}?start={message.text}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽")
     else:
         await state.reset_state()
