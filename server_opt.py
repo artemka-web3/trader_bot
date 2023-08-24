@@ -11,7 +11,7 @@ def job():
     time.sleep(5)
     os.system('sudo rm -rf /tmp/*')
     time.sleep(5)
-    time.sleep('sudo systemctl start collect_bit.service')
+    os.system('sudo systemctl start collect_bit.service')
 
 schedule.every(10).minutes.do(job)
 
