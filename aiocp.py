@@ -237,6 +237,9 @@ async def get_check_token():
     )
     return response.json()['token']
 
+async def generate_check():
+    pass
+
 
 # async def main():
 #     return await check_if_subed(764315256)

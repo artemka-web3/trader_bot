@@ -3,7 +3,7 @@ import time
 import schedule
 
 def job():
-    os.system('sudo systemctl stop collect_bit.service')
+    os.system('sudo systemctl stop collect_big.service')
     time.sleep(2)
     os.system('sudo apt clean')
     time.sleep(2)
@@ -11,9 +11,9 @@ def job():
     time.sleep(5)
     os.system('sudo rm -rf /tmp/*')
     time.sleep(5)
-    os.system('sudo systemctl start collect_bit.service')
+    os.system('sudo systemctl start collect_big.service')
 
-schedule.every(10).minutes.do(job)
+schedule.every(5).minutes.do(job)
 
 while True:
     schedule.run_pending()
