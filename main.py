@@ -72,7 +72,7 @@ async def send_welcome(message: types.Message):
             await bot.send_photo(message.from_user.id, photo, """<b>"Радар биржи"</b> анализирует все минутные свечи акций торгуемых на Московской бирже. Если бот видит повышенный обьем в акции, то он сразу сигнализирует об этом.\n\n<b>Бот уведомляет:</b>\n\n🔸 Какой обьем был куплен.\n🔸 Изменение цены на данном обьеме.\n🔸 Изменение цены за день.\n🔸 О количестве покупателей и продавцов на данном обьеме.\n\<b>Этот инструмент должен быть у каждого инвестора!</b>""", reply_markup=keyb_for_unsubed, parse_mode=ParseMode.HTML)
 @dp.message_handler(lambda message: "📋 Пользовательское соглашение" == message.text)
 async def get_user_agreement(message: types.Message):
-    await message.reply('Пользовательское соглашение: https://telegra.ph/Polzovatelskoe-soglashenie-07-13-5')
+    await message.reply('Пользовательское соглашение: https://telegra.ph/Polzovatelskoe-soglashenie-07-13-5', disable_web_page_preview=True)
 
 #___________Referral__&&__Subscription__Things___________
 @dp.message_handler(lambda message: message.text.lower() == 'купить подписку' or message.text.lower() == '/subscribe')
@@ -102,15 +102,15 @@ async def get_yo_ref_data(message: types.Message):
         if await is_in_pay_sys(message.from_user.id):
             if await check_if_subed(message.from_user.id) and not await do_have_free_sub(message.from_user.id):
                 ref_traffic = await get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed, disable_web_page_preview=True)
             elif not await check_if_subed(message.from_user.id) and await do_have_free_sub(message.from_user.id):
                 ref_traffic = await get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed, disable_web_page_preview=True)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
         else:
             if await do_have_free_sub(message.from_user.id):
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽", reply_markup=keyb_for_subed, disable_web_page_preview=True)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
     else:
@@ -163,7 +163,7 @@ async def admin_things(message: types.Message):
 @dp.message_handler(commands=['free_sub'])
 async def give_free_sub(message: types.Message, state = FSMContext):
     if message.from_user.id in ADMINS:
-        await message.answer('Вам нужно ввести ID человека которому вы хотите дать бесплатную подписку. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot')
+        await message.answer('Вам нужно ввести ID человека которому вы хотите дать бесплатную подписку. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot', disable_web_page_preview=True)
         await state.set_state(GiveFreeSub.CHOOSE_USER)
     else:
         await message.answer('Вы не админ!')
@@ -221,7 +221,7 @@ async def extend_free_sub(message: types.Message, state: FSMContext):
 @dp.message_handler(state= ExtendFreeSub.CHOSE_MODE)
 async def extend_free_sub_mode(message: types.Message, state: FSMContext):
     if message.text == 'Один':
-        await message.answer('Введите ID пользователя которому хотите продлить бесплатную подписку. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot')
+        await message.answer('Введите ID пользователя которому хотите продлить бесплатную подписку. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot', disable_web_page_preview=True)
         await state.set_state(ExtendFreeSub.CHOOSE_ID)
     elif message.text == 'Несколько':
         await message.answer("На какое кол-во дней вы хотите продлить бесплатную подписку польователям?")
@@ -310,7 +310,7 @@ async def extend_sub(message: types.Message, state: FSMContext):
 @dp.message_handler(state=ExtendSub.CHOSE_MODE)
 async def extend_sub_one_or_m(message: types.Message, state: FSMContext):
     if message.text == "Один":
-        await message.answer('Вам нужно ввести ID человека которому вы хотите продлить платную подписку. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot')
+        await message.answer('Вам нужно ввести ID человека которому вы хотите продлить платную подписку. ID можно получить вот здесь отправив ссылку на профиль https://t.me/getmy_idbot', disable_web_page_preview=True)
         await state.set_state(ExtendSub.CHOOSE_ID)
     elif message.text == 'Несколько':
         await message.answer('На какое кол-во дней вы хотите продлить платную подписку пользователям? Ответьте числом')
@@ -382,7 +382,7 @@ async def extend_sub_date(message: types.Message, state: FSMContext):
 async def make_partner(message: types.Message, state: FSMContext):
     if message.from_user.id in ADMINS:
         await state.set_state(MakePartner.CHOOSE_ID)
-        await message.answer('Вам нужно ввести ID человека которому вы хотите присвоить статус партнера. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot')
+        await message.answer('Вам нужно ввести ID человека которому вы хотите присвоить статус партнера. ID можно получить вот здесь отправив ссылку н профиль https://t.me/getmy_idbot', disable_web_page_preview=True)
     else:
         await message.answer("Вы не админ")
 
