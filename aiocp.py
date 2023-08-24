@@ -183,7 +183,11 @@ async def update_sub(user_id, days):
         if sub.status == 'Active':
             start_date = sub.start_date
             cancel_sub(user_id)
-            await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
+            if not await check_if_subed(int(user_id)):
+                await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
+            else:
+                left_days = await get_sub_end(int(user_id))
+                await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days+left_days))
             return True
     return False
 
@@ -241,8 +245,8 @@ async def generate_check():
     pass
 
 
-# async def main():
-#     return await check_if_subed(764315256)
+async def main():
+    return await get_sub_end(764315256)
 
-# loop = asyncio.get_event_loop()
-# print(loop.run_until_complete(main()))
+loop = asyncio.get_event_loop()
+print(loop.run_until_complete(main()))
