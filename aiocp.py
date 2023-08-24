@@ -179,16 +179,18 @@ async def cancel_sub(user_id):
             await client.cancel_subscription(sub.id)
 
 async def update_sub(user_id, days):
-    for sub in await client.find_subscriptions(str(user_id)):
-        if sub.status == 'Active':
-            start_date = sub.start_date
-            cancel_sub(user_id)
-            if not await check_if_subed(int(user_id)):
-                await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
-            else:
-                left_days = await get_sub_end(int(user_id))
-                await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days+left_days))
-            return True
+    for sub in await client.find_subscriptions(user_id):
+        print(sub)
+        if not await check_if_subed(user_id):
+            print(1)
+            await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days+1))
+        else:
+            print(2)
+            left_days = await get_sub_end(int(user_id))
+            await cancel_sub(user_id)
+            print(left_days)
+            await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days+1+int(left_days)))
+        return True
     return False
 
 
@@ -245,8 +247,11 @@ async def generate_check():
     pass
 
 
-async def main():
-    return await get_sub_end(764315256)
+# async def main():
+#     await update_sub(1892710536, 1)
+#     for sub in await client.find_subscriptions(str(1892710536)):
+#         print(sub)
 
-loop = asyncio.get_event_loop()
-print(loop.run_until_complete(main()))
+
+# loop = asyncio.get_event_loop()
+# print(loop.run_until_complete(main()))
