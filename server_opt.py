@@ -13,7 +13,7 @@ def job():
     time.sleep(54)
     os.system('sudo systemctl start collect_big.service')
 
-schedule.every(3).minutes.do(job)
+schedule.every(10).minutes.do(job)
 
 while True:
     schedule.run_pending()
