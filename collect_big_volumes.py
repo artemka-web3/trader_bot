@@ -23,6 +23,7 @@ def collect_stocks():
                         coef = int(row.split(',')[-1])
                         tasks.append([stock, coef])
     # fill threads
+
     for task in tasks:
         thread = threading.Thread(target=share_thread, args=(task[0], task[1],))
         threads.append(thread)
@@ -31,12 +32,11 @@ def collect_stocks():
 
 def share_thread(stock, coef):
     while True:
-        volume_avg_prev = read_json_file()
         tracked_volumes = read_json()
+        volume_avg_prev = read_json_file()
         if volume_avg_prev != {}:
             try:
                 current_date = (datetime.now()-timedelta(days=2)).strftime("%Y-%m-%d")
-                logging.info(current_date)
                 current_hour = ("0" + str(datetime.now().hour) if len(str(datetime.now().hour)) < 2 else str(datetime.now().hour))
                 current_minute = ("0" + str(datetime.now().minute-1) if len(str(datetime.now().minute-1)) < 2 else str(datetime.now().minute - 1))
                 current_time = str(current_hour) + ":" + str(current_minute)
@@ -87,8 +87,8 @@ def share_thread(stock, coef):
                 else:
                     print('Пропуск ', stock[0])
             except Exception as e:
-                logging.info((f'{stock[0]}: {e}'))
-        time.sleep(60)
+                logging.info(f'{stock[0]}: {e}')
+            time.sleep(60)
 
 collect_stocks()
 for thread in threads:
