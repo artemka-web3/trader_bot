@@ -495,3 +495,26 @@ async def schedule_collecting_volumes():
 #     asyncio.create_task(collect_volumes_avg())
 #     asyncio.create_task(main())
 #     asyncio.create_task(scheduler())
+
+
+
+
+,
+    {
+      "id": 1,
+      "user_id": 6132645711,
+      "referer_id": null,
+      "money_paid": 2000,
+      "trxId": "transaction123",
+      "is_partner": 1,
+      "free_sub_end": null
+    },
+    {
+      "id": 2,
+      "user_id": 1892710536,
+      "referer_id": null,
+      "money_paid": 0,
+      "trxId": null,
+      "is_partner": 0,
+      "free_sub_end": null
+    }
