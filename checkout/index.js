@@ -1,7 +1,5 @@
 var express = require('express');
 var path = require('path');
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('../prod.sqlite3');
 const TelegramBot = require('node-telegram-bot-api');
 const token = '6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A';
 const cp = require('cloudpayments');
