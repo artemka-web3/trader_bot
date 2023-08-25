@@ -10,7 +10,7 @@ def job():
     os.system('sudo apt autoremove')
     time.sleep(2)
     os.system('sudo rm -rf /tmp/*')
-    time.sleep(2)
+    time.sleep(54)
     os.system('sudo systemctl start collect_big.service')
 
 schedule.every(3).minutes.do(job)
