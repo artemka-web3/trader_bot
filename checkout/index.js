@@ -356,7 +356,7 @@ async function process_check_handling(sub, account_id, amount, days, email){
   bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅. Рады видеть вас снова!", replyKeyboardMarkup)
 
   console.log(`Subscription successfully activated for user ${account_id}`);
-  answer = `Перейдите по этой ссылке чтобы сгенерировать чек! http://localhost:3000/get-evotor-token/${account_id}/${email}/${amount}`
+  answer = `Перейдите по этой ссылке чтобы сгенерировать чек! http://radar-msk.ru/get-evotor-token/${account_id}/${email}/${amount}`
   let params = { "account_id": account_id, 'amount': amount, 'email': email}
   try {
     // Prepare the request data
@@ -444,12 +444,12 @@ async function gen_check(email,  account_id, amount, token_evotor){
   };  
   await axios.post(urlWithParams, receiptData, {headers})
     .then(response => function(){
-      return res.redirect('http://localhost:3000/thanks')})
+      return res.redirect('http://radar-msk.ru/thanks')})
     .catch(error => console.error('Ошибка:', error));
 }
 
 // Запуск сервера
-app.listen(3001, function () {
-  console.log('Сервер запущен на порту 3001!');
+app.listen(80, function () {
+  console.log('Сервер запущен на порту 80!');
 
 });
