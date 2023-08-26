@@ -36,7 +36,7 @@ def share_thread(stock, coef):
         volume_avg_prev = read_json_file()
         if volume_avg_prev != {}:
             try:
-                current_date = datetime.now().strftime("%Y-%m-%d")
+                current_date = (datetime.now()-timedelta(days=4)).strftime("%Y-%m-%d")
                 current_hour = ("0" + str(datetime.now().hour) if len(str(datetime.now().hour)) < 2 else str(datetime.now().hour))
                 current_minute = ("0" + str(datetime.now().minute-1) if len(str(datetime.now().minute-1)) < 2 else str(datetime.now().minute - 1))
                 current_time = str(current_hour) + ":" + str(current_minute)
@@ -66,7 +66,7 @@ def share_thread(stock, coef):
                     dir = "🔴"
                 check_volume = volume_avg_prev[stock[0]]
                 print(f"{stock[0]} volume: {volume_rub} coef: {coef} check_volume: {check_volume} result: {bool(coef*check_volume<volume_rub)}")
-                #logging.info(f"{stock[0]} volume: {volume_rub} coef: {coef} check_volume: {check_volume} result: {bool(coef*check_volume<volume_rub)}")
+                logging.info(f"{stock[0]} volume: {volume_rub} coef: {coef} check_volume: {check_volume} result: {bool(coef*check_volume<volume_rub)}")
                 if check_volume * coef < volume_rub and volume_rub > 1000000:
                     print('Повышенные ', stock[0])
                     data = {
