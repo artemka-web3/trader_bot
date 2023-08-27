@@ -64,7 +64,7 @@ def get_marketdata():
     return all_marketdata(url_get_secs, headers, cookies)
 
 def get_current_stock_volume(security, cur_time):
-    current_date = datetime.now(offset) - timedelta(days=4)
+    current_date = datetime.now(offset)
     today = current_date.strftime('%Y-%m-%d')
     start_from_for_today = 0
 

@@ -445,12 +445,10 @@ async def get_stat(message: types.Message, state: FSMContext):
 # #             await bot.send_message(user_id, 'У тебя нет подписки на нашего бота, советуем тебе оформить ее как можно скорее и приглашать своих друзей сюда. Вызови /subscribe')
 
 async def send():
-    print('send')
     data = await read_json()
     users = await get_all_users()
     if data != []:
         for item in data:
-            print(item)
             for user in users:
                 if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
                     try:
@@ -471,9 +469,9 @@ async def send():
                         )
                     except exceptions.RetryAfter as e:
                         time.sleep(e.timeout)
-                        print(f'блокировка бота на {e.timeout}')
+                        logging.info(f'блокировка бота на {e.timeout}')
                     except Exception as e:
-                        print(f"{item['sec_name']}\nОшибка отправки\n", e)
+                        logging.info(f"{item['sec_name']}\nОшибка отправки\n", e)
                         continue
         await clear_json()
 
