@@ -3,6 +3,9 @@ import aiofiles
 import asyncio
 from datetime import datetime
 
+
+file_lock = asyncio.Lock()
+
 """
 [
     {
@@ -18,16 +21,20 @@ from datetime import datetime
 """
 
 async def load_data_from_db():
-    try:
-        async with aiofiles.open('db.json', mode="r", encoding='utf-8') as f:
-            data = await f.read()
-            return json.loads(data)
-    except FileNotFoundError:
-        return []
+    async with file_lock:
+        try:
+            async with aiofiles.open('db.json', mode="r", encoding='utf-8') as f:
+                return json.loads(await f.read().replace("'", '"').replace(']]', ']').replace('[[', '['))
+        except json.JSONDecodeError:
+            return []
+        except FileNotFoundError:
+            return []
+        
 
 async def save_data_to_db(data):
-    async with aiofiles.open('db.json', 'w', encoding='utf-8') as file:
-        await file.write(json.dumps(data, indent=4))
+    async with file_lock:
+        async with aiofiles.open('db.json', 'w', encoding='utf-8') as file:
+            await file.write(json.dumps(data, indent=4))
 
 async def add_user(user_id, referer_id=None, money_paid=0, trxId=None, is_partner=0, free_sub_end=None):
     new_id = 0
@@ -41,7 +48,7 @@ async def add_user(user_id, referer_id=None, money_paid=0, trxId=None, is_partne
         "money_paid": money_paid,
         "trxId": trxId,
         "is_partner": is_partner,
-        "free_sub_end": free_sub_end,
+        "free_sub_end": free_sub_end
     }
     data.append(new_item)
     await save_data_to_db(data)
