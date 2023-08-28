@@ -28,7 +28,7 @@ def collect_stocks():
         thread = threading.Thread(target=share_thread, args=(task[0], task[1],))
         threads.append(thread)
         thread.start()
-        time.sleep(0.05)
+        time.sleep(0.2)
 
 def share_thread(stock, coef):
     while True:
