@@ -258,8 +258,17 @@ app.get('/paymentWidget/:account_id/:amount', function (req, res) {
   let params = { "account_id": account_id, 'amount': amount}
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
-      if (value.getResponse().Model != []){
-          return res.render('pay', params)
+      if (value.getResponse().Model.toString() != ''){
+        for(let sub of value.getResponse().Model){
+          if (sub.Status == "Active"){
+            alert('Вы попали не на ту страницу. Вам нужно оформить подписку, так как у вас ее никогда не было! Вернитесь в телеграм бота и выберите нужную ссылку!')
+            return res.redirect('https://t.me/RadarMsk_bot')
+          }
+          else{
+            return res.render('pay', params)
+          }
+        }
+        
       } else{
         alert('Вы попали не на ту страницу. Вам нужно оформить подписку, так как у вас ее никогда не было! Вернитесь в телеграм бота и выберите нужную ссылку!')
         return res.redirect('https://t.me/RadarMsk_bot')
@@ -449,7 +458,7 @@ async function gen_check(email, account_id, amount, token_evotor){
 }
 
 // Запуск сервера
-app.listen(3000, function () {
+app.listen(80, function () {
   console.log('Сервер запущен на порту 80!');
 
 });
