@@ -32,7 +32,7 @@ app.get('/semi_year/:account_id', function (req, res) {
   var account_id = parseInt(req.params.account_id);
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
-      if (value.getResponse().Model != []){ 
+      if (value.getResponse().Model.toString() != ''){ 
         alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
         return res.redirect('https://t.me/RadarMsk_bot')
       } else{
@@ -48,8 +48,8 @@ app.get('/month/:account_id', function (req, res) {
   var account_id = parseInt(req.params.account_id);
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
-      console.log(value.getResponse().Model)
-      if (value.getResponse().Model != []){ 
+      console.log(value.getResponse().Model.toString())
+      if (value.getResponse().Model.toString() != ''){ 
           alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
           return res.redirect('https://t.me/RadarMsk_bot')
       }
@@ -67,7 +67,7 @@ app.get('/year/:account_id', function (req, res) {
   var account_id = parseInt(req.params.account_id);
   client.getClientApi().getSubscriptionsList({accountId: account_id}).then(
     value=>{
-      if (value.getResponse().Model != []){
+      if (value.getResponse().Model.toString() != ''){
         alert('Вы попали не на ту страницу. Вам нужно обновить подписку, а не создать новую! Вернитесь в телеграм бота и выберите нужную ссылку!')
         return res.redirect('https://t.me/RadarMsk_bot')
       }
@@ -352,7 +352,7 @@ async function process_check_handling(sub, account_id, amount, days, email){
   };
   const now = new Date();
   const futureDate = new Date(now.getTime() + (days * 24 * 60 * 60 * 1000));
-  client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount:  10, Interval: "Month", Period: 1, Currency: "RUB", StartDate: futureDate})
+  client.getClientApi().updateSubscription({Id: sub.Id, AccountId: account_id, Amount: 999, Interval: "Month", Period: 1, Currency: "RUB", StartDate: futureDate})
   bot.sendMessage(parseInt(account_id), "Подписка успешно активирована ✅. Рады видеть вас снова!", replyKeyboardMarkup)
 
   console.log(`Subscription successfully activated for user ${account_id}`);
@@ -386,7 +386,7 @@ async function process_check_handling(sub, account_id, amount, days, email){
   }
 }
 
-async function gen_check(email,  account_id, amount, token_evotor){
+async function gen_check(email, account_id, amount, token_evotor){
   const currentDate = new Date();
   const year = currentDate.getFullYear();
   const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
@@ -406,7 +406,7 @@ async function gen_check(email,  account_id, amount, token_evotor){
     external_id: `${account_id}${timestampInSeconds}`,
     receipt: {
       client: {
-        email: email,
+        email: `${email}`,
         name: `${(await bot.getChat(account_id)).first_name} ${(await bot.getChat(account_id)).last_name}`
       },
       company: {
@@ -449,7 +449,7 @@ async function gen_check(email,  account_id, amount, token_evotor){
 }
 
 // Запуск сервера
-app.listen(80, function () {
+app.listen(3000, function () {
   console.log('Сервер запущен на порту 80!');
 
 });

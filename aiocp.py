@@ -318,8 +318,9 @@ async def generate_check(account_id, email, token_evotor, amount, terminal_url, 
 
 
 async def main():
-    await update_sub(1892710536, 1)
-    for sub in await client.find_subscriptions(str(1892710536)):
+    await cancel_sub(6132645711)
+    for sub in await client.find_subscriptions(str(6132645711)):
         print(sub)
 
-
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
