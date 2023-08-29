@@ -482,7 +482,7 @@ async def main():
 
 async def on_startup(_):
     schedule_tasks()
-    #asyncio.create_task(collecting_avg())
+    asyncio.create_task(collecting_avg())
     asyncio.create_task(main())
 
 
