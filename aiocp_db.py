@@ -3,7 +3,7 @@ from aiocloudpayments import AioCpClient
 from datetime import datetime, timedelta
 import pytz
 import asyncio
-from json_db import *
+from aiodb import *
 import requests
 
 
@@ -158,20 +158,8 @@ async def count_money_attracted_by_one(user_id):
     return money_paid
 
 async def count_money_attracted_by_ref(ref_id):
-    users = await get_ref_users(ref_id)
-    money_paid = 0
-    for user in users:
-        for sub in await client.find_subscriptions(str(user[0])):
-            if sub.status == 'Active' and sub.successful_transactions_number > 0:
-                # get sub price
-                money_paid += sub.amount * sub.successful_transactions_number
-                await update_money_paid(user[0], sub.amount * sub.successful_transactions_number)
-                break
-            # elif sub.status == 'Active' and sub.successful_transactions_number == 0:
-            #     money_paid += sub.amount
-            #     db.update_money_paid(user[0], sub.amount)
-            #     break
-    return money_paid
+    return await get_money_amount_attracted_by_referer(ref_id)
+
 async def cancel_sub(user_id):
     for sub in await client.find_subscriptions(str(user_id)):
         if sub.status == 'Active':
@@ -181,10 +169,8 @@ async def update_sub(user_id, days):
     for sub in await client.find_subscriptions(user_id):
         print(sub)
         if not await check_if_subed(user_id):
-            print(1)
             await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days+1))
         else:
-            print(2)
             left_days = await get_sub_end(int(user_id))
             await cancel_sub(user_id)
             print(left_days)
@@ -198,8 +184,13 @@ async def update_sub_for_all(days):
     if all_users:
         for user in all_users:
             for sub in await client.find_subscriptions(str(user[0])):
-                if sub.status == 'Active' and not do_have_free_sub(user[0]):
-                    await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days))
+                if not await check_if_subed(user[0]):
+                    await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days+1))
+                else:
+                    left_days = await get_sub_end(int(user[0]))
+                    await cancel_sub(user[0])
+                    print(left_days)
+                    await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days+1+int(left_days)))
 """
 ОСУЩЕСТВЛЕНИЕ ОТПРАВКИ ЧЕКОВ По ПЛАТЕЖАМ КОТОРЫЕ ПРОШЛИ НЕ ДЛЯ БОТА
 - вызов раз в день с получением тек. даты в таком формате "2014-08-09"
@@ -317,8 +308,8 @@ async def generate_check(account_id, email, token_evotor, amount, terminal_url, 
 
 
 async def main():
-    await cancel_sub(6132645711)
-    for sub in await client.find_subscriptions(str(6132645711)):
+    await cancel_sub(764315256)
+    for sub in await client.find_subscriptions(str(764315256)):
         print(sub)
 
 loop = asyncio.get_event_loop()

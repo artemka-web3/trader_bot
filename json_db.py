@@ -21,20 +21,18 @@ file_lock = asyncio.Lock()
 """
 
 async def load_data_from_db():
-    async with file_lock:
-        try:
-            async with aiofiles.open('db.json', mode="r", encoding='utf-8') as f:
-                return json.loads(await f.read().replace("'", '"').replace(']]', ']').replace('[[', '['))
-        except json.JSONDecodeError:
-            return []
-        except FileNotFoundError:
-            return []
+    try:
+        async with aiofiles.open('db.json', mode="r", encoding='utf-8') as f:
+            return json.loads((await f.read()).replace("'", '"').replace(']]', ']').replace('[[', '['))
+    except json.JSONDecodeError:
+        return []
+    except FileNotFoundError:
+        return []
         
 
 async def save_data_to_db(data):
-    async with file_lock:
-        async with aiofiles.open('db.json', 'w', encoding='utf-8') as file:
-            await file.write(json.dumps(data, indent=4))
+    async with aiofiles.open('db.json', 'w', encoding='utf-8') as file:
+        await file.write(json.dumps(data, indent=4))
 
 async def add_user(user_id, referer_id=None, money_paid=0, trxId=None, is_partner=0, free_sub_end=None):
     new_id = 0

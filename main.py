@@ -8,23 +8,16 @@ from config import *
 from pytz import timezone
 from kb import *
 from fsm import *
-from aiocp import *
 from moex_async import *
-from json_db import *
+from aiocp_db import *
+from aiodb import *
 from collect_avg_volumes import *
 from volumes_json import *
-
-
-
-
 import asyncio
 import aioschedule
 import logging
 import time
 import datetime as dt
-import pytz
-import aiofiles
-import aiocsv
 
 
 # ___________Configure__logging___________
@@ -391,24 +384,23 @@ async def make_partner_id(message: types.Message, state: FSMContext):
     user_exists = await if_user_exists(int(message.text))
     if user_exists:
         if message.text.isdigit():
-            is_partner = await is_partner(int(message.text))
-            if is_partner:
+            this_is_partner = await is_partner(int(message.text))
+            if this_is_partner:
                 await state.finish()
                 await message.answer("Этот человек уже партнер")
                 return
-            if await check_if_subed(int(message.text)) or await do_have_free_sub(int(message.text)):
-                try:
-                    await state.finish()
-                    await bot.send_message(message.text, 'Вам просвоен статус партнера')
-                    await message.answer("Вы присвоили человеку статус партнера и он об этом уведомлен")
-                    await set_partner(int(message.text))
-
-                except:
-                    await state.finish()
-                    await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
-            else:
-                await state.reset_state()
-                await message.answer("Человек которому вы хотите присвоить статус партнерта не подписан на бота!")
+            #if await check_if_subed(int(message.text)) or await do_have_free_sub(int(message.text)):
+            try:
+                await state.finish()
+                await bot.send_message(message.text, 'Вам просвоен статус партнера')
+                await message.answer("Вы присвоили человеку статус партнера и он об этом уведомлен")
+                await set_partner(int(message.text))
+            except:
+                await state.finish()
+                await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
+            #else:
+            #    await state.reset_state()
+            #    await message.answer("Человек которому вы хотите присвоить статус партнерта не подписан на бота!")
         else:
             await state.reset_state()
             await message.answer('Повторите все заново вызвав команду /make_partner. Вы ввели не число!')
@@ -432,6 +424,7 @@ async def get_stat(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         ref_traffic = await get_referer_traffic(int(message.text)) # кол-во людей
         await message.answer(f"Реферальная ссылка пользователя: https://t.me/{BOT_NICK}?start={message.text}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные юзеры: {await count_money_attracted_by_ref(message.from_user.id)}₽")
+        await state.reset_state()
     else:
         await state.reset_state()
         await message.answer('Вы неправильно ввели данные. введите только id. Вызовите команду /check_ref снова чтобы повторить процесс')
