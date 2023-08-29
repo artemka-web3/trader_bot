@@ -90,7 +90,7 @@ def share_thread(stock, coef):
                     #print('Пропуск ', stock[0])
             except Exception as e:
                 logging.info(f'{stock[0]}: {e}')
-            time.sleep(60)
+        time.sleep(60)
 
 collect_stocks()
 for thread in threads:
