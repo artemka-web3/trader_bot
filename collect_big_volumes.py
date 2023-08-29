@@ -69,7 +69,7 @@ def share_thread(stock, coef):
                 #logging.info(f"{stock[0]} volume: {volume_rub} coef: {coef} check_volume: {check_volume} result: {bool(coef*check_volume<volume_rub)}")
                 if check_volume * coef < volume_rub and volume_rub > 1000000:
                     #print('Повышенные ', stock[0])
-                    logging.info('Повышенные ', stock[0])
+                    logging.info(f'Повышенные {stock[0]}')
                     data = {
                         "sec_id": sec_id,
                         "sec_name": sec_name,
