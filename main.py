@@ -470,7 +470,7 @@ async def send():
         await clear_json()
 
 def schedule_tasks():
-    aioschedule.every(5).seconds.do(send)
+    aioschedule.every().minute.at(":45").do(send)
     aioschedule.every().day.at('01:00').do(collecting_avg)
 
 
