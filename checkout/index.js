@@ -238,7 +238,6 @@ app.get('/pay/:account_id/:amount/:email', async (req, res) => {
   var amount = parseInt(req.params.amount)
   var email = req.params.email
   let usersData = [];
-  amount = 999
 
   db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", amount, null, null, account_id, async function (err) {
     if (err) {
