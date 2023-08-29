@@ -470,7 +470,8 @@ async def send():
         await clear_json()
 
 def schedule_tasks():
-    aioschedule.every().minute.at(":45").do(send)
+    aioschedule.every(30).seconds.do(send)
+    #aioschedule.every(1).seconds.do(collecting_avg)
     aioschedule.every().day.at('01:00').do(collecting_avg)
 
 
@@ -481,7 +482,7 @@ async def main():
 
 async def on_startup(_):
     schedule_tasks()
-    asyncio.create_task(collecting_avg())
+    #asyncio.create_task(collecting_avg())
     asyncio.create_task(main())
 
 
