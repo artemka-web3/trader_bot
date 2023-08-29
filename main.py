@@ -440,6 +440,7 @@ async def get_stat(message: types.Message, state: FSMContext):
 async def send():
     data = await read_json()
     users = await get_all_users()
+    logging.info('send')
     if data != []:
         for item in data:
             for user in users:

@@ -5,6 +5,9 @@ import pytz
 import asyncio
 from aiodb import *
 import requests
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 """
@@ -206,6 +209,7 @@ async def send_check_to_all():
     current_date = datetime.now().strftime("%Y-%m-%d")
     timezone = 'MSK'
     payments = await client.list_payments(current_date, timezone)
+    logging.info("send checks")
     for item in payments:
         print(item)
         if "подписк" not in item.description.lower():
@@ -307,10 +311,10 @@ async def generate_check(account_id, email, token_evotor, amount, terminal_url, 
 
 
 
-async def main():
-    await cancel_sub(764315256)
-    for sub in await client.find_subscriptions(str(764315256)):
-        print(sub)
+# async def main():
+#     await cancel_sub(764315256)
+#     for sub in await client.find_subscriptions(str(764315256)):
+#         print(sub)
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
+# loop = asyncio.get_event_loop()
+# loop.run_until_complete(main())
