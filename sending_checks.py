@@ -1,5 +1,5 @@
 import aioschedule
-from aiocp import send_check_to_all
+from aiocp_db import send_check_to_all
 import asyncio
 
 def schedule_tasks():
