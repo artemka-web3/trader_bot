@@ -439,39 +439,39 @@ async def get_stat(message: types.Message, state: FSMContext):
 
 async def send():
     data = await read_json()
-    users = await get_all_users()
+    users = await get_subed_users()
     logging.info('send')
-    if data != []:
-        for item in data:
-            for user in users:
-                if await check_if_subed(user[0]) or await do_have_free_sub(user[0]) or await if_sub_didnt_end(user[0]):
-                    try:
-                        await bot.send_message(
-                            int(user[0]),
-                            f"#{item['sec_id']} <b>{item['sec_name']}</b>\n\n{item['dir']}Аномальный объем\n"+
-                            f"Изменение цены: {item['price_change']}%\n"+
-                            f"Объем: {round(float(item['volume_rub'])/1000000, 2)}M₽ ({item['lot_amount']} лотов)\n" + 
-                            (f"<b>Покупка: {item['buyers']}%</b> Продажа: {item['sellers']}%\n" if item['buyers'] > item['sellers'] else f"Покупка: {item['buyers']}% <b>Продажа: {item['sellers']}%</b>\n") +
-                            f"Время: {item['current_date']} {item['time']}\n"+
-                            f"Цена: {item['current_price']}₽\n"+ 
-                            f"Изменение за день: {item['day_change']}%\n\n"+
-                            "<b>Заметил Радар Биржи</b>\n"
-                            f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user[0]}">@{BOT_NICK}</a></b>""",
-                            disable_notification=False,
-                            parse_mode=types.ParseMode.HTML,
-                            disable_web_page_preview=True
-                        )
-                    except exceptions.RetryAfter as e:
-                        time.sleep(e.timeout)
-                        logging.info(f'блокировка бота на {e.timeout}')
-                    except Exception as e:
-                        logging.info(f"{item['sec_name']}\nОшибка отправки\n", e)
-                        continue
-        await clear_json()
+    print(data)
+    
+    for item in data:
+        for user in users:
+            try:
+                await bot.send_message(
+                    int(user),
+                    f"#{item['sec_id']} <b>{item['sec_name']}</b>\n\n{item['dir']}Аномальный объем\n"+
+                    f"Изменение цены: {item['price_change']}%\n"+
+                    f"Объем: {round(float(item['volume_rub'])/1000000, 2)}M₽ ({item['lot_amount']} лотов)\n" + 
+                    (f"<b>Покупка: {item['buyers']}%</b> Продажа: {item['sellers']}%\n" if item['buyers'] > item['sellers'] else f"Покупка: {item['buyers']}% <b>Продажа: {item['sellers']}%</b>\n") +
+                    f"Время: {item['current_date']} {item['time']}\n"+
+                    f"Цена: {item['current_price']}₽\n"+ 
+                    f"Изменение за день: {item['day_change']}%\n\n"+
+                    "<b>Заметил Радар Биржи</b>\n"
+                    f"""<b>Подключить <a href="https://t.me/{BOT_NICK}?start={user}">@{BOT_NICK}</a></b>""",
+                    disable_notification=False,
+                    parse_mode=types.ParseMode.HTML,
+                    disable_web_page_preview=True
+                )
+            except exceptions.RetryAfter as e:
+                time.sleep(e.timeout)
+                logging.info(f'блокировка бота на {e.timeout}')
+            except Exception as e:
+                logging.info(f"{item['sec_name']}\nОшибка отправки\n", e)
+                continue
+    await clear_json()
 
+    
 def schedule_tasks():
-    aioschedule.every(20).seconds.do(send)
-    #aioschedule.every(1).seconds.do(collecting_avg)
+    aioschedule.every(50).seconds.do(send)
     aioschedule.every().day.at('01:00').do(collecting_avg)
 
 
@@ -482,13 +482,13 @@ async def main():
 
 async def on_startup(_):
     schedule_tasks()
-    asyncio.create_task(collecting_avg())
+    #asyncio.create_task(collecting_avg())
     asyncio.create_task(main())
 
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, on_startup=on_startup, skip_updates=True)
+    executor.start_polling(dp, on_startup=on_startup, skip_updates=False)
 
 
 

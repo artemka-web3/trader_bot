@@ -312,9 +312,11 @@ async def generate_check(account_id, email, token_evotor, amount, terminal_url, 
 
 
 # async def main():
-#     await cancel_sub(764315256)
-#     for sub in await client.find_subscriptions(str(764315256)):
+    
+#     for sub in await client.find_subscriptions(str(1701759150)):
 #         print(sub)
+#     print(await is_in_pay_sys(1701759150))
+    
 
 # loop = asyncio.get_event_loop()
 # loop.run_until_complete(main())
