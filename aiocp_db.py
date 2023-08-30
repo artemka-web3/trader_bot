@@ -312,11 +312,16 @@ async def generate_check(account_id, email, token_evotor, amount, terminal_url, 
 
 
 # async def main():
+#     current_date = (datetime.now() -timedelta(days=2)).strftime("%Y-%m-%d")
+#     timezone = 'MSK'
+#     payments = await client.list_payments(current_date, timezone)
+#     print(payments)
+#     # for sub in await client.find_subscriptions(str(1701759150)):
+#     #     print(sub)
+#     # print(await is_in_pay_sys(1701759150))
+#     #436419688
+#     #1701759150
+#     # 6554601918
     
-#     for sub in await client.find_subscriptions(str(1701759150)):
-#         print(sub)
-#     print(await is_in_pay_sys(1701759150))
-    
-
 # loop = asyncio.get_event_loop()
 # loop.run_until_complete(main())

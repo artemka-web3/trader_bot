@@ -91,9 +91,10 @@ def convert_strdate_to_date(strdate):
 
 # # Main function to run the asynchronous code
 # async def main():
-#     return await get_ref_users(764315256)
-#     # Call other functions as needed
+#     await add_user(11111111111111)
+#     return await get_all_users()
+#     Call other functions as needed
 
-# # if __name__ == "__main__":
+# if __name__ == "__main__":
 # loop = asyncio.get_event_loop()
 # print(loop.run_until_complete(main()))

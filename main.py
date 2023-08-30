@@ -471,7 +471,7 @@ async def send():
 
     
 def schedule_tasks():
-    aioschedule.every(50).seconds.do(send)
+    aioschedule.every(60).seconds.do(send)
     aioschedule.every().day.at('01:00').do(collecting_avg)
 
 
