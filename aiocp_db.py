@@ -95,6 +95,8 @@ async def get_subed_users():
                     subed_users.append(user[0])
                 elif await if_sub_didnt_end(user[0]) and user[0] not in subed_users:
                     subed_users.append(user[0])
+                elif await do_have_free_sub(user[0]) and user[0] not in subed_users:
+                    subed_users.append(user[0])
         return subed_users
     return []
 
