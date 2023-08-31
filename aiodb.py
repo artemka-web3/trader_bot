@@ -86,7 +86,7 @@ async def get_money_amount_attracted_by_referer(referer_id):
             return row[0] if row else 0
 
 def convert_strdate_to_date(strdate):
-    date_object = datetime.strptime(strdate, "%Y-%m-%d")
+    date_object = datetime.strptime(strdate, "%Y-%m-%d %H:%M:%S.%f")
     return date_object
 
 # # Main function to run the asynchronous code
