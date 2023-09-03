@@ -17,7 +17,8 @@ def write_notifications(data):
 
 
 async def track_paid_subscriptions():
-    all_users = get_all_users()
+    all_users = await get_all_users()
+    print(1)
     for user in all_users:
         user_id = user[0]
         for sub in client.list_subscriptions(user_id):
@@ -41,7 +42,8 @@ async def track_paid_subscriptions():
                     await update_money_paid(user[0], sub.amount)
 
 async def track_free_subscriptions():
-    all_users = get_all_users()
+    all_users = await get_all_users()
+    print(2)
     for user in all_users:
         user_id = user[0]
         if await get_free_sub_end(user_id):
@@ -54,10 +56,11 @@ async def track_free_subscriptions():
                 write_notifications(notification)
 
 async def main():
-    asyncio.create_task(track_free_subscriptions)
-    asyncio.sleep(10)
-    asyncio.create_task(track_paid_subscriptions)        
+    await track_free_subscriptions()
+    await asyncio.sleep(10)
+    await track_paid_subscriptions()
 
-asyncio.run(main)
-# for sub in client.list_subscriptions(1892710536):
-#     print(sub)
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+
+

@@ -43,5 +43,9 @@ async def collecting_avg():
                     await asyncio.sleep(.2)
         except Exception as e:
             print(e)
-            await asyncio.sleep(.2)
+            await asyncio.sleep(.1)
     await write_json_file(prev_volumes)
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(collecting_avg())
+
