@@ -11,4 +11,5 @@ ADMIN_MESSAGE = """
 /check_referal - проверить статистику реферала
 /make_partner - присвоить статус партнера
 /delete_partner - убрать статус партнера
+/push_for_subed - рассылка для подписчиков
 """

@@ -400,8 +400,24 @@ async def delete_partner_id(message: types.Message, state: FSMContext):
        await state.finish()
        await message.answer('До человека не дошло сообщения тк он заблокировал бота. Прогресс сброшен') 
 
+@dp.message_handler(commands=['push_for_subed'])
+async def push_for_subed(message: types.Message, state: FSMContext):
+    if message.from_user.id in ADMINS:
+        await state.set_state(PushForSubed.input_text)
+        await message.answer('Введите текст для рассылки')
+    else:
+        await message.answer('Вы не админ!')
 
-
+@dp.message_handler(state=PushForSubed.input_text)
+async def send_push(message: types.Message, state: FSMContext):
+    subed_users = await get_subed_users()
+    for user in subed_users:
+        try:
+            await bot.send_message(user, message.text)
+        except Exception as e:
+            pass
+    await message.answer('Рассылка отправлена!')
+    await state.reset_state()
 
 
 

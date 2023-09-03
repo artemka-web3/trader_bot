@@ -31,4 +31,9 @@ class GiveFreeSub(StatesGroup):
 class CheckRef(StatesGroup):
     choose_id = State()
 
+
+# ____PUSH__THINGS____
+class PushForSubed(StatesGroup):
+    input_text = State()
+
     
