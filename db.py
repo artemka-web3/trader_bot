@@ -1,14 +1,18 @@
-import json
-import asyncio
 import aiosqlite
+import asyncio
 from cloudpayments import CloudPayments
 from datetime import datetime, timedelta
+import datetime as dt
+
 
 client = CloudPayments('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
-
+offset = dt.timezone(timedelta(hours=3))
 
 def convert_strdate_to_date(strdate):
-    date_object = datetime.strptime(strdate, "%Y-%m-%d %H:%M:%S.%f")
+    try:
+        date_object = datetime.strptime(strdate, "%Y-%m-%d %H:%M:%S.%f")
+    except:
+        date_object = datetime.strptime(strdate, "%Y-%m-%d %H:%M:%S%z")
     return date_object
 
 """
@@ -90,14 +94,14 @@ async def before_end_of_free_sub(user_id):
     free_sub = await get_free_sub_end(user_id)
     if free_sub is not None:
         free_sub = convert_strdate_to_date(free_sub)
-        if free_sub > datetime.now():
-            return (free_sub - datetime.now()).days
+        if free_sub > datetime.now(offset):
+            return (free_sub - datetime.now(offset)).days
         
 async def do_have_free_sub(user_id):
     free_sub = await get_free_sub_end(user_id)
     if free_sub is not None:
         free_sub = convert_strdate_to_date(free_sub)
-        if free_sub > datetime.now():
+        if free_sub > datetime.now(offset):
             return True
         else:
             return False
@@ -129,14 +133,14 @@ async def before_end_of_paid_sub(user_id):
     paid_sub = await get_paid_sub_end(user_id)
     if paid_sub is not None:
         paid_sub = convert_strdate_to_date(paid_sub)
-        if paid_sub > datetime.now():
-            return (paid_sub - datetime.now()).days
+        if paid_sub > datetime.now(offset):
+            return (paid_sub - datetime.now(offset)).days
         
 async def do_have_paid_sub(user_id):
     paid_sub = await get_paid_sub_end(user_id)
     if paid_sub is not None:
         paid_sub = convert_strdate_to_date(paid_sub)
-        if paid_sub > datetime.now():
+        if paid_sub > datetime.now(offset):
             return True
         else:
             return False
@@ -157,8 +161,8 @@ async def update_sub(user_id, days):
     for sub in client.list_subscriptions(user_id):
         if sub.status == 'Active':
             client.cancel_subscription(user_id)
-            await client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days+1))
-            await set_paid_sub_end(user_id, datetime.now()+timedelta(days=days+1))
+            await client.update_subscription(sub.id, start_date=datetime.now(offset)+timedelta(days=days+1))
+            await set_paid_sub_end(user_id, datetime.now(offset)+timedelta(days=days+1))
 
             
 
@@ -168,8 +172,8 @@ async def update_sub_for_all(days):
         for sub in client.list_subscriptions(str(user)):
             if sub.status == 'Active':
                 client.cancel_subscription(sub.id)
-                client.update_subscription(sub.id, start_date=datetime.now()+timedelta(days=days+1))
-                await set_paid_sub_end(user, datetime.now()+timedelta(days=days+1))
+                client.update_subscription(sub.id, start_date=datetime.now(offset)+timedelta(days=days+1))
+                await set_paid_sub_end(user, datetime.now(offset)+timedelta(days=days+1))
 
 
 
