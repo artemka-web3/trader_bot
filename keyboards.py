@@ -8,6 +8,7 @@ keyb_for_unsubed.add(types.KeyboardButton(text="📋 Пользовательс�
 # keyboard for users who have subscription
 keyb_for_subed = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False, row_width=2)
 keyb_for_subed.add(types.KeyboardButton(text="ℹ️ О боте. Руководство ")) 
+keyb_for_subed.add(types.KeyboardButton(text="Рефералка")) 
 keyb_for_subed.add(types.KeyboardButton(text="✅ Подписка ")) 
 
 def create_cancel_kb(user_id):
@@ -47,7 +48,6 @@ one_or_m.add(types.KeyboardButton(text="Несколько"))
 confirm_keyb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 confirm_keyb.add(types.KeyboardButton(text='Да'))
 confirm_keyb.add(types.KeyboardButton(text = 'Нет'))
-
 
 
 

@@ -8,7 +8,7 @@ def read_json():
         return data
 
 def write_json(data):
-    json_data = json.dumps(data, indent=4)
+    json_data = json.dumps(data, indent=4, ensure_ascii=False)
     with open('big_volumes.json', mode='w', encoding="utf-8") as file:
         file.write(json_data)
 
@@ -23,7 +23,7 @@ def read_json_file():
 
 def write_json_file(data):
     with open('volumes_avg_prev.json', mode="w", encoding='utf-8') as file:
-        file.write(json.dumps(data, indent=4))
+        file.write(json.dumps(data, indent=4, ensure_ascii=False))
 
 def update_json_data(key, value):
     data = read_json_file()

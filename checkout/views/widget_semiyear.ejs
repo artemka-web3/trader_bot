@@ -58,7 +58,7 @@
             var receipt = {
                 Items: [//товарные позиции
                     {
-                        label: 'Оплата подписки на пол года', //наименование товара
+                        label: 'Оплата подписки на полгода в Радаре Биржи', //наименование товара
                         price: 4999.00, //цена
                         quantity: 0.00, //количество
                         amount: 4999.00, //сумма
@@ -93,7 +93,7 @@
             payments.pay("charge", { // options
                 publicId: 'pk_c8695290fec5bcb40f468cca846d2',
                 accountId: '<%= account_id %>',
-                description: 'Оплата подписки на пол года',
+                description: 'Оплата подписки на полгода в Радаре Биржи',
                 amount: 4999,
                 currency: 'RUB',
                 data: data

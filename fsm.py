@@ -1,34 +1,34 @@
-from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 
+
+# ____MAKE__PARTNER____
 class MakePartner(StatesGroup):
-    CHOOSE_ID = State()
+    choose_id = State()
 
-class ExtendSub(StatesGroup):
-    CHOSE_MODE = State()
-    # for one
-    CHOOSE_ID = State()
-    SET_EXTEND_TIME_O = State()
-    # for multiple
-    SET_DAYS_M = State()
 
-class ExtendFreeSub(StatesGroup):
-    CHOSE_MODE = State()
+# ____PAID__SUB____
+class UpdatePaidSubForAll(StatesGroup):
+    choose_period = State()
 
-    CHOOSE_ID = State()
-    SET_TIME = State()
+class UpdatePaidSubForOne(StatesGroup):
+    choose_id = State()
+    choose_period = State()
 
-    SET_TIME_FOR_ALL = State()
+
+
+# ____FREE__SUB____
+class UpdateFreeSubForOne(StatesGroup):
+    choose_id = State()
+    choose_period = State()
 
 class GiveFreeSub(StatesGroup):
-    CHOOSE_USER = State()
-    SET_TIME_FOR_SUB = State()
+    choose_id = State()
+    choose_period = State()
 
+
+# ____PARTNER__THINGS____
 class CheckRef(StatesGroup):
-    CHOOSE_ID = State()
+    choose_id = State()
 
     
-

@@ -10,7 +10,7 @@ async def read_json():
         return data
 
 async def write_json(data):
-    json_data = json.dumps(data, indent=4)
+    json_data = json.dumps(data, indent=4, ensure_ascii=False)
     async with aiofiles.open('big_volumes.json', mode='w', encoding="utf-8") as file:
         await file.write(json_data)
 
@@ -25,7 +25,7 @@ async def read_json_file():
 
 async def write_json_file(data):
     async with aiofiles.open('volumes_avg_prev.json', mode="w", encoding='utf-8') as file:
-        await file.write(json.dumps(data, indent=4))
+        await file.write(json.dumps(data, indent=4, ensure_ascii=False))
 
 async def update_json_data(key, value):
     data = await read_json_file()

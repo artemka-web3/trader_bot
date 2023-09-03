@@ -8,7 +8,7 @@ const fs = require('fs');
 const alert = require('alert');
 
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('../prod.sqlite3');
+var db = new sqlite3.Database('../db.db');
 
 const LOGIN = 'KDeOYMPCsp'
 const PASSWORD = 'cgdCYjFcOSWJYHW'
@@ -92,7 +92,13 @@ app.get('/getTokenMonth/:account_id/:trxId/:price/:email', async (req, res) => {
   var account_id = parseInt(req.params.account_id);
   var amount = parseInt(req.params.price)
   var email = req.params.email
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 999, trxId, null, account_id, async function (err) {
+  const currentDate = new Date();
+  const oneMonthLater = new Date(currentDate);
+  oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
+  
+  // Преобразование дат в формат DATETIME для SQLite (YYYY-MM-DD HH:MM:SS)
+  const formattedOneMonthLater = oneMonthLater.toISOString().slice(0, 19).replace('T', ' ');
+  db.run("UPDATE users SET money_paid = money_paid + ?, free_sub_end = ?, paid_sub_end = ?, in_payment_system = ? WHERE user_id = ?", 999, null, formattedOneMonthLater, 1, account_id, async function (err) {
     if (err) {
       return console.log(err.message);
     }
@@ -132,7 +138,13 @@ app.get('/getTokenSemiYear/:account_id/:trxId/:price/:email', async (req, res) =
   var account_id = parseInt(req.params.account_id);
   var amount = parseInt(req.params.price)
   var email = req.params.email
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 4999, trxId, null, account_id, async function (err) {
+  const currentDate = new Date();
+  const sixMonthsLater = new Date(currentDate);
+  sixMonthsLater.setMonth(oneMonthLater.getMonth() + 6);
+  
+  // Преобразование дат в формат DATETIME для SQLite (YYYY-MM-DD HH:MM:SS)
+  const formattedSixMonths = sixMonthsLater.toISOString().slice(0, 19).replace('T', ' ');
+  db.run("UPDATE users SET money_paid = money_paid + ?, free_sub_end = ?, paid_sub_end = ?, in_payment_system = ? WHERE user_id = ?", 4999, null, formattedSixMonths, 1, account_id, async function (err) {
     if (err) {
       return console.log(err.message);
     }
@@ -172,7 +184,13 @@ app.get('/getTokenYear/:account_id/:trxId/:price/:email', async (req, res) => {
   var account_id = parseInt(req.params.account_id);
   var amount = parseInt(req.params.price)
   var email = req.params.email
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", 7999, trxId, null, account_id, async function (err) {
+  const currentDate = new Date();
+  const yearLater = new Date(currentDate);
+  yearLater.setMonth(yearLater.getMonth() + 12);
+  
+  // Преобразование дат в формат DATETIME для SQLite (YYYY-MM-DD HH:MM:SS)
+  const formattedYear = yearLater.toISOString().slice(0, 19).replace('T', ' ');
+  db.run("UPDATE users SET money_paid = money_paid + ?, free_sub_end = ?, paid_sub_end = ?, in_payment_system = ? WHERE user_id = ?", 7999, null, formattedYear, 1, account_id, async function (err) {
     if (err) {
       return console.log(err.message);
     }
@@ -238,8 +256,32 @@ app.get('/pay/:account_id/:amount/:email', async (req, res) => {
   var amount = parseInt(req.params.amount)
   var email = req.params.email
   let usersData = [];
+  let formattedDate = ""
 
-  db.run("UPDATE users SET money_paid = money_paid + ?, trxId = ?, free_sub_end = ? WHERE user_id = ?", amount, null, null, account_id, async function (err) {
+  if (amount == 999){
+    let currentDate = new Date();
+    let monthLater = new Date(currentDate);
+    monthLater.setMonth(monthLater.getMonth() + 1);
+    
+    // Преобразование дат в формат DATETIME для SQLite (YYYY-MM-DD HH:MM:SS)
+    formattedDate = monthLater.toISOString().slice(0, 19).replace('T', ' ');
+  } else if(amount == 4999){
+    let currentDate = new Date();
+    let sixMonthsLater = new Date(currentDate);
+    sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+    
+    // Преобразование дат в формат DATETIME для SQLite (YYYY-MM-DD HH:MM:SS)
+    formattedDate = sixMonthsLater.toISOString().slice(0, 19).replace('T', ' ');
+  } else if(amount == 7999){
+    let currentDate = new Date();
+    let yearLater = new Date(currentDate);
+    yearLater.setMonth(yearLater.getMonth() + 12);
+    
+    // Преобразование дат в формат DATETIME для SQLite (YYYY-MM-DD HH:MM:SS)
+    formattedDate = yearLater.toISOString().slice(0, 19).replace('T', ' ');
+  }
+
+  db.run("UPDATE users SET money_paid = money_paid + ?, free_sub_end = ?, paid_sub_end = ? WHERE user_id = ?", amount, null, null, account_id, async function (err) {
     if (err) {
       return console.log(err.message);
     }

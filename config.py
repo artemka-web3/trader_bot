@@ -1,9 +1,12 @@
-API_TOKEN = "6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A"
-#6308710529:AAFl-NaUBefjTjUHFSMBDwtjnMNOgpwdAHs - stocks
-#6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A - радар
-PAYMENT_TOKEN_TEST = "381764678:TEST:61172"
-PAYMENT_TOKEN_PROD = '390540012:LIVE:36816'
-BOT_NICK = 'RadarMsk_bot'
-CLOUDPAYMENTS_PUBLIC_KEY = "pk_a1c3fd07cc4bc56f277ce4ac3f8ed"
-CLOUDPAYMENTS_API_SECRET = "8d3a80672a4985f41060018f3be3ed33"
-ADMINS = [764315256, 463014405, 1044290824]
+API_TOKEN = '6499076055:AAEkMdMR7nePwkLbJ0GnPt31VoC65daZBGo'
+ADMINS = [764315256]
+BOT_NICK = 'moscow_money_bot'
+ADMIN_MESSAGE = """
+/give_free_sub - дать бесплатную подписку пользователю
+/update_free_sub - обновить бесплатную подписку для пользователя
+/update_paid_sub_for_all - продлить платную подписку для всех
+/update_paid_sub_for_one - ghjlkbnm платную подписку пользователю
+/check_referal - проверить статистику реферала
+/make_partner - присвоить статус партнера
+/delete_partner - убрать статус партнера
+"""
