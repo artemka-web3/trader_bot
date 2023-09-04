@@ -32,14 +32,14 @@ def collect_stocks():
 
 def share_thread(stock, coef):
     while True:
-        if datetime.now().hour < 24 and datetime.now().hour > 10 and datetime.now().weekday() < 6:
+        if datetime.now(offset).hour < 24 and datetime.now(offset).hour > 10 and datetime.now(offset).weekday() < 6:
             tracked_volumes = read_json()
             volume_avg_prev = read_json_file()
             if volume_avg_prev != {}:
                 try:
-                    current_date = datetime.now().strftime("%Y-%m-%d")
-                    current_hour = ("0" + str(datetime.now().hour) if len(str(datetime.now().hour)) < 2 else str(datetime.now().hour))
-                    current_minute = ("0" + str(datetime.now().minute-1) if len(str(datetime.now().minute-1)) < 2 else str(datetime.now().minute - 1))
+                    current_date = datetime.now(offset).strftime("%Y-%m-%d")
+                    current_hour = ("0" + str(datetime.now(offset).hour) if len(str(datetime.now(offset).hour)) < 2 else str(datetime.now(offset).hour))
+                    current_minute = ("0" + str(datetime.now(offset).minute-1) if len(str(datetime.now(offset).minute-1)) < 2 else str(datetime.now(offset).minute - 1))
                     current_time = str(current_hour) + ":" + str(current_minute)
                     stock_data = get_stock_data(stock[0])
                     current_stock_data = get_current_stock_volume(stock[0], current_time)

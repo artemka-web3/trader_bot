@@ -1,21 +1,8 @@
 from cloudpayments import CloudPayments
 from db import *
-import json
-import asyncio
+from subs_json import *
 
 client = CloudPayments('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
-# for sub in client.list_subscriptions(6554601918):
-#     print(sub)
-def get_notifications():
-    with open("notifications.json", mode='r', encoding="utf-8") as file:
-        json_data = file.read()
-        data = json.loads(json_data)
-        return data
-
-def write_notifications(data):
-    json_data = json.dumps(data, indent=4, ensure_ascii=False)
-    with open('notifications.json', mode='w', encoding="utf-8") as file:
-        file.write(json_data)
 
 
 async def track_paid_subscriptions():

@@ -184,7 +184,7 @@ SUB_OPTIMIZE –– SUB_OPTIMIZE –– SUB_OPTIMIZE –– SUB_OPTIMIZE –– 
 """
 # check for free sub and for paid sub
 async def check_if_subed(user_id):
-    if do_have_paid_sub(user_id) or do_have_free_sub(user_id):
+    if await do_have_paid_sub(user_id) or await do_have_free_sub(user_id):
         return True
     return False
 # users with free sub and with paid sub

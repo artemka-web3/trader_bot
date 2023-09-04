@@ -67,7 +67,6 @@ def get_current_stock_volume(security, cur_time):
     current_date = datetime.now(offset)
     today = current_date.strftime('%Y-%m-%d')
     start_from_for_today = 0
-
     while True:
         url = f"http://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/{security}/candles.json?from={today}&till={today}&interval=1&start={start_from_for_today}"
         response = re.get(url, headers=headers, cookies=cookies)

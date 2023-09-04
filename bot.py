@@ -11,9 +11,8 @@ from config import *
 from db import *
 from fsm import *
 from keyboards import *
-from collect_avg_volumes import *
 from volumes_json import *
-from track_subs import *
+from subs_json import *
 import datetime as dt
 import logging
 import aioschedule
@@ -188,7 +187,7 @@ async def give_free_sub_step_choose_user(message: types.Message, state: FSMConte
     user_exists = await if_user_exists(int(message.text))
     if user_exists:
         if message.text.isdigit():
-            if do_have_free_sub(int(message.text)):
+            if await do_have_free_sub(int(message.text)):
                 await state.finish()
                 await message.answer("Этот пользователь уже имеет бесплатную подписку")
                 return
@@ -201,7 +200,7 @@ async def give_free_sub_step_choose_user(message: types.Message, state: FSMConte
                 await state.set_state(GiveFreeSub.choose_period)
         else:
             await state.finish()
-            await message.answer("Вы прислали не число. Начните заново вызвав /free_sub")
+            await message.answer("Вы прислали не число. Начните заново вызвав /give_free_sub")
     else:
         await state.reset_state()
         await add_user(user_id=int(message.text))
