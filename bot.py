@@ -467,7 +467,7 @@ async def send_notification_about_subscription():
                 logging.info(e)
 
 def schedule_tasks():
-    aioschedule.every(60).seconds.do(send)
+    aioschedule.every(30).seconds.do(send)
     aioschedule.every().hour.do(send_notification_about_subscription)
 
 
