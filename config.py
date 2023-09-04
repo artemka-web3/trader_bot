@@ -2,7 +2,7 @@ API_TOKEN = '6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A'
 # radar orig - 6378365333:AAHvruPmmI-ao7AT3PdXmd0BONVeMbTjc_A
 # moscow radar - 6499076055:AAEkMdMR7nePwkLbJ0GnPt31VoC65daZBGo
 ADMINS = [764315256, 463014405]
-BOT_NICK = 'moscow_money_bot'
+BOT_NICK = 'RadarMsk_bot'
 ADMIN_MESSAGE = """
 /give_free_sub - дать бесплатную подписку пользователю
 /update_free_sub - обновить бесплатную подписку для пользователя
