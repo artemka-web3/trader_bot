@@ -11,24 +11,25 @@ GROUP_CODE = '9fab4def-2fed-4b05-8b31-a23a3904b043'
 client = CloudPayments('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
 
 async def send_check_to_all():
-    current_date = datetime.now().strftime("%Y-%m-%d")
+    current_date = datetime.now()
     timezone = 'MSK'
     payments = client.list_payments(current_date, timezone)
     logging.info("send checks")
-    for item in payments:
-        print(item)
-        if "в Радаре Биржи" not in item.description.lower():
-            email_for_check = item.email
-            account_id = item.account_id
-            pay_state = item.status.lower()
-            terminal_url = item.terminal_url
-            paymentAmount = item.payment_amount
-            description = item.description
-            check_token = await get_check_token()
-            if pay_state == 'completed':
-                await generate_check(account_id, email_for_check, check_token, paymentAmount, terminal_url, description)
-            await asyncio.sleep(2)
-            # отправить
+    if payments:
+        for item in payments:
+            print(item)
+            if "в радаре биржи" not in item.description.lower():
+                email_for_check = item.email
+                account_id = item.account_id
+                pay_state = item.status.lower()
+                terminal_url = item.terminal_url
+                paymentAmount = item.payment_amount
+                description = item.description
+                check_token = await get_check_token()
+                if pay_state == 'completed':
+                    await generate_check(account_id, email_for_check, check_token, paymentAmount, terminal_url, description)
+                await asyncio.sleep(2)
+                # отправить
 
 async def get_check_token():
     requestData = {
