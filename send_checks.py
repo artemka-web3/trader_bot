@@ -9,6 +9,7 @@ PASSWORD = 'cgdCYjFcOSWJYHW'
 GROUP_CODE = '9fab4def-2fed-4b05-8b31-a23a3904b043'
 
 client = CloudPayments('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
+logging.basicConfig(level=logging.INFO)
 
 async def send_check_to_all():
     current_date = datetime.now()
