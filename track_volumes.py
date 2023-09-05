@@ -32,7 +32,7 @@ def collect_stocks():
 
 def share_thread(stock, coef):
     while True:
-        if datetime.now(offset).hour < 24 and datetime.now(offset).hour > 10 and datetime.now(offset).weekday() < 6:
+        if datetime.now(offset).weekday() < 6:
             tracked_volumes = read_json()
             volume_avg_prev = read_json_file()
             if volume_avg_prev != {}:
@@ -68,7 +68,7 @@ def share_thread(stock, coef):
                     check_volume = volume_avg_prev[stock[0]]
                     #print(f"{stock[0]} volume: {volume_rub} coef: {coef} check_volume: {check_volume} result: {bool(coef*check_volume<volume_rub)}")
                     #logging.info(f"{stock[0]} volume: {volume_rub} coef: {coef} check_volume: {check_volume} result: {bool(coef*check_volume<volume_rub)}")
-                    if check_volume * 0 < volume_rub and volume_rub > 1000000:
+                    if check_volume * coef < volume_rub and volume_rub > 1000000:
                         #print('Повышенные ', stock[0])
                         logging.info(f'Повышенные {stock[0]}')
                         data = {
