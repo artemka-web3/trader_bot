@@ -104,15 +104,15 @@ async def get_your_ref_data(message: types.Message):
         if await is_in_payment_system(message.from_user.id):
             if await do_have_paid_sub(message.from_user.id) and not await do_have_free_sub(message.from_user.id):
                 ref_traffic = await get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await get_money_amount_attracted_by_referer(message.from_user.id)}₽", reply_markup=keyb_for_subed, disable_web_page_preview=True)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await int(get_money_amount_attracted_by_referer(message.from_user.id))}₽", reply_markup=keyb_for_subed, disable_web_page_preview=True)
             elif not await do_have_paid_sub(message.from_user.id) and await do_have_free_sub(message.from_user.id):
                 ref_traffic = await get_referer_traffic(message.from_user.id) # кол-во людей
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await get_money_amount_attracted_by_referer(message.from_user.id)}₽", reply_markup=keyb_for_subed, disable_web_page_preview=True)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await int(get_money_amount_attracted_by_referer(message.from_user.id))}₽", reply_markup=keyb_for_subed, disable_web_page_preview=True)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
         else:
             if await do_have_free_sub(message.from_user.id):
-                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await get_money_amount_attracted_by_referer(message.from_user.id)}₽", reply_markup=keyb_for_subed, disable_web_page_preview=True)
+                await message.answer(f"Твоя реферальная ссылка: https://t.me/{BOT_NICK}?start={message.from_user.id}\n" + f"Кол-во привлеченных пользователей: {ref_traffic}\nКол-во денег, которые заплатили приглашенные вами юзеры: {await int(get_money_amount_attracted_by_referer(message.from_user.id))}₽", reply_markup=keyb_for_subed, disable_web_page_preview=True)
             else:
                 await message.answer("Вы не подписаны", reply_markup=keyb_for_unsubed)
     else:

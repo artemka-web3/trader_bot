@@ -254,6 +254,7 @@ async def get_money_amount_attracted_by_referer(referer_id):
         async with conn.execute('SELECT SUM(money_paid) FROM users WHERE referer_id = ?', (referer_id,)) as cursor:
             row = await cursor.fetchone()
             return row[0] if row else 0
+    return 0
 
 
 
