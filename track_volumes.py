@@ -68,7 +68,7 @@ def share_thread(stock, coef):
                     check_volume = volume_avg_prev[stock[0]]
                     #print(f"{stock[0]} volume: {volume_rub} coef: {coef} check_volume: {check_volume} result: {bool(coef*check_volume<volume_rub)}")
                     #logging.info(f"{stock[0]} volume: {volume_rub} coef: {coef} check_volume: {check_volume} result: {bool(coef*check_volume<volume_rub)}")
-                    if check_volume * 1 < volume_rub and volume_rub > 1000000:
+                    if check_volume * 0 < volume_rub and volume_rub > 1000000:
                         #print('Повышенные ', stock[0])
                         logging.info(f'Повышенные {stock[0]}')
                         data = {
