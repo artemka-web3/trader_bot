@@ -50,6 +50,6 @@ async def collecting_avg():
     logging.info('average volumes collected')
     await write_json_file(prev_volumes)
 
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(collecting_avg())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(collecting_avg())
 
