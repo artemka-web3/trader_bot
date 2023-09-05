@@ -53,12 +53,12 @@ async def track_free_subscriptions():
                 await set_free_sub_end(user[0], None)
                 write_notifications(notifications)
 
-async def main():
+async def track_all_subs():
     await track_paid_subscriptions()
     await asyncio.sleep(10)
     await track_free_subscriptions()
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
+# loop = asyncio.get_event_loop()
+# loop.run_until_complete(main())
 
 

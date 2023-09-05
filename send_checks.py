@@ -31,6 +31,7 @@ async def send_check_to_all():
                     await generate_check(account_id, email_for_check, check_token, paymentAmount, terminal_url, description)
                 await asyncio.sleep(2)
                 # отправить
+    logging.info("all checks were sent!")
 
 async def get_check_token():
     requestData = {
@@ -116,5 +117,5 @@ async def generate_check(account_id, email, token_evotor, amount, terminal_url, 
     else:
         logging.info("Error:", response.text)
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(send_check_to_all())
+# loop = asyncio.get_event_loop()
+# loop.run_until_complete(send_check_to_all())

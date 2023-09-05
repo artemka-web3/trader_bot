@@ -4,13 +4,16 @@ import datetime as dt
 from datetime import datetime, timedelta
 import asyncio
 from volumes_json import *
+import logging
 
+logging.basicConfig(level=logging.INFO)
 offset = dt.timezone(timedelta(hours=3))
 
 
 
 async def collecting_avg():
     await clear_json_file()
+    logging.info('started collecting average volumes')
     secs = await get_securities()
     prev_volumes = await read_json_file()
     for sec in secs:
@@ -44,8 +47,9 @@ async def collecting_avg():
         except Exception as e:
             print(e)
             await asyncio.sleep(.1)
+    logging.info('average volumes collected')
     await write_json_file(prev_volumes)
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(collecting_avg())
+# loop = asyncio.get_event_loop()
+# loop.run_until_complete(collecting_avg())
 
