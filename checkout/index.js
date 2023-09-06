@@ -281,7 +281,7 @@ app.get('/pay/:account_id/:amount/:email', async (req, res) => {
     formattedDate = yearLater.toISOString().slice(0, 19).replace('T', ' ');
   }
 
-  db.run("UPDATE users SET money_paid = money_paid + ?, free_sub_end = ?, paid_sub_end = ? WHERE user_id = ?", amount, null, null, account_id, async function (err) {
+  db.run("UPDATE users SET money_paid = money_paid + ?, free_sub_end = ?, paid_sub_end = ? WHERE user_id = ?", amount, null, formattedDate, account_id, async function (err) {
     if (err) {
       return console.log(err.message);
     }

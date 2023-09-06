@@ -1,5 +1,6 @@
 from datetime import datetime
 from cloudpayments import CloudPayments
+from aiocloudpayments import AioCpClient
 import logging
 import asyncio
 import requests
@@ -8,13 +9,13 @@ LOGIN = 'KDeOYMPCsp'
 PASSWORD = 'cgdCYjFcOSWJYHW'
 GROUP_CODE = '9fab4def-2fed-4b05-8b31-a23a3904b043'
 
-client = CloudPayments('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
+client = AioCpClient('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
 logging.basicConfig(level=logging.INFO)
 
 async def send_check_to_all():
     current_date = datetime.now()
     timezone = 'MSK'
-    payments = client.list_payments(current_date, timezone)
+    payments = await client.list_payments(current_date, timezone)
     logging.info("send checks")
     if payments:
         for item in payments:
@@ -22,13 +23,16 @@ async def send_check_to_all():
             if "в радаре биржи" not in item.description.lower():
                 email_for_check = item.email
                 account_id = item.account_id
-                pay_state = item.status.lower()
                 terminal_url = item.terminal_url
+                pay_state = item.status.lower()
                 paymentAmount = item.payment_amount
                 description = item.description
-                check_token = await get_check_token()
-                if pay_state == 'completed':
-                    await generate_check(account_id, email_for_check, check_token, paymentAmount, terminal_url, description)
+                try:
+                    check_token = await get_check_token()
+                    if pay_state == 'completed':
+                        await generate_check(account_id, email_for_check, check_token, paymentAmount, terminal_url, description)
+                except Exception as e:
+                    logging.info(e)
                 await asyncio.sleep(2)
                 # отправить
     logging.info("all checks were sent!")
@@ -117,5 +121,11 @@ async def generate_check(account_id, email, token_evotor, amount, terminal_url, 
     else:
         logging.info("Error:", response.text)
 
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(send_check_to_all())
+# current_date = datetime.now()
+# timezone = 'MSK'
+# payments = client.list_payments(current_date, timezone)
+# for p in payments:
+#     print(p.email)
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(send_check_to_all())
