@@ -58,8 +58,8 @@ async def track_all_subs():
     await asyncio.sleep(10)
     await track_free_subscriptions()
 
-for i in client.list_subscriptions(1105549622):
-    print(i)
+# for i in client.list_subscriptions(1105549622):
+#     print(i)
     
 # loop = asyncio.get_event_loop()
 # loop.run_until_complete(main())
