@@ -21,9 +21,9 @@ async def send_check_to_all():
         for item in payments:
             print(item)
             if "в радаре биржи" not in item.description.lower():
-                email_for_check = item.email
                 account_id = item.account_id
                 terminal_url = item.terminal_url
+                email_for_check = item.email
                 pay_state = item.status.lower()
                 paymentAmount = item.payment_amount
                 description = item.description
