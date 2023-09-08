@@ -250,10 +250,11 @@ async def get_ref_users(referer_id):
             return await cursor.fetchall()
     
 async def get_money_amount_attracted_by_referer(referer_id):
-    async with aiosqlite.connect('db.db') as conn:
-        async with conn.execute('SELECT SUM(money_paid) FROM users WHERE referer_id = ?', (referer_id,)) as cursor:
-            row = await cursor.fetchone()
-            return row[0] if row else 0
+    if referer_id is not None:
+        async with aiosqlite.connect('db.db') as conn:
+            async with conn.execute('SELECT SUM(money_paid) FROM users WHERE referer_id = ?', (referer_id,)) as cursor:
+                row = await cursor.fetchone()
+                return row[0] if row else 0
     return 0
 
 
