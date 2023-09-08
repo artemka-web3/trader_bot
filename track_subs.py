@@ -5,6 +5,7 @@ from subs_json import *
 client = CloudPayments('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
 
 
+
 async def track_paid_subscriptions():
     all_users = await get_all_users()
     print(1)
@@ -54,6 +55,7 @@ async def track_free_subscriptions():
                 write_notifications(notifications)
 
 async def track_all_subs():
+    #print(await get_subed_users())
     await track_paid_subscriptions()
     await asyncio.sleep(10)
     await track_free_subscriptions()
@@ -62,6 +64,6 @@ async def track_all_subs():
 #     print(i)
     
 # loop = asyncio.get_event_loop()
-# loop.run_until_complete(main())
+# loop.run_until_complete(track_all_subs())
 
 

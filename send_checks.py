@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from cloudpayments import CloudPayments
 from aiocloudpayments import AioCpClient
+from send_check_json import *
 import logging
 import asyncio
 import requests
@@ -10,32 +11,42 @@ PASSWORD = 'cgdCYjFcOSWJYHW'
 GROUP_CODE = '9fab4def-2fed-4b05-8b31-a23a3904b043'
 
 client = AioCpClient('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
+client1 = CloudPayments('pk_c8695290fec5bcb40f468cca846d2', 'd3119d06f156dad88a2ed516957b065b')
+
 logging.basicConfig(level=logging.INFO)
 
-async def send_check_to_all():
+async def collect_payments_task():
     current_date = datetime.now()
     timezone = 'MSK'
     payments = await client.list_payments(current_date, timezone)
-    logging.info("send checks")
-    if payments:
-        for item in payments:
-            print(item)
-            if "в радаре биржи" not in item.description.lower():
-                account_id = item.account_id
-                terminal_url = item.terminal_url
-                email_for_check = item.email
-                pay_state = item.status.lower()
-                paymentAmount = item.payment_amount
-                description = item.description
+    data = await read_trxs()
+    for p in payments:
+        if "в радаре биржи" not in p.description.lower() and p.status == 'Completed':
+            existing_trx_ids = [item["trx_id"] for item in data]
+            if p.transaction_id not in existing_trx_ids:
+                note = {"check": False, "trx_id": p.transaction_id, "terminal_url": p.terminal_url, "email": p.email, "amount": p.payment_amount, "description": p.description, "account_id": p.account_id}
+                data.append(note)
+                await write_trxs(data)
+
+async def send_checks_task():
+    data = await read_trxs()
+    await clear_trxs()
+    if data:
+        for item in data:
+            if not item['check']:
                 try:
-                    check_token = await get_check_token()
-                    if pay_state == 'completed':
-                        await generate_check(account_id, email_for_check, check_token, paymentAmount, terminal_url, description)
+                    token = await get_check_token()
+                    await generate_check(item['account_id'], item['email'], token, item['amount'], item['terminal_url'], item['description'])
+                    item['check'] = True
+                    await write_trxs(data)
                 except Exception as e:
                     logging.info(e)
-                await asyncio.sleep(2)
-                # отправить
-    logging.info("all checks were sent!")
+        logging.info('check were sent!')
+
+
+
+async def clearing():
+    await clear_trxs()
 
 async def get_check_token():
     requestData = {
@@ -121,11 +132,17 @@ async def generate_check(account_id, email, token_evotor, amount, terminal_url, 
     else:
         logging.info("Error:", response.text)
 
-# current_date = datetime.now()
-# timezone = 'MSK'
-# payments = client.list_payments(current_date, timezone)
-# for p in payments:
-#     print(p.email)
+async def checks_task():
+    await collect_payments_task()
+    await asyncio.sleep(60)
+    await send_checks_task()
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(send_check_to_all())
+# async def main():
+#     current_date = datetime.now() - timedelta(days=1)
+#     timezone = 'MSK'
+#     payments = await client.list_payments(current_date, timezone)
+#     for p in payments:
+#         print(p)
+
+# loop = asyncio.get_event_loop()
+# loop.run_until_complete(send_checks_task())
