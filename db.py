@@ -254,8 +254,8 @@ async def get_money_amount_attracted_by_referer(referer_id):
         async with aiosqlite.connect('db.db') as conn:
             async with conn.execute('SELECT SUM(money_paid) FROM users WHERE referer_id = ?', (referer_id,)) as cursor:
                 row = await cursor.fetchone()
-                return row[0] if row else 0
-    return 0
+                return row[0] if row[0] is not None else 0
+        return 0
 
 
 
@@ -285,10 +285,7 @@ async def get_money_paid_by_user(user_id):
 
 # # Main function to run the asynchronous code
 # async def main():
-#     await add_user(11111111111111)
-#     return await get_all_users()
-#     Call other functions as needed
+#     return await get_money_amount_attracted_by_referer(764315256)
 
-# if __name__ == "__main__":
 # loop = asyncio.get_event_loop()
 # print(loop.run_until_complete(main()))
