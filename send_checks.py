@@ -137,12 +137,12 @@ async def checks_task():
     await asyncio.sleep(60)
     await send_checks_task()
 
-# async def main():
-#     current_date = datetime.now() - timedelta(days=1)
-#     timezone = 'MSK'
-#     payments = await client.list_payments(current_date, timezone)
-#     for p in payments:
-#         print(p)
+async def main():
+    current_date = datetime.now()
+    timezone = 'MSK'
+    payments = await client.list_payments(current_date, timezone)
+    for p in payments:
+        print(p)
 
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(send_checks_task())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())

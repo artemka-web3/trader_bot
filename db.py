@@ -134,7 +134,7 @@ async def before_end_of_paid_sub(user_id):
     if paid_sub is not None:
         paid_sub = convert_strdate_to_date(paid_sub)
         if paid_sub > datetime.now(offset):
-            return (paid_sub - datetime.now(offset)).days
+            return str((paid_sub - datetime.now(offset)).days)
         
 async def do_have_paid_sub(user_id):
     paid_sub = await get_paid_sub_end(user_id)
@@ -284,8 +284,8 @@ async def get_money_paid_by_user(user_id):
 
 
 # # Main function to run the asynchronous code
-# async def main():
-#     return await get_money_amount_attracted_by_referer(764315256)
+async def main():
+    return await before_end_of_paid_sub(764315256)
 
-# loop = asyncio.get_event_loop()
-# print(loop.run_until_complete(main()))
+loop = asyncio.get_event_loop()
+print(loop.run_until_complete(main()))

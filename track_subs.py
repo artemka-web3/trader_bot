@@ -63,7 +63,7 @@ async def track_all_subs():
 # for i in client.list_subscriptions(1105549622):
 #     print(i)
     
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(track_all_subs())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(track_all_subs())
 
 
