@@ -10,7 +10,7 @@ offset = dt.timezone(timedelta(hours=3))
 
 def convert_strdate_to_date(strdate):
     try:
-        date_object = datetime.strptime(strdate, "%Y-%m-%d %H:%M:%S.%f")
+        date_object = datetime.strptime(strdate, "%Y-%m-%d %H:%M:%S.%f%z")
     except:
         date_object = datetime.strptime(strdate, "%Y-%m-%d %H:%M:%S%z")
     return date_object
@@ -158,11 +158,13 @@ async def is_in_payment_system(user_id):
             return bool(row[0])
 
 async def update_sub(user_id, days):
-    for sub in client.list_subscriptions(user_id):
+    for sub in client.list_subscriptions(str(user_id)):
         if sub.status == 'Active':
-            client.cancel_subscription(user_id)
-            await client.update_subscription(sub.id, start_date=datetime.now(offset)+timedelta(days=days+1))
-            await set_paid_sub_end(user_id, datetime.now(offset)+timedelta(days=days+1))
+            client.update_subscription(sub.id, start_date=convert_strdate_to_date(await get_paid_sub_end(user_id))+timedelta(days=days))
+            await set_paid_sub_end(user_id, convert_strdate_to_date(await get_paid_sub_end(user_id))+timedelta(days=days))
+
+async def update_sub_test(user_id, days):
+    await set_paid_sub_end(user_id, convert_strdate_to_date(await get_paid_sub_end(user_id))+timedelta(days=days))
 
             
 
@@ -172,8 +174,8 @@ async def update_sub_for_all(days):
         for sub in client.list_subscriptions(str(user)):
             if sub.status == 'Active':
                 client.cancel_subscription(sub.id)
-                client.update_subscription(sub.id, start_date=datetime.now(offset)+timedelta(days=days+1))
-                await set_paid_sub_end(user, datetime.now(offset)+timedelta(days=days+1))
+                client.update_subscription(sub.id, start_date=convert_strdate_to_date(await get_paid_sub_end(sub.account_id))+timedelta(days=days))
+                await set_paid_sub_end(user, convert_strdate_to_date(await get_paid_sub_end(sub.account_id))+timedelta(days=days+1))
 
 
 
@@ -281,11 +283,11 @@ async def get_money_paid_by_user(user_id):
             row = await cursor.fetchone()
             return row[0] if row else None
 
-
-
+for i in client.list_subscriptions(764315256):
+    print(i)
 # # Main function to run the asynchronous code
-async def main():
-    return await before_end_of_paid_sub(764315256)
+# async def main():
+#     return await before_end_of_paid_sub(764315256)
 
-loop = asyncio.get_event_loop()
-print(loop.run_until_complete(main()))
+# loop = asyncio.get_event_loop()
+# print(loop.run_until_complete(main()))

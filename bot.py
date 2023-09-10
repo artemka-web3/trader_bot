@@ -166,6 +166,7 @@ ADMIN HANDLERS –– ADMIN HANDLERS –– ADMIN HANDLERS –– ADMIN HANDLERS
 """
 @dp.message_handler(commands=['cancel'], state='*')
 async def cancel_command(message: types.Message, state: FSMContext):
+    await state.reset_state()
     await message.answer('Вы отменили все действия, весь прогресс сброшен')
 
 @dp.message_handler(commands=['admin'])
@@ -184,7 +185,11 @@ async def give_free_sub(message: types.Message, state: FSMContext):
         await message.answer('Вы не админ!')
 @dp.message_handler(state=GiveFreeSub.choose_id)
 async def give_free_sub_step_choose_user(message: types.Message, state: FSMContext):
-    user_exists = await if_user_exists(int(message.text))
+    try:
+        user_exists = await if_user_exists(int(message.text))
+    except:
+        await state.finish()
+        await message.answer("Что-то пошло не так, начните заново")
     if user_exists:
         if message.text.isdigit():
             if await do_have_free_sub(int(message.text)):
@@ -213,7 +218,7 @@ async def give_free_sub_step_choose_time(message: types.Message, state: FSMConte
             try:
                 await state.finish()
                 await bot.send_message(user_id, f'Вам выдана бесплатная подписка на {message.text} дней')
-                await set_free_sub_end(user_id, datetime.now() + timedelta(days=int(message.text)))
+                await set_free_sub_end(user_id, datetime.now(offset) + timedelta(days=int(message.text)))
                 await message.answer(f'Бесплатная подписка на {message.text} дней выдана пользователю и он об этом уведомление')
 
             except:
@@ -226,14 +231,18 @@ async def give_free_sub_step_choose_time(message: types.Message, state: FSMConte
 @dp.message_handler(commands=['update_free_sub'])
 async def add_days_to_free_sub(message: types.Message, state: FSMContext):
     if message.from_user.id in ADMINS:
-        await message.answer("Вам нужно ввести ID человека которому вы хотите дать бесплатную подписку. ID можно получить вот здесь отправив ссылку на профиль https://t.me/getmy_idbot", reply_markup=one_or_m)
+        await message.answer("Вам нужно ввести ID человека которому вы хотите дать бесплатную подписку. ID можно получить вот здесь отправив ссылку на профиль https://t.me/getmy_idbot")
         await state.set_state(UpdateFreeSubForOne.choose_id)
     else:
         await message.answer("Вы не админ")
 
 @dp.message_handler(state = UpdateFreeSubForOne.choose_id)
 async def set_period_for_free_sub(message: types.Message, state: FSMContext):
-    user_exists = await if_user_exists(int(message.text))
+    try:
+        user_exists = await if_user_exists(int(message.text))
+    except:
+        await state.finish()
+        await message.answer("Что-то пошло не так, начните заново")
     if user_exists:
         if message.text.isdigit():
             if not await do_have_paid_sub(int(message.text)):
@@ -297,13 +306,17 @@ async def update_sub_choose_days(message: types.Message, state: FSMContext):
 @dp.message_handler(commands=['update_paid_sub_for_one'])
 async def update_paid_sub_for_one(message: types.Message, state: FSMContext):
     if message.from_user.id in ADMINS:
-        await state.set_state(UpdateFreeSubForOne.choose_id)
+        await state.set_state(UpdatePaidSubForOne.choose_id)
         await message.answer('Вам нужно ввести ID человека которому вы хотите продлить платную подписку. ID можно получить вот здесь отправив ссылку на профиль https://t.me/getmy_idbot')
     else:
         await message.answer('Вы не админ')
-@dp.message_handler(state=UpdateFreeSubForOne.choose_id)
+@dp.message_handler(state=UpdatePaidSubForOne.choose_id)
 async def update_paid_sub_for_one_choose_id(message: types.Message, state: FSMContext):
-    user_exists = await if_user_exists(int(message.text))
+    try:
+        user_exists = await if_user_exists(int(message.text))
+    except:
+        await state.finish()
+        await message.answer("Что-то пошло не так, начните заново")
     if user_exists:
         if message.text.isdigit():
             if await is_in_payment_system(int(message.text)):
@@ -325,7 +338,7 @@ async def update_paid_sub_for_one_choose_id(message: types.Message, state: FSMCo
         await add_user(user_id=int(message.text))
         await message.answer('Этого человека нет в бд. \nНачните заново с другим пользователем вызвав /extend_sub')
 
-@dp.message_handler(state=UpdateFreeSubForOne.choose_period)
+@dp.message_handler(state=UpdatePaidSubForOne.choose_period)
 async def update_paid_sub_for_one_choose_period(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         user_id = None
@@ -333,10 +346,11 @@ async def update_paid_sub_for_one_choose_period(message: types.Message, state: F
             user_id = data['user_id']
         try:
             await state.finish()
+            await update_sub_test(user_id, days=int(message.text))
             await bot.send_message(user_id, f'Вам продлена платная подписка на {message.text} дней')
-            await update_sub(user_id, days=int(message.text))
             await message.answer("Подписка успешно продлена и пользователь об этом уведомлен")
-        except:
+        except Exception as e:
+            logging.info(e)
             await state.finish()
             await message.answer('До человека не дошло сообщения тк он заблокировал бота') 
     else:
@@ -372,10 +386,11 @@ async def make_partner(message: types.Message, state: FSMContext):
 async def set_partner_id(message: types.Message, state: FSMContext):
     try:
        await state.finish()
+       await set_partner(int(message.text))
        await bot.send_message(message.text, 'Вам просвоен статус партнера')
        await message.answer("Вы присвоили человеку статус партнера и он об этом уведомлен")
-       await set_partner(int(message.text))
-    except:
+    except Exception as e:
+       logging.info(e)
        await state.finish()
        await message.answer('До человека не дошло сообщения тк он заблокировал бота. Прогресс сброшен') 
     
@@ -383,19 +398,20 @@ async def set_partner_id(message: types.Message, state: FSMContext):
 @dp.message_handler(commands=['delete_partner'])
 async def delete_partner(message: types.Message, state: FSMContext):
     if message.from_user.id in ADMINS:
-        await state.set_state(MakePartner.choose_id)
+        await state.set_state(DelPartner.choose_id)
         await message.answer('Вам нужно ввести ID человека у которого вы хотите отнять статус партнера. ID можно получить вот здесь отправив ссылку на профиль https://t.me/getmy_idbot', disable_web_page_preview=True)
     else:
         await message.answer('Вы не админ')
         
-@dp.message_handler(commands=['delete_partner'])
+@dp.message_handler(state=DelPartner.choose_id)
 async def delete_partner_id(message: types.Message, state: FSMContext):
     try:
        await state.finish()
-       await bot.send_message(message.text, 'Вам просвоен статус партнера')
-       await message.answer("Вы присвоили человеку статус партнера и он об этом уведомлен")
        await del_partner(int(message.text))
-    except:
+       await bot.send_message(message.text, 'Теперь вы не являетесь партнером')
+       await message.answer("Вы убрали человеку статус партнера и он об этом уведомлен")
+    except Exception as e:
+       logging.info(e)
        await state.finish()
        await message.answer('До человека не дошло сообщения тк он заблокировал бота. Прогресс сброшен') 
 

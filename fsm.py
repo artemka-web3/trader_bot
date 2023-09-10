@@ -2,8 +2,11 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 
 
-# ____MAKE__PARTNER____
+# ____PARTNER____
 class MakePartner(StatesGroup):
+    choose_id = State()
+
+class DelPartner(StatesGroup):
     choose_id = State()
 
 

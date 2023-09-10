@@ -33,22 +33,16 @@ def create_not_first_time_buying_kb(user_id):
     return ex_b_keyb
 
 
-# time for sub kb
-time_for_sub_keyb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-time_for_sub_keyb.add(types.KeyboardButton(text="1 месяц"))
-time_for_sub_keyb.add(types.KeyboardButton(text="6 месяцев"))
-time_for_sub_keyb.add(types.KeyboardButton(text="Год"))
+# # time for sub kb
+# time_for_sub_keyb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+# time_for_sub_keyb.add(types.KeyboardButton(text="1 месяц"))
+# time_for_sub_keyb.add(types.KeyboardButton(text="6 месяцев"))
+# time_for_sub_keyb.add(types.KeyboardButton(text="Год"))
 
-# one or multiple users
-one_or_m = types.ReplyKeyboardMarkup(resize_keyboard=True , row_width=2)
-one_or_m.add(types.KeyboardButton(text="Один"))
-one_or_m.add(types.KeyboardButton(text="Несколько"))
-
-# confirm kb
-confirm_keyb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-confirm_keyb.add(types.KeyboardButton(text='Да'))
-confirm_keyb.add(types.KeyboardButton(text = 'Нет'))
-
+# # one or multiple users
+# one_or_m = types.ReplyKeyboardMarkup(resize_keyboard=True , row_width=2)
+# one_or_m.add(types.KeyboardButton(text="Один"))
+# one_or_m.add(types.KeyboardButton(text="Несколько"))
 
 
 
