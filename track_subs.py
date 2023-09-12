@@ -13,14 +13,29 @@ async def track_paid_subscriptions():
         user_id = user[0]
         for sub in client.list_subscriptions(user_id):
             if sub.status == 'Cancelled':
-                if not await do_have_paid_sub(user[0]):
+                print(f"{sub.account_id}", sub.start_date + timedelta(days=30))
+                if sub.start_date + timedelta(days=30) > datetime.now(offset):
+                    await set_paid_sub_end(user[0], sub.start_date + timedelta(days=30))
+                elif not await do_have_paid_sub(user[0]):
                     notifications = list(get_notifications())
-                    notification = {
-                        "receiver": user[0],
-                        "message": "Ваша платная подписка закончилась! Чтобы получать объемы от бота, активируйте ее еще раз!"
-                    }
-                    notifications.append(notification)
-                    write_notifications(notifications)
+                    is_receiver_present = any(item["receiver"] == user[0] for item in notifications)
+                    if not is_receiver_present:
+                        notification = {
+                            "receiver": user[0],
+                            "message": "Ваша платная подписка закончилась! Чтобы получать объемы от бота, активируйте ее еще раз!"
+                        }
+                        notifications.append(notification)
+                        write_notifications(notifications)  
+                elif sub.start_date + timedelta(days=30) <= datetime.now(offset): 
+                    notifications = list(get_notifications())
+                    is_receiver_present = any(item["receiver"] == user[0] for item in notifications)
+                    if not is_receiver_present:
+                        notification = {
+                            "receiver": user[0],
+                            "message": "Ваша платная подписка закончилась! Чтобы получать объемы от бота, активируйте ее еще раз!"
+                        }
+                        notifications.append(notification)
+                        write_notifications(notifications)            
                 # проверять start_date
                 # если она больше чем дата в БД
                 # то все окей
@@ -57,13 +72,12 @@ async def track_free_subscriptions():
 async def track_all_subs():
     #print(await get_subed_users())
     await track_paid_subscriptions()
-    await asyncio.sleep(10)
-    await track_free_subscriptions()
+
 
 # for i in client.list_subscriptions(1105549622):
 #     print(i)
     
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(track_all_subs())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(track_all_subs())
 
 

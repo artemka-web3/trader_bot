@@ -481,10 +481,11 @@ async def send_notification_about_subscription():
                 await bot.send_message(i['receiver'], i['message'])
             except Exception as e:
                 logging.info(e)
+    write_notifications([])
 
 def schedule_tasks():
     aioschedule.every(60).seconds.do(send)
-    aioschedule.every().hour.do(send_notification_about_subscription)
+    aioschedule.every(5).minutes.do(send_notification_about_subscription)
 
 
 async def main():
