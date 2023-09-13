@@ -61,23 +61,27 @@ async def track_free_subscriptions():
         if await get_free_sub_end(user_id):
             if not await do_have_free_sub(user_id):
                 notifications = list(get_notifications())
-                notification = {
-                    "receiver": user[0],
-                    "message": "Ваша бесплатная подписка закончилась!"
-                }
-                notifications.append(notification)
-                await set_free_sub_end(user[0], None)
-                write_notifications(notifications)
+                is_receiver_present = any(item["receiver"] == user[0] for item in notifications)
+                if not is_receiver_present:
+                    notification = {
+                        "receiver": user[0],
+                        "message": "Ваша бесплатная подписка закончилась!"
+                    }
+                    notifications.append(notification)
+                    await set_free_sub_end(user[0], None)
+                    write_notifications(notifications)
 
 async def track_all_subs():
     #print(await get_subed_users())
+    await track_free_subscriptions()
+    await asyncio.sleep(10)
     await track_paid_subscriptions()
 
 
 # for i in client.list_subscriptions(1105549622):
 #     print(i)
     
-loop = asyncio.get_event_loop()
-loop.run_until_complete(track_all_subs())
+# loop = asyncio.get_event_loop()
+# loop.run_until_complete(track_all_subs())
 
 

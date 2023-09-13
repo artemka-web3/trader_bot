@@ -234,8 +234,22 @@ app.get('/paymentWidget/:account_id/:amount', function (req, res) {
     value=>{
       if (value.getResponse().Model.toString() != ''){
         for(let sub of value.getResponse().Model){
+          let counter = 0;
+          if (sub.Interval == "Month"){
+            counter = 1
+          } else if(sub.Interval == "Year" && sub.Period == 2){
+            counter = 6
+          } else if(sub.Interval == "Year" &&  sub.Period == 1){
+            counter = 12
+          }
+          let compareDate = new Date(sub.StartDateIso)
+          compareDate.setMonth(compareDate.getMonth() + counter)
           if (sub.Status == "Active"){
             alert('Вы попали не на ту страницу. Вам нужно оформить подписку, так как у вас ее никогда не было! Вернитесь в телеграм бота и выберите нужную ссылку!')
+            return res.redirect('https://t.me/RadarMsk_bot')
+          }
+          else if(compareDate > new Date()){
+            alert('Вам следует вернуться в телеграм бота так как у вас есть действующая подписка')
             return res.redirect('https://t.me/RadarMsk_bot')
           }
           else{

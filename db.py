@@ -283,8 +283,8 @@ async def get_money_paid_by_user(user_id):
             row = await cursor.fetchone()
             return row[0] if row else None
 
-# for i in client.list_subscriptions(1892710536):
-#      print(i)
+# for i in client.list_subscriptions(1728772529):
+#     print(i)
 # # Main function to run the asynchronous code
 # async def main():
 #     return await before_end_of_paid_sub(764315256)
