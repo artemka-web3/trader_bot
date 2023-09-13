@@ -73,6 +73,7 @@ async def track_free_subscriptions():
 
 async def track_all_subs():
     #print(await get_subed_users())
+    #return await do_have_paid_sub(6132645711)
     await track_free_subscriptions()
     await asyncio.sleep(10)
     await track_paid_subscriptions()
@@ -82,6 +83,6 @@ async def track_all_subs():
 #     print(i)
     
 # loop = asyncio.get_event_loop()
-# loop.run_until_complete(track_all_subs())
+# print(loop.run_until_complete(track_all_subs()))
 
 

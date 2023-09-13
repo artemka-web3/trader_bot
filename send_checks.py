@@ -30,7 +30,6 @@ async def collect_payments_task():
 
 async def send_checks_task():
     data = await read_trxs()
-    await clear_trxs()
     if data:
         for item in data:
             if not item['check']:
@@ -136,6 +135,7 @@ async def checks_task():
     await collect_payments_task()
     await asyncio.sleep(60)
     await send_checks_task()
+    await clear_trxs()
 
 async def main():
     current_date = datetime.now()
@@ -144,5 +144,5 @@ async def main():
     for p in payments:
         print(p)
 
-# loop = asyncio.get_event_loop()
-# loop.run_until_complete(main())
+loop = asyncio.get_event_loop()
+loop.run_until_complete(collect_payments_task())

@@ -9,8 +9,7 @@ from track_subs import *
 def schedule_tasks():
     aioschedule.every().day.at("01:00").do(collecting_avg)
     aioschedule.every(4).minutes.do(track_all_subs)
-    aioschedule.every(5).minutes.do(collect_payments_task)
-    aioschedule.every(8).minutes.do(send_checks_task)
+    aioschedule.every(5).minutes.do(checks_task)
     aioschedule.every().day.at('23:59').do(clearing)
 
 
