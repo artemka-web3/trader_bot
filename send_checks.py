@@ -32,7 +32,7 @@ async def send_checks_task():
     data = await read_trxs()
     if data:
         for item in data:
-            if not item['check']:
+            if item['check'] == False:
                 try:
                     token = await get_check_token()
                     await generate_check(item['account_id'], item['email'], token, item['amount'], item['terminal_url'], item['description'])
@@ -133,9 +133,8 @@ async def generate_check(account_id, email, token_evotor, amount, terminal_url, 
 
 async def checks_task():
     await collect_payments_task()
-    await asyncio.sleep(60)
+    await asyncio.sleep(5)
     await send_checks_task()
-    await clear_trxs()
 
 
 async def main():
